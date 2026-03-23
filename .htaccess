@@ -1,0 +1,58 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Redireciona para a pasta public mantendo a URL limpa
+    RewriteCond %{HTTP_HOST} ^sisdp\.syel\.com\.br$ [NC,OR]
+    RewriteCond %{HTTP_HOST} ^www\.sisdp\.syel\.com\.br$
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+
+    # Redireciona wf-geral para a raiz
+    RewriteCond %{THE_REQUEST} /wf-geral [NC]
+    RewriteRule ^ / [R=301,L]
+</IfModule>
+
+# Redirecionamento interno para wf-geral quando acessar a raiz
+<IfModule mod_rewrite.c>
+    RewriteCond %{HTTP_HOST} ^sisdp\.syel\.com\.br$ [NC,OR]
+    RewriteCond %{HTTP_HOST} ^www\.sisdp\.syel\.com\.br$
+    RewriteCond %{REQUEST_URI} ^/$
+    RewriteRule ^(.*)$ /public/wf-geral [L]
+</IfModule>
+
+# 🔒 PROTEÇÃO SEGURA - BLOQUEIA APENAS ARQUIVOS SENSÍVEIS
+<FilesMatch "\.(env|log|htaccess|htpasswd|ini|phps|fla|psd|log|sh|awk|pl|swp)$">
+    # Apache 2.2
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+    # Apache 2.4
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+</FilesMatch>
+
+# ✅ PERMITE ARQUIVOS JavaScript, CSS, Imagens, etc.
+<FilesMatch "\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|map|json|xml|txt)$">
+    <IfModule mod_headers.c>
+        Header set Access-Control-Allow-Origin "*"
+    </IfModule>
+    
+    # Apache 2.4
+    <IfModule mod_authz_core.c>
+        Require all granted
+    </IfModule>
+</FilesMatch>
+
+# 🛡️ CONFIGURAÇÕES DE SEGURANÇA PARA AJAX
+<IfModule mod_headers.c>
+    # Headers para requisições AJAX
+    Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+    Header always set Access-Control-Allow-Headers "X-CSRF-TOKEN, X-Requested-With, Content-Type, Authorization, Accept"
+    Header always set Access-Control-Allow-Credentials "true"
+</IfModule>
+
+# 📝 LIDAR COM REQUISIÇÕES OPTIONS (CORS Preflight)
+RewriteCond %{REQUEST_METHOD} OPTIONS
+RewriteRule ^(.*)$ $1 [R=200,L]

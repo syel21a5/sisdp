@@ -1,0 +1,35 @@
+Delegado(a) de Polícia: DR. JOAO DA SILVA
+Escrivão/ã de Polícia: MARIA SOUZA
+Nº do B.O.: 1234/2025
+Nº do Inquérito Policial: IP-567/2025
+Natureza: ROUBO - ART. 157
+Data: 15/03/2025
+Hora: 14:30
+Endereço do fato: RUA DAS FLORES, 126, CENTRO, SAO PAULO - SP
+Local do fato: VIA PUBLICA
+
+Envolvidos:
+JOSE DA SILVA (VITIMA)
+Mãe: ANA DA SILVA
+Pai: PEDRO DA SILVA
+Nascimento: 01/01/1980
+RG: 12.345.678-9
+CPF: 123.456.789-00
+Endereço: RUA A, 10
+Telefone: (11) 99999-9999
+Profissão: VENDEDOR
+Naturalidade: SAO PAULO - SP
+Estado Civil: CASADO
+
+MARIO DOS SANTOS (AUTOR)
+Mãe: TERESA DOS SANTOS
+Pai: DESCONHECIDO
+Nascimento: 02/02/1990
+Documentos: 987654321 (RG)
+CPF: 987.654.321-00
+Endereço: RUA B, 20
+Profissão: DESEMPREGADO
+
+Objetos:
+CELULAR: IPHONE 15
+DINHEIRO: 100 REAIS

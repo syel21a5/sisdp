@@ -1,0 +1,4 @@
+{
+    "sql": "SELECT boe, data_cadastro, crime FROM administrativo LIMIT 5",
+    "bindings": []
+}
