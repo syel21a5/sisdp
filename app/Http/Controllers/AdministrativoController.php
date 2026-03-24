@@ -349,7 +349,7 @@ class AdministrativoController extends Controller
             $pythonCmd = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? 'python' : 'python3';
             // Comando de shell nativo para burlar o isolamento do Symfony Process no Windows
             $command = escapeshellcmd($pythonCmd) . " " . escapeshellarg($scriptPath) . " " . escapeshellarg($tmpPath) . " 2>&1";
-            $output = shell_exec($command);
+            $output = \shell_exec($command);
 
             // Limpa o arquivo temporário
             @unlink($tmpPath);

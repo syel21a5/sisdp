@@ -25,7 +25,7 @@ class PdfService
         $pythonCmd = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? 'python' : 'python3';
         $command = escapeshellcmd($pythonCmd) . " " . escapeshellarg($scriptPath) . " " . escapeshellarg($tempHtml) . " " . escapeshellarg($tempPdf) . " 2>&1";
         
-        $output = shell_exec($command);
+        $output = \shell_exec($command);
         $jsonStartPos = strpos($output, '{');
         if ($jsonStartPos !== false) {
              $outputJson = substr($output, $jsonStartPos);
