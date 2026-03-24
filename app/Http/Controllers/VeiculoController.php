@@ -455,7 +455,7 @@ class VeiculoController extends Controller
         $dataFim    = $request->data_fim    ? Carbon::parse($request->data_fim)    : null;
         $status     = $request->status      ?? null;
 
-        $query = DB::table('cadveiculos');
+        $query = DB::table('cadveiculo');
         
         if ($dataInicio && $dataFim) {
             $query->whereBetween('data', [$dataInicio->format('Y-m-d'), $dataFim->format('Y-m-d')]);
@@ -465,7 +465,7 @@ class VeiculoController extends Controller
             $query->where('status', $status);
         }
         $registros = $query->orderBy('data', 'desc')
-            ->get(['id', 'data', 'boe', 'processo', 'ip', 'pessoa', 'veiculo', 'placa', 'chassi', 'status']);
+            ->get(['id', 'data', 'boe', 'sei', 'ip', 'pessoa', 'veiculo', 'placa', 'chassi', 'status']);
 
         $registros->transform(function ($r) {
             $r->data = $r->data ? Carbon::parse($r->data)->format('d/m/Y') : '';
