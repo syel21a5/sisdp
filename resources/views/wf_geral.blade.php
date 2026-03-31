@@ -21,6 +21,13 @@
 
     <!-- Seu CSS personalizado -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+
+    <!-- jQuery + jQuery UI + jQuery Mask -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
     <!-- Menu Lateral -->
@@ -281,87 +288,7 @@
                 
             </div> <!-- fecha tab-content das abas principais -->
 
-            <!-- Modal de Sucesso -->
-            <div class="modal fade" id="modalSucesso" tabindex="-1" aria-labelledby="modalSucessoLabel" aria-hidden="true">
-                <div class="modal-dialog modal-sm modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header bg-success text-white">
-                            <h5 class="modal-title" id="modalSucessoLabel">Sucesso</h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body text-center">
-                            Registro salvo com sucesso!
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-success btn-sm" data-bs-dismiss="modal">OK</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Modal de Erro -->
-            <div class="modal fade" id="modalErro" tabindex="-1" aria-labelledby="modalErroLabel" aria-hidden="true">
-                <div class="modal-dialog modal-sm modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header bg-danger text-white">
-                            <h5 class="modal-title" id="modalErroLabel">Erro</h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body text-center" id="erroMensagem">
-                            <!-- Mensagem de erro será preenchida via JavaScript -->
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal">Fechar</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Modal de Confirmação de Exclusão -->
-            <div class="modal fade" id="modalConfirmacao" tabindex="-1" aria-labelledby="modalConfirmacaoLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header bg-danger text-white">
-                            <h5 class="modal-title" id="modalConfirmacaoLabel">Confirmar Exclusão</h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            Tem certeza que deseja excluir este registro?
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                            <button type="button" class="btn btn-danger" id="btnConfirmarExclusao">Excluir</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Modal de Confirmação de Exclusão para Condutor -->
-            <div class="modal fade" id="modalConfirmacaoCondutor" tabindex="-1" aria-labelledby="modalConfirmacaoCondutorLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header bg-danger text-white">
-                            <h5 class="modal-title" id="modalConfirmacaoCondutorLabel">Confirmar Exclusão</h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            Tem certeza que deseja excluir este condutor?
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                            <button type="button" class="btn btn-danger" id="btnConfirmarExclusaoCondutor">Excluir</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Bibliotecas principais -->
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script src="{{ asset('js/core.js') }}?v={{ time() }}"></script>
 
     <!-- Flatpickr JS -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>

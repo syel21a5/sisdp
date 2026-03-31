@@ -210,8 +210,8 @@ $(document).ready(function () {
                     $('#inputProfissaoVitima1').val(c.Profissao || '');
                     $('#inputInstrucaoVitima1').val(c.Instrucao || '');
                     $('#inputRGVitima1').val(c.RG || '');
-                    $('#inputCPFVitima1').val(c.CPF || '');
-                    $('#inputTelefoneVitima1').val(c.Telefone || '');
+                    $('#inputCPFVitima1').val(c.CPF || '').trigger('input');
+                    $('#inputTelefoneVitima1').val(c.Telefone || '(00) 00000-0000').trigger('input');
                     $('#inputMaeVitima1').val(c.Mae || '');
                     $('#inputPaiVitima1').val(c.Pai || '');
                     $('#inputEnderecoVitima1').val(c.Endereco || '');
@@ -253,8 +253,8 @@ $(document).ready(function () {
         $('#inputProfissaoVitima1').val(dados.Profissao || '');
         $('#inputInstrucaoVitima1').val(dados.Instrucao || '');
         $('#inputRGVitima1').val(dados.RG || '');
-        $('#inputCPFVitima1').val(dados.CPF || '');
-        $('#inputTelefoneVitima1').val(dados.Telefone || '');
+        $('#inputCPFVitima1').val(dados.CPF || '').trigger('input');
+        $('#inputTelefoneVitima1').val(dados.Telefone || '(00) 00000-0000').trigger('input');
         $('#inputMaeVitima1').val(dados.Mae || '');
         $('#inputPaiVitima1').val(dados.Pai || '');
         $('#inputEnderecoVitima1').val(dados.Endereco || '');
@@ -271,8 +271,8 @@ $(document).ready(function () {
         $('#inputIdadeVitima1').val('');
         $('#btnEditarVitima1, #btnExcluirVitima1').prop('disabled', true);
 
-        // ✅ EXCLUIR VÍNCULO AO CRIAR NOVA VITIMA1
-        excluirVinculoBoeVitima1();
+        // ✅ REMOVIDO: Excluir vínculo ao criar nova vítima (conflitava com sistema de chips)
+        // excluirVinculoBoeVitima1();
     });
 
     // === CRUD: SALVAR E EDITAR ===

@@ -233,8 +233,8 @@ $(document).ready(function () {
         $('#inputProfissaoOutro').val(dados.Profissao || '');
         $('#inputInstrucaoOutro').val(dados.Instrucao || '');
         $('#inputRGOutro').val(dados.RG || '');
-        $('#inputCPFOutro').val(dados.CPF || '');
-        $('#inputTelefoneOutro').val(dados.Telefone || '');
+        $('#inputCPFOutro').val(dados.CPF || '').trigger('input');
+        $('#inputTelefoneOutro').val(dados.Telefone || '(00) 00000-0000').trigger('input');
         $('#inputMaeOutro').val(dados.Mae || '');
         $('#inputPaiOutro').val(dados.Pai || '');
         $('#inputEnderecoOutro').val(dados.Endereco || '');
@@ -251,8 +251,8 @@ $(document).ready(function () {
         $('#inputIdadeOutro').val('');
         $('#btnEditarOutro, #btnExcluirOutro').prop('disabled', true);
 
-        // ✅ EXCLUIR VÍNCULO AO CRIAR NOVO REGISTRO
-        excluirVinculoBoeOutro();
+        // ✅ REMOVIDO: Excluir vínculo ao criar novo outro (conflitava com sistema de chips)
+        // excluirVinculoBoeOutro();
     });
 
     // === CRUD: SALVAR E EDITAR ===

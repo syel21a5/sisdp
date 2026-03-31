@@ -156,14 +156,30 @@
                     <div class="system-date" id="currentDateTime">{{ date('d/m/Y H:i:s') }}</div>
                     <div class="system-user">Usuário: {{ Auth::user()->nome ?? 'Administrador' }}</div>
                 </div>
-                <!-- Botão de Notificações Melhorado (Posicionado no canto superior direito) -->
-                <button type="button" class="btn btn-warning position-absolute shadow-sm" id="btnAlertas" style="display: none; padding: 10px 20px; font-weight: 600; border-radius: 8px; transition: all 0.3s ease; top: 20px; right: 320px; z-index: 1000;">
-                    <i class="bi bi-bell-fill me-2"></i>Pendências
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow" id="badgeAlertas" style="font-size: 0.75rem; padding: 0.35em 0.65em;">
-                        0
-                        <span class="visually-hidden">mensagens não lidas</span>
-                    </span>
-                </button>
+
+                <!-- ✅ ÁREA DE NOTIFICAÇÕES (canto superior direito) -->
+                <div class="position-absolute d-flex gap-2 align-items-center" style="top: 20px; right: 320px; z-index: 1000;">
+
+                    <!-- Botão: Sugestões de Colaboradores (NOVO) -->
+                    <button type="button" id="btnSugestoesPendentes" class="btn btn-warning shadow-sm d-none"
+                            style="font-weight:600; border-radius:8px; padding:8px 16px; font-size:0.85rem;"
+                            title="Sugestões de envolvidos aguardando sua aprovação">
+                        <i class="bi bi-people-fill me-1"></i>
+                        Sugestões
+                        <span class="badge rounded-pill bg-danger ms-1" id="badgeSugestoes">0</span>
+                    </button>
+
+                    <!-- Botão: Procedimentos Pendentes (existente, restaurado) -->
+                    <button type="button" id="btnAlertas" class="btn btn-danger shadow-sm"
+                            style="display:none; font-weight:600; border-radius:8px; padding:8px 16px; font-size:0.85rem;
+                                   background: linear-gradient(135deg, #dc3545, #9c2532); color:#fff; border:none;"
+                            title="Procedimentos sem movimentação">
+                        <i class="bi bi-bell-fill me-1"></i>
+                        Pendências
+                        <span class="badge rounded-pill bg-white text-dark ms-1" id="badgeAlertas">0</span>
+                    </button>
+
+                </div>
             </div>
 
             <!-- ABAS PRINCIPAIS - Para suportar abas dinâmicas -->
@@ -384,17 +400,18 @@
                                             <table class="table table-hover align-middle mb-0" id="gridResultados">
                                                 <thead class="bg-primary text-white">
                                                     <tr>
-                                                        <th class="py-2 text-white" style="width: 16.66%;">BOE PC</th>
-                                                        <th class="py-2 text-white" style="width: 16.66%;">BO PM</th>
-                                                        <th class="py-2 text-white" style="width: 16.66%;">IP</th>
-                                                        <th class="py-2 text-center text-white" style="width: 16.66%;">STATUS</th>
-                                                        <th class="py-2 text-center text-white" style="width: 16.66%;">PRIORIDADE</th>
-                                                        <th class="py-2 text-center text-white" style="width: 16.66%;">AÇÕES</th>
+                                                        <th class="py-2 text-white" style="width: 14%;">BOE PC</th>
+                                                        <th class="py-2 text-white" style="width: 14%;">BO PM</th>
+                                                        <th class="py-2 text-white" style="width: 15%;">IP</th>
+                                                        <th class="py-2 text-center text-white" style="width: 14%;">STATUS</th>
+                                                        <th class="py-2 text-center text-white" style="width: 15%;">PRIORIDADE</th>
+                                                        <th class="py-2 text-center text-white" style="width: 14%;">RESPONSÁVEL</th>
+                                                        <th class="py-2 text-center text-white" style="width: 14%;">AÇÕES</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     <tr>
-                                                        <td colspan="6" class="text-center py-3 text-muted">
+                                                        <td colspan="7" class="text-center py-3 text-muted">
                                                             <i class="bi bi-search display-6 d-block mb-2 opacity-25" style="font-size: 2rem;"></i>
                                                             Nenhum registro encontrado. Realize uma pesquisa.
                                                         </td>
@@ -556,19 +573,30 @@
 
             <!-- ============ MODAIS DO wf_modal ============ -->
 
-            <!-- Modal de Sucesso (Atualizado) -->
-            <div class="modal fade" id="modalSucesso" tabindex="-1" aria-labelledby="modalSucessoLabel" aria-hidden="true" data-bs-backdrop="false">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header bg-success text-white">
-                            <h5 class="modal-title" id="modalSucessoLabel">Sucesso</h5>
+            <!-- Modais Estáticos Removidos (Usando core.js dinâmico) -->
+
+            <!-- ✅ MODAL DE SUGESTÕES PENDENTES DE COLABORADORES -->
+            <div class="modal fade" id="modalSugestoesPendentes" tabindex="-1" aria-labelledby="modalSugestoesLabel" aria-hidden="true">
+                <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width: 950px;">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header" style="background: linear-gradient(135deg,#ff8c00,#ffd700); color:#fff;">
+                            <h5 class="modal-title fw-bold" id="modalSugestoesLabel">
+                                <i class="bi bi-people-fill me-2"></i>
+                                Sugestões de Envolvidos Aguardando Aprovação
+                            </h5>
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <div class="modal-body text-center" id="modalSucessoMsg">
-                            Operação realizada com sucesso!
+                        <div class="modal-body p-0">
+                            <div id="listaSugestoesPendentes" class="p-3">
+                                <div class="text-center text-muted py-4">
+                                    <i class="bi bi-hourglass-split fs-2"></i>
+                                    <p class="mt-2">Carregando sugestões...</p>
+                                </div>
+                            </div>
                         </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-success btn-sm" data-bs-dismiss="modal">OK</button>
+                        <div class="modal-footer bg-light">
+                            <small class="text-muted me-auto"><i class="bi bi-info-circle me-1"></i>Abra o BOE para aprovar ou rejeitar cada envolvido diretamente nos chips laranjas.</small>
+                            <button type="button" class="btn btn-secondary fw-bold px-4" data-bs-dismiss="modal">Fechar</button>
                         </div>
                     </div>
                 </div>
@@ -583,9 +611,19 @@
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <div class="alert alert-light border-warning" role="alert">
-                                <strong>Atenção!</strong> Os seguintes procedimentos estão sem movimentação há mais tempo do que o permitido para sua prioridade.
-                                <span id="resumoPendencias" class="ms-3 badge bg-secondary"></span>
+                            <!-- Legenda de Prazos -->
+                            <div class="alert alert-light border-warning shadow-sm mb-3" role="alert">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                    <div>
+                                        <i class="bi bi-info-circle-fill text-primary me-2"></i>
+                                        <strong>Regras de Inatividade:</strong> Procedimentos que ultrapassam os prazos abaixo aparecem aqui.
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <span class="badge bg-danger px-2 py-1"><i class="bi bi-alarm"></i> Alta: > 8d</span>
+                                        <span class="badge bg-warning text-dark px-2 py-1"><i class="bi bi-alarm"></i> Média: > 20d</span>
+                                        <span class="badge bg-success px-2 py-1"><i class="bi bi-alarm"></i> Baixa: > 50d</span>
+                                    </div>
+                                </div>
                             </div>
                             
                             <!-- Filtros e Busca -->
@@ -641,26 +679,7 @@
                 </div>
             </div>
 
-            <!-- Modal de Erro (Atualizado) -->
-            <!-- Modal de Erro (Elegant) -->
-            <div class="modal fade" id="modalErro" tabindex="-1" aria-labelledby="modalErroLabel" aria-hidden="true" data-bs-backdrop="false">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content border-0 shadow-lg rounded-3">
-                        <div class="modal-header bg-danger text-white border-0">
-                            <h5 class="modal-title fw-bold" id="modalErroLabel">Erro</h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body p-4 text-center">
-                            <h5 id="erroMensagem" class="fw-bold text-dark mb-0">
-                                <!-- Mensagem de erro preenchida via JS -->
-                            </h5>
-                        </div>
-                        <div class="modal-footer border-0 bg-light rounded-bottom-3">
-                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Fechar</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- Modal de Erro Removido -->
 
             <!-- Modal Genérico de Confirmação de Exclusão (Atualizado) -->
             <div class="modal fade" id="modalConfirmacaoGenerico" tabindex="-1" aria-labelledby="modalConfirmacaoGenericoLabel" aria-hidden="true">
@@ -718,7 +737,7 @@
                                     </div>
                                     <div class="mb-3">
                                         <label for="pdfBoe" class="form-label fw-bold">Selecione o arquivo PDF do BOE:</label>
-                                        <input class="form-control form-control-lg" type="file" id="pdfBoe" accept=".pdf">
+                                        <input class="form-control form-control-sm" type="file" id="pdfBoe" accept=".pdf">
                                     </div>
                                 </div>
                             </div>
@@ -936,28 +955,7 @@
                 </div>
             </div>
 
-            <!-- Modal de Alerta Genérico (Elegante) - Mantido como estava -->
-            <div class="modal fade" id="modalAlertaGenerico" tabindex="-1" aria-labelledby="modalAlertaGenericoLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content border-0 shadow-lg">
-                        <div class="modal-header bg-warning text-dark border-0">
-                            <h5 class="modal-title d-flex align-items-center" id="modalAlertaGenericoLabel">
-                                <i class="bi bi-exclamation-triangle-fill me-2"></i> Atenção
-                            </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body text-center py-4">
-                            <div class="mb-3">
-                                <i class="bi bi-info-circle text-warning" style="font-size: 3rem;"></i>
-                            </div>
-                            <h5 id="modalAlertaGenericoMensagem" class="fw-normal">Este registro já foi adicionado!</h5>
-                        </div>
-                        <div class="modal-footer border-0 justify-content-center pb-4">
-                            <button type="button" class="btn btn-warning px-5 fw-bold" data-bs-dismiss="modal">Entendi</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- Modal de Alerta Removido -->
 
         </div>
     </div>
@@ -967,6 +965,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+
+    
+    <!-- JS Central do Sistema (Modais Originais Restabelecidos) -->
+    <script src="{{ asset('js/core.js') }}?v={{ time() }}"></script>
 
     <!-- DataTables JS -->
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
@@ -1041,12 +1043,140 @@
             let paginaAtual = 1;
             const itensPorPagina = 7;
 
+            // ── Verificações ao carregar ──────────────────────────────
             verificarPendencias();
+            verificarSugestoesPendentes();
+            // Atualizar sugestões a cada 30 segundos
+            setInterval(verificarSugestoesPendentes, 30000);
 
+            // ── Botão Pendências de Procedimentos ────────────────────
             $('#btnAlertas').click(function() {
                 $('#modalPendencias').modal('show');
                 renderizarPendencias();
             });
+
+            // ── Botão Sugestões de Colaboradores ─────────────────────
+            $('#btnSugestoesPendentes').click(function() {
+                verificarSugestoesPendentes(true); // força recarregar e abre modal
+            });
+
+            // ── Lógica de Sugestões ───────────────────────────────────
+            function verificarSugestoesPendentes(abrirModal) {
+                $.ajax({
+                    url: '/boe/vinculos/sugestoes-pendentes',
+                    method: 'GET',
+                    success: function(resp) {
+                        if (resp.success && resp.count > 0) {
+                            $('#btnSugestoesPendentes').removeClass('d-none');
+                            $('#badgeSugestoes').text(resp.count);
+                            if (abrirModal) {
+                                renderizarSugestoes(resp.data);
+                                $('#modalSugestoesPendentes').modal('show');
+                            }
+                        } else {
+                            $('#btnSugestoesPendentes').addClass('d-none');
+                            if (abrirModal) {
+                                renderizarSugestoes([]);
+                                $('#modalSugestoesPendentes').modal('show');
+                            }
+                        }
+                    }
+                });
+            }
+
+            function renderizarSugestoes(grupos) {
+                const $lista = $('#listaSugestoesPendentes');
+                if (!grupos || grupos.length === 0) {
+                    $lista.html(`
+                        <div class="text-center text-muted py-5">
+                            <i class="bi bi-check-circle fs-1 text-success"></i>
+                            <p class="mt-3 fs-5">Nenhuma sugestão pendente!</p>
+                            <small>Todos os envolvidos sugeridos já foram processados.</small>
+                        </div>`);
+                    return;
+                }
+
+                let html = '';
+                grupos.forEach(function(grupo) {
+                    html += `
+                        <div class="card mb-3 border-warning shadow-sm">
+                            <div class="card-header d-flex justify-content-between align-items-center"
+                                 style="background:linear-gradient(135deg,#fff3cd,#ffeaa7);">
+                                <div>
+                                    <i class="bi bi-file-earmark-text text-warning me-2"></i>
+                                    <strong>BOE: ${grupo.boe}</strong>
+                                </div>
+                                <span class="badge bg-warning text-dark">${grupo.sugestoes.length} sugestão(ões)</span>
+                            </div>
+                            <ul class="list-group list-group-flush">`;
+                    grupo.sugestoes.forEach(function(s) {
+                        const tipoLabel = {CONDUTOR:'Condutor',VITIMA:'Vítima',AUTOR:'Autor',TESTEMUNHA:'Testemunha',OUTRO:'Outro'}[s.tipo_vinculo] || s.tipo_vinculo;
+                        const dataStr = s.created_at ? new Date(s.created_at).toLocaleString('pt-BR') : '';
+                        html += `
+                                <li class="list-group-item py-2 px-3">
+                                    <div class="d-flex align-items-center flex-nowrap w-100">
+                                        <span class="badge bg-secondary me-2 flex-shrink-0" style="min-width: 85px;">${tipoLabel}</span>
+                                        <span class="fw-bold text-uppercase text-truncate me-2" style="flex-grow: 1; font-size: 0.9rem;">${s.pessoa_nome}</span>
+                                        <div class="text-muted small text-nowrap flex-shrink-0" style="font-size: 0.75rem;">
+                                            <i class="bi bi-person me-1"></i>por <span class="text-dark fw-semibold">${s.criado_por_nome}</span>
+                                            <span class="mx-1">|</span>
+                                            <i class="bi bi-clock me-1"></i>${dataStr}
+                                        </div>
+                                    </div>
+                                </li>`;
+                    });
+                    html += `
+                            </ul>
+                            <div class="card-footer text-end py-2 bg-light">
+                                <button type="button" class="btn btn-sm btn-warning fw-bold" onclick="carregarBoeSugerido('${grupo.boe}')">
+                                    <i class="bi bi-box-arrow-in-right me-1"></i>Abrir BOE e Revisar
+                                </button>
+                            </div>
+                        </div>`;
+                });
+                $lista.html(html);
+            }
+
+            // Função global para ser chamada pelo onclick do botão gerado
+            window.carregarBoeSugerido = function(boe) {
+                $('#modalSugestoesPendentes').modal('hide');
+                
+                // Mudar para a aba de Início principal
+                $('#abasPrincipais a[href="#aba-inicio"]').tab('show');
+                // Ir para a sub-aba APFD | IP (onde fica a pesquisa)
+                $('#subAbasInicio a[href="#dados"]').tab('show');
+                
+                // Tenta carregar os dados diretamente via AJAX para abrir a ficha imediatamente
+                $.ajax({
+                    url: '/inicio/pesquisar',
+                    method: 'GET',
+                    data: {
+                        filtro: 'BOE',
+                        termo: boe
+                    },
+                    success: function(resp) {
+                        if (resp.success && resp.data && resp.data.length > 0) {
+                            // Carrega a ficha APFD do primeiro resultado exato
+                            OcorrenciasApp.carregarDadosRegistro(resp.data[0].id);
+                            // Rolar para o topo suavemente para ver o form preenchido
+                            $('html, body').animate({scrollTop: 0}, 'fast');
+                        } else {
+                            // Fallback clássico caso não retorne via API
+                            $('#ddlFiltro').val('BOE');
+                            $('#txtPesquisa').val(boe);
+                            $('#btnPesquisar').click();
+                            $('html, body').animate({scrollTop: 0}, 'fast');
+                        }
+                    },
+                    error: function() {
+                        // Faz a pesquisa normal se a requisição AJAX falhar
+                        $('#ddlFiltro').val('BOE');
+                        $('#txtPesquisa').val(boe);
+                        $('#btnPesquisar').click();
+                        $('html, body').animate({scrollTop: 0}, 'fast');
+                    }
+                });
+            };
 
             // Event listeners para filtros
             $('#filtroPrioridade, #filtroAno').change(function() {
@@ -1159,15 +1289,20 @@
 
                         html += `
                             <tr>
-                                <td><span class="badge ${badgeClass}">${item.prioridade}</span></td>
-                                <td class="text-center">${item.data_fato || '-'}</td>
-                                <td class="text-center">${item.BOE || '-'}</td>
-                                <td class="text-center">${item.IP || '-'}</td>
-                                <td class="text-center">${item.data_ult_mov}</td>
-                                <td class="text-center text-danger fw-bold">${item.dias_parado} dias</td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-primary btn-carregar-pendencia" data-id="${item.id}">
-                                        <i class="bi bi-eye"></i> Ver
+                                <td class="align-middle"><span class="badge ${badgeClass} w-100 py-2">${item.prioridade}</span></td>
+                                <td class="text-center align-middle">${item.data_fato || '-'}</td>
+                                <td class="text-center align-middle font-monospace fw-bold text-primary">${item.BOE || '-'}</td>
+                                <td class="text-center align-middle font-monospace">${item.IP || '-'}</td>
+                                <td class="text-center align-middle">${item.data_ult_mov}</td>
+                                <td class="text-center align-middle">
+                                    <span class="text-danger fw-bold fs-6">${item.dias_parado} dias</span>
+                                    <div class="progress mt-1" style="height: 4px;">
+                                        <div class="progress-bar ${item.dias_parado > 50 ? 'bg-danger' : 'bg-warning'}" role="progressbar" style="width: ${Math.min(item.dias_parado, 100)}%"></div>
+                                    </div>
+                                </td>
+                                <td class="text-center align-middle">
+                                    <button class="btn btn-sm btn-outline-primary btn-carregar-pendencia shadow-sm" data-id="${item.id}">
+                                        <i class="bi bi-box-arrow-in-right"></i> Abrir
                                     </button>
                                 </td>
                             </tr>

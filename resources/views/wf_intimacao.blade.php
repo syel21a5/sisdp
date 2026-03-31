@@ -147,8 +147,14 @@
                 .bg-chip-envolvido { background-color: #7f8c8d !important; color: #fff !important; }
                 
                 .chip-selecao:hover {
-                    filter: brightness(0.9);
-                    transform: scale(1.02);
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+                    border-color: rgba(0,0,0,0.3) !important;
+                    filter: none !important;
+                    backface-visibility: hidden;
+                    -webkit-font-smoothing: subpixel-antialiased;
+                }
+                .chip-selecao {
+                   transition: transform 0.2s ease, box-shadow 0.2s ease !important;
                 }
             </style>
 
@@ -235,8 +241,8 @@
                                         <label for="inputReferenciaIntimacao" class="form-label">Referência (BOE)</label>
                                         <div class="input-group">
                                             <input type="text" class="form-control" placeholder="BOE" name="BOE" id="inputReferenciaIntimacao">
-                                            <button class="btn btn-outline-primary" type="button" id="btnImportarBoeIntimacao" title="Carregar do BOE">
-                                                <i class="bi bi-cloud-download"></i>
+                                            <button class="btn btn-info text-dark" type="button" data-bs-toggle="modal" data-bs-target="#modalImportarBoeIntimacao" title="Importar Histórico do BOE">
+                                                <i class="bi bi-upload"></i>
                                             </button>
                                         </div>
                                     </div>
@@ -412,12 +418,53 @@
         </div>
     </div>
 
-    <!-- Modais -->
-    <div class="modal fade" id="modalSucessoIntimacao" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-success text-white"><h5 class="modal-title">Sucesso</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p id="sucessoMensagemIntimacao"></p></div><div class="modal-footer"><button type="button" class="btn btn-success" data-bs-dismiss="modal">OK</button></div></div></div></div>
-    <div class="modal fade" id="modalErroIntimacao" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-danger text-white"><h5 class="modal-title">Erro</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p id="erroMensagemIntimacao"></p></div><div class="modal-footer"><button type="button" class="btn btn-danger" data-bs-dismiss="modal">Fechar</button></div></div></div></div>
-    <div class="modal fade" id="modalConfirmacaoIntimacao" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-warning"><h5 class="modal-title">Confirmação</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Tem certeza que deseja excluir esta intimação?</p></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button type="button" class="btn btn-danger" id="btnConfirmarExclusaoIntimacao">Excluir</button></div></div></div></div>
+    <!-- Modal Confirmar Exclusão Intimação (Substituído por window.confirmarExclusaoGenerica no core.js) -->
     
-    <div class="modal fade" id="modalImportarBoeIntimacao" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Importar do BOE</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><ul class="nav nav-tabs mb-3"><li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#content-texto-intimacao" type="button">Texto</button></li><li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#content-pdf-intimacao" type="button">PDF</button></li></ul><div class="tab-content"><div class="tab-pane fade show active" id="content-texto-intimacao"><textarea class="form-control" id="textoBoeIntimacao" rows="10"></textarea></div><div class="tab-pane fade" id="content-pdf-intimacao"><input class="form-control" type="file" id="pdfBoeIntimacao" accept=".pdf"></div></div><div id="boeProgressWrapperIntimacao" class="mt-3" style="display:none;"><div class="progress"><div id="boeProgressBarIntimacao" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div></div></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button><button type="button" class="btn btn-primary" id="btnProcessarBoeIntimacao">Processar</button></div></div></div></div>
+    <!-- Modal Importar BOE Intimação - Premium -->
+    <div class="modal fade" id="modalImportarBoeIntimacao" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content border-0 shadow-lg rounded-3">
+                        <div class="modal-header border-0">
+                            <h5 class="modal-title fw-bold" id="modalImportarBoeLabel">Importar Dados de Intimação do BOE pelo Sistema</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <ul class="nav nav-tabs mb-3" id="intimacaoImportTabs">
+                                <li class="nav-item">
+                                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#content-texto-intimacao" type="button"><i class="bi bi-card-text me-1"></i> 📝 Colar Texto (Rápido)</button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#content-pdf-intimacao" type="button"><i class="bi bi-file-earmark-pdf text-danger me-1"></i> 📄 Enviar PDF</button>
+                                </li>
+                            </ul>
+                            <div class="tab-content">
+                                <div class="tab-pane fade show active" id="content-texto-intimacao">
+                                    <div class="alert alert-info"><i class="bi bi-magic me-1"></i> <strong>Extração pelo Sistema:</strong> Copie o texto completo do Boletim de Ocorrência e cole abaixo.</div>
+                                    <textarea class="form-control" id="textoBoeIntimacao" rows="10" placeholder="Cole o texto do BOE aqui..."></textarea>
+                                </div>
+                        <div class="tab-pane fade" id="content-pdf-intimacao">
+                            <div class="alert alert-warning"><i class="bi bi-file-earmark-pdf me-1"></i> <strong>Leitura de PDF:</strong> O arquivo será analisado pelo sistema.</div>
+                            <input class="form-control" type="file" id="pdfBoeIntimacao" accept=".pdf">
+                        </div>
+                    </div>
+
+                    <div id="boeProgressWrapperIntimacao" class="mt-3" style="display:none;">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small class="text-muted fw-bold">🤖 O sistema está processando o BOE...</small>
+                            <small class="text-muted" id="boeProgressPercentIntimacao">0%</small>
+                        </div>
+                        <div class="progress" style="height:10px; border-radius:10px;">
+                            <div id="boeProgressBarIntimacao" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" style="width: 0%; border-radius:10px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-light rounded-bottom-3">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-primary fw-bold" id="btnProcessarBoeIntimacao">Processar pelo Sistema</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="modal fade" id="modalDetalhesData" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header bg-primary text-white"><h5 class="modal-title">Detalhes da Data</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body" id="conteudoDetalhesData"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button></div></div></div></div>
 
@@ -427,6 +474,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/pt.js"></script>
+    
+    <!-- JS Central do Sistema -->
+    <script src="{{ asset('js/core.js') }}"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -445,6 +495,7 @@
             ultimos: "{{ route('intimacao.ultimos') }}",
             editor: "{{ route('intimacao.editor', '') }}"
         };
+    </script>
     </script>
 
     <script src="{{ asset('js/script_intimacao.js') }}"></script>

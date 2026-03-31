@@ -318,58 +318,7 @@
     </div>
 </div>
 
-<!-- Modais para feedback -->
-<div class="modal fade" id="modalSucessoCelular" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="tituloModalSucessoCelular" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title" id="tituloModalSucessoCelular">Sucesso</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p id="sucessoMensagemCelular"></p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-success" data-bs-dismiss="modal">OK</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="modalErroCelular" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="tituloModalErroCelular" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="tituloModalErroCelular">Erro</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p id="erroMensagemCelular"></p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Fechar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="modalConfirmacaoCelular" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="tituloModalConfirmacaoCelular" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-warning">
-                <h5 class="modal-title" id="tituloModalConfirmacaoCelular">Confirmação</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Tem certeza que deseja excluir este celular?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-danger" id="btnConfirmarExclusaoCelular">Excluir</button>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- Modais para feedback (agora centralizados no core.js) -->
 
 <script>
     // Inicializa o flatpickr

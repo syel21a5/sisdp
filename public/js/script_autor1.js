@@ -330,8 +330,8 @@ $(document).ready(function () {
                     $('#inputProfissaoAutor1').val(c.Profissao || '');
                     $('#inputInstrucaoAutor1').val(c.Instrucao || '');
                     $('#inputRGAutor1').val(c.RG || '');
-                    $('#inputCPFAutor1').val(c.CPF || '');
-                    $('#inputTelefoneAutor1').val(c.Telefone || '');
+                    $('#inputCPFAutor1').val(c.CPF || '').trigger('input');
+                    $('#inputTelefoneAutor1').val(c.Telefone || '(00) 00000-0000').trigger('input');
                     $('#inputMaeAutor1').val(c.Mae || '');
                     $('#inputPaiAutor1').val(c.Pai || '');
                     $('#inputEnderecoAutor1').val(c.Endereco || '');
@@ -403,8 +403,9 @@ $(document).ready(function () {
         $('#inputProfissaoAutor1').val(dados.Profissao || '');
         $('#inputInstrucaoAutor1').val(dados.Instrucao || '');
         $('#inputRGAutor1').val(dados.RG || '');
-        $('#inputCPFAutor1').val(dados.CPF || '');
-        $('#inputTelefoneAutor1').val(dados.Telefone || '');
+        $('#inputCPFAutor1').val(dados.CPF || '').trigger('input');
+        // Preenche com (00) 00000-0000 se vazio, conforme solicitado
+        $('#inputTelefoneAutor1').val(dados.Telefone || '(00) 00000-0000').trigger('input');
         $('#inputMaeAutor1').val(dados.Mae || '');
         $('#inputPaiAutor1').val(dados.Pai || '');
         $('#inputEnderecoAutor1').val(dados.Endereco || '');
@@ -445,8 +446,8 @@ $(document).ready(function () {
         $('#inputDataMandadoAutor1').val('');
         $('#btnEditarAutor1, #btnExcluirAutor1').prop('disabled', true);
 
-        // ✅ EXCLUIR VÍNCULO AO CRIAR NOVO AUTOR1
-        excluirVinculoBoeAutor1();
+        // ✅ REMOVIDO: Excluir vínculo ao criar novo autor (conflitava com sistema de chips)
+        // excluirVinculoBoeAutor1();
     });
 
     // === CRUD: SALVAR E EDITAR ===

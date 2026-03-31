@@ -164,7 +164,12 @@
                                     </div>
                                     <div class="col-md-3">
                                         <label for="inputBoeCelular" class="form-label">BOE</label>
-                                        <input type="text" class="form-control" placeholder="BOE" name="boe" id="inputBoeCelular" required>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" placeholder="BOE" name="boe" id="inputBoeCelular" required>
+                                            <button class="btn btn-info text-dark" type="button" data-bs-toggle="modal" data-bs-target="#modalImportarCelular" title="Importar Histórico do BOE">
+                                                <i class="bi bi-upload"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                     <div class="col-md-3">
                                         <label for="inputProcessoCelular" class="form-label">Processo - SEI</label>
@@ -439,10 +444,82 @@
                 </div>
             </div>
 
+            <!-- Modal para Importação Híbrida de Celulares via IA -->
+            <x-modal id="modalImportarCelular" title="Importar Dados de Celulares do BOE pelo Sistema" size="modal-lg" headerClass="bg-primary text-white border-0" closeWhite="true">
+                <!-- Abas de Navegação -->
+                <ul class="nav nav-tabs mb-3" id="celularImportTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="tab-texto-celular" data-bs-toggle="tab" data-bs-target="#content-texto-celular" type="button" role="tab"><i class="bi bi-card-text me-1"></i> 📝 Colar Texto (Rápido)</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tab-pdf-celular" data-bs-toggle="tab" data-bs-target="#content-pdf-celular" type="button" role="tab"><i class="bi bi-file-earmark-pdf text-danger me-1"></i> 📄 Enviar Arquivo PDF</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="celularImportTabsContent">
+                    <!-- Aba de Texto -->
+                    <div class="tab-pane fade show active" id="content-texto-celular" role="tabpanel">
+                        <div class="alert alert-info">
+                            <i class="bi bi-magic me-1"></i> <strong>Extração pelo Sistema:</strong> Copie o texto completo do Boletim de Ocorrência e cole abaixo.
+                        </div>
+                        <div class="mb-3">
+                            <textarea class="form-control" id="textoBoeCelular" rows="8" placeholder="Copie todo o texto do BOE e cole aqui..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Aba de PDF -->
+                    <div class="tab-pane fade" id="content-pdf-celular" role="tabpanel">
+                        <div class="alert alert-warning">
+                            <i class="bi bi-file-earmark-pdf me-1"></i> <strong>Leitura de PDF:</strong> O arquivo PDF será inspecionado pelo sistema.
+                        </div>
+                        <div class="mb-3">
+                            <label for="pdfBoeCelular" class="form-label fw-bold">Selecione o arquivo PDF do BOE:</label>
+                            <input class="form-control" type="file" id="pdfBoeCelular" accept=".pdf">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Barra de Progresso da IA -->
+                <div id="celularProgressWrapper" class="mt-3" style="display:none;">
+                    <div class="d-flex justify-content-between mb-1">
+                        <small class="text-muted fw-bold" id="celularProgressLabel">🤖 O sistema está analisando os celulares...</small>
+                        <small class="text-muted" id="celularProgressPercent">0%</small>
+                    </div>
+                    <div class="progress" style="height: 8px; border-radius: 10px;">
+                        <div id="celularProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 0%; border-radius: 10px;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+
+                <x-slot name="footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-primary fw-bold" id="btnProcessarBoeCelular">
+                        <i class="bi bi-cpu me-1"></i> Processar pelo Sistema
+                    </button>
+                </x-slot>
+            </x-modal>
+
             <!-- Modais para feedback -->
-            <div class="modal fade" id="modalSucessoCelular" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-success text-white"><h5 class="modal-title">Sucesso</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p id="sucessoMensagemCelular"></p></div><div class="modal-footer"><button type="button" class="btn btn-success" data-bs-dismiss="modal">OK</button></div></div></div></div>
-            <div class="modal fade" id="modalErroCelular" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-danger text-white"><h5 class="modal-title">Erro</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p id="erroMensagemCelular"></p></div><div class="modal-footer"><button type="button" class="btn btn-danger" data-bs-dismiss="modal">Fechar</button></div></div></div></div>
-            <div class="modal fade" id="modalConfirmacaoCelular" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-warning"><h5 class="modal-title">Confirmação</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Tem certeza que deseja excluir este celular?</p></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button type="button" class="btn btn-danger" id="btnConfirmarExclusaoCelular">Excluir</button></div></div></div></div>
+            <x-modal id="modalSucessoCelular" title="Sucesso" headerClass="bg-success text-white" icon="bi-check-circle-fill" bodyClass="text-center py-5">
+                <h5 id="sucessoMensagemCelular" class="text-success mb-0"></h5>
+                <x-slot name="footer">
+                    <button type="button" class="btn btn-success px-4" data-bs-dismiss="modal">OK</button>
+                </x-slot>
+            </x-modal>
+
+            <x-modal id="modalErroCelular" title="Erro" headerClass="bg-danger text-white" icon="bi-x-circle-fill" bodyClass="text-center py-5">
+                <h5 id="erroMensagemCelular" class="text-danger mb-0"></h5>
+                <x-slot name="footer">
+                    <button type="button" class="btn btn-danger px-4" data-bs-dismiss="modal">Fechar</button>
+                </x-slot>
+            </x-modal>
+
+            <x-modal id="modalConfirmacaoCelular" title="Confirmação" headerClass="bg-warning text-dark" icon="bi-exclamation-triangle-fill" closeWhite="false" bodyClass="text-center py-5">
+                <h5 class="mb-0">Tem certeza que deseja excluir este celular?</h5>
+                <x-slot name="footer">
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger px-4" id="btnConfirmarExclusaoCelular">Excluir</button>
+                </x-slot>
+            </x-modal>
 
         </div>
     </div>
@@ -452,6 +529,11 @@
     <script>
         window.currentUserId = {{ $userId ?? 'null' }};
         window.isAdminUser = {{ isset($isAdmin) && $isAdmin ? 'true' : 'false' }};
+    </script>
+    <script>
+        var rotasCelular = {
+            importarBoeTexto: "{{ route('celular.importar_boe_texto') }}"
+        };
     </script>
     <!-- / Dados globais de Auth para o JS -->
 
@@ -466,6 +548,9 @@
 
     <!-- Chart.js para os gráficos de Distribuição de Status -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <!-- JS Central do Sistema -->
+    <script src="{{ asset('js/core.js') }}"></script>
 
     <!-- Rotas do Celular -->
     <script>
@@ -493,6 +578,7 @@
             exportarExcel: "{{ route('celular.exportar.excel') }}",
             exportarPdf: "{{ route('celular.exportar.pdf') }}"
         };
+
     </script>
 
     <!-- JavaScript específico do celular -->

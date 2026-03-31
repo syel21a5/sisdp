@@ -34,7 +34,9 @@ class InicioController extends Controller
         $dataLimiteMedia = now()->subDays(20);
         $dataLimiteBaixa = now()->subDays(50);
 
-        $pendencias = DB::table('cadprincipal')
+        $user = \Illuminate\Support\Facades\Auth::user();
+
+        $query = DB::table('cadprincipal')
             ->where(function ($query) use ($dataLimiteAlta, $dataLimiteMedia, $dataLimiteBaixa) {
                 $query->where(function ($q) use ($dataLimiteAlta) {
                     $q->where('prioridade', 'ALTA PRIORIDADE')
@@ -49,8 +51,14 @@ class InicioController extends Controller
                             ->where('updated_at', '<', $dataLimiteBaixa);
                     });
             })
-            ->where('status', 'Em andamento')
-            ->orderBy('updated_at', 'asc')
+            ->where('status', 'Em andamento');
+
+        // Administradores veem pendências de todos; demais usuários veem apenas as suas
+        if ($user && $user->nivel_acesso !== 'administrador') {
+            $query->where('usuario_id', $user->id);
+        }
+
+        $pendencias = $query->orderBy('updated_at', 'asc')
             ->get(['id', 'BOE', 'IP', 'updated_at', 'prioridade', 'status', 'data_fato']);
 
         $pendencias->transform(function ($item) {
@@ -75,13 +83,19 @@ class InicioController extends Controller
         ]);
 
         $registros = DB::table('cadprincipal')
-            ->where($request->filtro, 'LIKE', "%{$request->termo}%")
-            ->orderBy('data', 'desc')
+            ->leftJoin('usuario', 'cadprincipal.usuario_id', '=', 'usuario.id')
+            ->where('cadprincipal.'.$request->filtro, 'LIKE', "%{$request->termo}%")
+            ->orderBy('cadprincipal.data', 'desc')
             ->limit(5)
-            ->get(['id', 'BOE', 'boe_pm', 'IP', 'data', 'status', 'prioridade']);
+            ->get([
+                'cadprincipal.id', 'cadprincipal.BOE', 'cadprincipal.boe_pm', 'cadprincipal.IP', 
+                'cadprincipal.data', 'cadprincipal.status', 'cadprincipal.prioridade',
+                'usuario.nome as owner_name'
+            ]);
 
         $registros->transform(function ($item) {
             $item->data_formatada = Carbon::parse($item->data)->format('d/m/Y');
+            $item->owner_name = $item->owner_name ?? '-';
             return $item;
         });
 
@@ -104,7 +118,6 @@ class InicioController extends Controller
 
         $registro->data_formatada = Carbon::parse($registro->data)->format('d/m/Y');
 
-        // Decodificar os envolvidos do JSON
         // Decodificar os envolvidos do JSON com verificação de existência
         $vitimasRaw = $registro->vitimas ?? $registro->Vitimas ?? null;
         $autoresRaw = $registro->autores ?? $registro->Autores ?? null;
@@ -113,6 +126,24 @@ class InicioController extends Controller
         $registro->vitimas = $vitimasRaw ? json_decode($vitimasRaw, true) : [];
         $registro->autores = $autoresRaw ? json_decode($autoresRaw, true) : [];
         $registro->testemunhas = $testemunhasRaw ? json_decode($testemunhasRaw, true) : [];
+
+        // ✅ NOVO: Flag de propriedade para controle de permissões no frontend
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $isOwner = true; // Padrão: se não tem dono, qualquer um pode editar
+        $ownerName = null;
+        if ($registro->usuario_id) {
+            $isOwner = ($user && $user->id == $registro->usuario_id);
+            $owner = DB::table('usuario')->where('id', $registro->usuario_id)->first();
+            $ownerName = $owner ? $owner->nome : 'Desconhecido';
+        }
+        // Administradores sempre são donos
+        if ($user && $user->nivel_acesso === 'administrador') {
+            $isOwner = true;
+        }
+        $registro->is_owner = $isOwner;
+        $registro->owner_name = $ownerName;
+        $registro->current_user_id = $user ? $user->id : null;
+        $registro->current_user_name = $user ? $user->nome : null;
 
         return response()->json([
             'success' => true,
@@ -173,7 +204,11 @@ class InicioController extends Controller
         }
 
         try {
+            // ✅ NOVO: Gravar o usuario_id do criador
+            $user = \Illuminate\Support\Facades\Auth::user();
+
             $id = DB::table('cadprincipal')->insertGetId([
+                'usuario_id' => $user ? $user->id : null,
                 'data' => Carbon::createFromFormat('d/m/Y', $request->data),
                 'data_comp' => $request->data_comp,
                 'data_ext' => $request->data_ext,
@@ -290,6 +325,30 @@ class InicioController extends Controller
         }
 
         try {
+            // ✅ NOVO: Verificar se o usuário é o dono do procedimento
+            $user = \Illuminate\Support\Facades\Auth::user();
+            $registro = DB::table('cadprincipal')->where('id', $id)->first();
+
+            if (!$registro) {
+                return response()->json(['success' => false, 'message' => 'Registro não encontrado.'], 404);
+            }
+
+            $isOwner = true;
+            if ($registro->usuario_id) {
+                $isOwner = ($user && $user->id == $registro->usuario_id);
+            }
+            // Administradores sempre são donos
+            if ($user && $user->nivel_acesso === 'administrador') {
+                $isOwner = true;
+            }
+
+            if (!$isOwner) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Você não tem permissão para editar este procedimento. Apenas o responsável pode alterar os dados.'
+                ], 403);
+            }
+
             $afetados = DB::table('cadprincipal')
                 ->where('id', $id)
                 ->update([
@@ -489,59 +548,20 @@ class InicioController extends Controller
         }
     }
 
-    public function importarBoeTexto(Request $request)
+    public function importarBoeTexto(Request $request, \App\Services\BoeExtractorService $extractorService)
     {
-        try {
-            // Suporte a PDF ou Texto colado
-            if ($request->hasFile('pdfBOE') && $request->file('pdfBOE')->isValid()) {
-                // Modo PDF: salva o arquivo temp com ext .pdf
-                $pdf = $request->file('pdfBOE');
-                $tmpPath = sys_get_temp_dir() . '/boe_upload_' . uniqid() . '.pdf';
-                $pdf->move(sys_get_temp_dir(), basename($tmpPath));
-            } else {
-                // Modo Texto: salva o texto em arquivo temp .txt
-                $texto = $request->input('textoBOE', '');
-                if (empty(trim($texto))) {
-                    return response()->json(['success' => false, 'message' => 'Escolha um PDF ou cole o texto do BOE antes de processar.']);
-                }
-                $tmpPath = sys_get_temp_dir() . '/boe_texto_' . uniqid() . '.txt';
-                file_put_contents($tmpPath, $texto);
-            }
+        $result = $extractorService->extract($request, 'apfd');
 
-            $scriptPath = base_path('scripts/python/boe_extractor.py');
-
-            // Detectar se está rodando no Windows ou Linux para chamar o python correto
-            $pythonCmd = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? 'python' : 'python3';
-
-            // Comando de shell nativo para burlar o isolamento do Symfony Process no Windows
-            $command = escapeshellcmd($pythonCmd) . " " . escapeshellarg($scriptPath) . " " . escapeshellarg($tmpPath) . " 2>&1";
-            $output = \shell_exec($command);
-
-            // Limpa o arquivo temporário
-            @unlink($tmpPath);
-
-            if (!$output) {
-                return response()->json(['success' => false, 'message' => "Falha silenciosa ao executar o extrator Python."], 500);
-            }
-
-            $json = json_decode($output, true);
-
-            if (json_last_error() === JSON_ERROR_NONE && isset($json['success'])) {
-                if ($json['success']) {
-                    return response()->json($json);
-                } else {
-                    $msg = $json['error'] ?? 'Erro no script Python (JSON recebido).';
-                    \Log::error("IA retornou erro mapeado: " . $msg);
-                    return response()->json(['success' => false, 'message' => "Falha na IA: " . $msg], 500);
-                }
-            } else {
-                \Log::error("Script Python falhou brutalmente: " . $output);
-                return response()->json(['success' => false, 'message' => "Falha estrutural ao executar Python:\n" . $output], 500);
-            }
-        } catch (\Exception $e) {
-            \Log::error("Falha fatal na rota importarBoeTexto: " . $e->getMessage());
-            return response()->json(['success' => false, 'message' => "Falha interna no servidor: " . $e->getMessage()], 500);
+        if (!($result['success'] ?? false)) {
+            return response()->json($result, $result['status'] ?? 500);
         }
+
+        return response()->json([
+            'success' => true,
+            'dados' => $result['dados'],
+            'celulares' => $result['dados']['celulares'] ?? [],
+            'veiculos' => $result['dados']['veiculos'] ?? []
+        ]);
     }
     private function normalizarTexto($string)
     {

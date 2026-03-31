@@ -55,8 +55,11 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('boe/vinculos')->group(function () {
         Route::get('/listar/{boe}', [\App\Http\Controllers\BoeVincularController::class, 'listarVinculos']);
         Route::post('/adicionar', [\App\Http\Controllers\BoeVincularController::class, 'adicionarVinculo']);
+        Route::post('/sugerir', [\App\Http\Controllers\BoeVincularController::class, 'sugerirVinculo']);
         Route::delete('/remover/{id}', [\App\Http\Controllers\BoeVincularController::class, 'removerVinculo']);
         Route::post('/salvar', [\App\Http\Controllers\BoeVincularController::class, 'salvarVinculos']);
+        Route::post('/aprovar/{id}', [\App\Http\Controllers\BoeVincularController::class, 'aprovarVinculo']);
+        Route::post('/rejeitar/{id}', [\App\Http\Controllers\BoeVincularController::class, 'rejeitarVinculo']);
 
         Route::delete('/excluir-todos/{boe}', [\App\Http\Controllers\BoeVincularController::class, 'excluirTodosVinculos']);
         Route::delete('/excluir-condutor/{boe}', [\App\Http\Controllers\BoeVincularController::class, 'excluirVinculoCondutor']);

@@ -245,9 +245,6 @@
                                 <button type="button" class="btn btn-sm btn-secondary btn-action" id="btnLimparAdministrativo" title="Limpar Formulário">
                                     <i class="bi bi-x-circle"></i> <span>Limpar</span>
                                 </button>
-                                <button type="button" class="btn btn-sm btn-dark btn-action" id="btnImportarBoeTexto" title="Importar BOE (Ctrl+I)">
-                                    <i class="bi bi-file-text"></i> <span>Importar</span>
-                                </button>
                             </div>
                         </div>
                         <div class="card-body py-3">
@@ -263,7 +260,12 @@
                                     </div>
                                     <div class="col-md-3">
                                         <label for="inputBoe" class="form-label">BOE</label>
-                                        <input type="text" class="form-control" placeholder="BOE" name="boe" id="inputBoe" required>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" placeholder="BOE" name="boe" id="inputBoe" required>
+                                            <button class="btn btn-info text-dark" type="button" data-bs-toggle="modal" data-bs-target="#modalImportarDadosBoe" title="Importar Histórico do BOE">
+                                                <i class="bi bi-upload"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                     <div class="col-md-3">
                                         <label for="inputIp" class="form-label">IP</label>
@@ -652,10 +654,28 @@
                 </div>
             </div>
 
-            <!-- Modais Básicos -->
-            <div class="modal fade" id="modalSucessoAdministrativo" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-success text-white"><h5 class="modal-title">Sucesso</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p id="sucessoMensagemAdministrativo"></p></div><div class="modal-footer"><button type="button" class="btn btn-success" data-bs-dismiss="modal">OK</button></div></div></div></div>
-            <div class="modal fade" id="modalErroAdministrativo" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-danger text-white"><h5 class="modal-title">Erro</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p id="erroMensagemAdministrativo"></p></div><div class="modal-footer"><button type="button" class="btn btn-danger" data-bs-dismiss="modal">Fechar</button></div></div></div></div>
-            <div class="modal fade" id="modalConfirmacaoAdministrativo" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-warning"><h5 class="modal-title">Confirmação</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Tem certeza que deseja excluir este registro?</p></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button type="button" class="btn btn-danger" id="btnConfirmarExclusaoAdministrativo">Excluir</button></div></div></div></div>
+            <!-- Modais para feedback -->
+            <x-modal id="modalSucessoAdministrativo" title="Sucesso" headerClass="bg-success text-white" icon="bi-check-circle-fill" bodyClass="text-center py-5">
+                <h5 id="sucessoMensagemAdministrativo" class="text-success mb-0"></h5>
+                <x-slot name="footer">
+                    <button type="button" class="btn btn-success px-4" data-bs-dismiss="modal">OK</button>
+                </x-slot>
+            </x-modal>
+
+            <x-modal id="modalErroAdministrativo" title="Erro" headerClass="bg-danger text-white" icon="bi-x-circle-fill" bodyClass="text-center py-5">
+                <h5 id="erroMensagemAdministrativo" class="text-danger mb-0"></h5>
+                <x-slot name="footer">
+                    <button type="button" class="btn btn-danger px-4" data-bs-dismiss="modal">Fechar</button>
+                </x-slot>
+            </x-modal>
+
+            <x-modal id="modalConfirmacaoAdministrativo" title="Confirmação" headerClass="bg-warning text-dark" icon="bi-exclamation-triangle-fill" closeWhite="false" bodyClass="text-center py-5">
+                <h5 class="mb-0">Tem certeza que deseja excluir este registro?</h5>
+                <x-slot name="footer">
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger px-4" id="btnConfirmarExclusaoAdministrativo">Excluir</button>
+                </x-slot>
+            </x-modal>
 
             <!-- Modal para Detalhes do Relatório -->
             <div class="modal fade" id="modalDetalhesRelatorio" tabindex="-1" aria-hidden="true">
@@ -726,11 +746,11 @@
             </div>
 
             <!-- Modal Importar BOE Híbrido -->
-            <div class="modal fade" id="modalImportarBoeTexto" tabindex="-1" aria-hidden="true">
+            <div class="modal fade" id="modalImportarDadosBoe" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header bg-info text-white">
-                            <h5 class="modal-title"><i class="bi bi-robot me-2"></i>Importar BOE com IA</h5>
+                    <div class="modal-content border-0 shadow-lg rounded-3">
+                        <div class="modal-header border-0">
+                            <h5 class="modal-title fw-bold">Importar Dados do BOE pelo Sistema</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
@@ -748,7 +768,7 @@
                                 <!-- Aba de Texto -->
                                 <div class="tab-pane fade show active" id="content-texto-admin" role="tabpanel">
                                     <div class="alert alert-info">
-                                        <i class="bi bi-magic me-1"></i> <strong>Extração Inteligente:</strong> Copie o texto completo do Boletim de Ocorrência e cole abaixo.
+                                        <i class="bi bi-magic me-1"></i> <strong>Extração pelo Sistema:</strong> Copie o texto completo do Boletim de Ocorrência e cole abaixo.
                                     </div>
                                     <div class="mb-3">
                                         <textarea class="form-control" id="textoBoeImportacao" rows="11" placeholder="Cole o texto aqui..."></textarea>
@@ -758,11 +778,11 @@
                                 <!-- Aba de PDF -->
                                 <div class="tab-pane fade" id="content-pdf-admin" role="tabpanel">
                                     <div class="alert alert-warning">
-                                        <i class="bi bi-cpu me-1"></i> <strong>Processamento Nativo:</strong> O arquivo PDF será aberto internamente e mapeado pela inteligência do sistema.
+                                        <i class="bi bi-file-earmark-pdf me-1"></i> <strong>Leitura de PDF:</strong> O arquivo PDF será aberto internamente e mapeado pelo sistema.
                                     </div>
                                     <div class="mb-3">
                                         <label for="pdfBoeImportacao" class="form-label fw-bold">Selecione o arquivo PDF do BOE:</label>
-                                        <input class="form-control form-control-lg" type="file" id="pdfBoeImportacao" accept=".pdf">
+                                        <input class="form-control form-control-sm" type="file" id="pdfBoeImportacao" accept=".pdf">
                                     </div>
                                 </div>
                             </div>
@@ -771,7 +791,7 @@
                         <!-- Barra de Progresso da IA -->
                         <div id="boeProgressWrapperAdmin" class="px-3 pb-2" style="display:none;">
                             <div class="d-flex justify-content-between mb-1">
-                                <small class="text-muted fw-bold" id="boeProgressLabelAdmin">🤖 A IA está lendo o documento...</small>
+                                <small class="text-muted fw-bold" id="boeProgressLabelAdmin">🤖 O sistema está lendo o documento...</small>
                                 <small class="text-muted" id="boeProgressPercentAdmin">0%</small>
                             </div>
                             <div class="progress" style="height: 10px; border-radius: 10px;">
@@ -779,11 +799,9 @@
                             </div>
                         </div>
 
-                        <div class="modal-footer">
+                        <div class="modal-footer border-0 bg-light rounded-bottom-3">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                            <button type="button" class="btn btn-info" id="btnProcessarImportacaoBoe">
-                                <i class="bi bi-gear me-1"></i> Processar com IA
-                            </button>
+                             <button type="button" class="btn btn-primary fw-bold" id="btnProcessarImportacaoBoe">Processar pelo Sistema</button>
                         </div>
                     </div>
                 </div>
@@ -801,6 +819,9 @@
     <!-- Flatpickr JS -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/pt.js"></script>
+
+    <!-- JS Central do Sistema -->
+    <script src="{{ asset('js/core.js') }}"></script>
 
     <!-- Scripts específicos da página -->
     <script>

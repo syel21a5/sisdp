@@ -20,7 +20,83 @@ window.envolvidosChips = {
 // =============================================
 
 /**
+ * ✅ COLABORAÇÃO EM TEMPO REAL:
+ * Quando o usuário NÃO é dono, envia automaticamente uma sugestão ao servidor.
+ * O chip aparece em LARANJA (pendente) para o dono validar.
+ */
+function sugerirVinculoEmTempoReal(nome, tipoPlural) {
+    const app = window.OcorrenciasApp;
+    if (!app || app.isOwner !== false) return; // Só para colaboradores
+
+    const boe = $('#inputBOE').val();
+    if (!boe) return;
+
+    const tipoMap = {
+        vitimas: 'VITIMA', autores: 'AUTOR',
+        testemunhas: 'TESTEMUNHA', condutores: 'CONDUTOR', outros: 'OUTRO'
+    };
+    const tipo = tipoMap[tipoPlural] || 'OUTRO';
+
+    $.ajax({
+        url: '/boe/vinculos/sugerir',
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+        data: { boe, nome, tipo },
+        success: (resp) => {
+            if (resp.success) {
+                const idx = (app.envolvidos[tipoPlural] || []).indexOf(nome);
+                if (idx >= 0) {
+                    app.vinculos[tipoPlural] = app.vinculos[tipoPlural] || [];
+                    app.vinculos[tipoPlural][idx] = {
+                        nome: nome,
+                        pessoa_id: resp.pessoa_id,
+                        vinculo_id: resp.vinculo_id,
+                        status_aprovacao: 'pendente',
+                        criado_por_nome: null
+                    };
+                    app.atualizarChips(tipoPlural);
+                }
+                console.log(`✅ [Colaboração] Sugestão enviada: ${nome} (${tipo}) no BOE ${boe}`);
+            } else {
+                console.warn('[Colaboração] Sugestão rejeitada pelo servidor:', resp.message);
+            }
+        },
+        error: (xhr) => {
+            console.error('[Colaboração] Erro ao sugerir:', xhr.responseJSON?.message || 'Erro desconhecido');
+        }
+    });
+}
+
+// ✅ NOVA FUNÇÃO: Limpar campos do formulário sem disparar eventos destrutivos
+window.limparCamposEnvolvido = function(tipo) {
+    console.log(`🧹 Limpando campos de: ${tipo}`);
+    const seletores = {
+        vitimas: ['#inputNomeVitima1', '#vitima1_id', '#inputAlcunhaVitima1', '#inputRGVitima1', '#inputCPFVitima1', '#formVitima1'],
+        autores: ['#inputNomeAutor1', '#autor1_id', '#inputAlcunhaAutor1', '#inputRGAutor1', '#inputCPFAutor1', '#formAutor1'],
+        testemunhas: ['#inputNomeTestemunha1', '#testemunha1_id', '#inputAlcunhaTestemunha1', '#inputRGTestemunha1', '#inputCPFTestemunha1', '#formTestemunha1'],
+        condutores: ['#inputNomeCondutor', '#condutor_id', '#inputAlcunha', '#inputRG', '#inputCPF', '#inputDataNascimento', '#inputIdade', '#formCondutor'],
+        outros: ['#inputNomeOutro', '#outro_id', '#inputDescricaoOutro', '#formOutro']
+    };
+
+    const ids = seletores[tipo];
+    if (ids) {
+        ids.forEach(s => {
+            const el = $(s);
+            if (el.is('form')) {
+                try { el[0].reset(); } catch(e) {}
+            } else {
+                el.val('');
+            }
+        });
+    }
+    
+    // Remove classes de validação se existirem
+    $(`.is-valid, .is-invalid`).removeClass('is-valid is-invalid');
+};
+
+/**
  * Adiciona uma vítima como chip
+
  */
 window.adicionarVitimaChip = function () {
     const nome = $('#inputNomeVitima1').val().trim();
@@ -57,19 +133,22 @@ window.adicionarVitimaChip = function () {
             window.OcorrenciasApp.vinculos = window.OcorrenciasApp.vinculos || {};
             window.OcorrenciasApp.vinculos.vitimas = window.OcorrenciasApp.vinculos.vitimas || [];
             // Adiciona vínculo preservando ID se existir
-            while (window.OcorrenciasApp.vinculos.vitimas.length < window.OcorrenciasApp.envolvidos.vitimas.length - 1) {
-                window.OcorrenciasApp.vinculos.vitimas.push(null);
-            }
-            window.OcorrenciasApp.vinculos.vitimas.push({ nome: vitima.nome, pessoa_id: id });
+            const statusInicial = window.OcorrenciasApp.isOwner === false ? 'pendente' : 'aprovado';
+            window.OcorrenciasApp.vinculos.vitimas.push({ 
+                nome: vitima.nome, 
+                pessoa_id: id,
+                status_aprovacao: statusInicial 
+            });
         }
         window.OcorrenciasApp.atualizarChips('vitimas');
+        sugerirVinculoEmTempoReal(vitima.nome, 'vitimas'); // ✅ Colaboração em tempo real
     } else {
         // Fallback
         criarChip('vitima', vitima.nome, vitima.id);
     }
 
-    // Limpa o formulário
-    $('#btnLimparVitima1').click();
+        // ✅ CORREÇÃO: Limpa o formulário sem disparar o botão de exclusão legado
+        window.limparCamposEnvolvido('vitimas');
 
     // Mensagem de sucesso
     window.mostrarSucesso('Vítima adicionada com sucesso!');
@@ -114,18 +193,21 @@ window.adicionarAutorChip = function () {
             window.OcorrenciasApp.envolvidos.autores.push(autor.nome);
             window.OcorrenciasApp.vinculos = window.OcorrenciasApp.vinculos || {};
             window.OcorrenciasApp.vinculos.autores = window.OcorrenciasApp.vinculos.autores || [];
-            while (window.OcorrenciasApp.vinculos.autores.length < window.OcorrenciasApp.envolvidos.autores.length - 1) {
-                window.OcorrenciasApp.vinculos.autores.push(null);
-            }
-            window.OcorrenciasApp.vinculos.autores.push({ nome: autor.nome, pessoa_id: id });
+            const statusInicial = window.OcorrenciasApp.isOwner === false ? 'pendente' : 'aprovado';
+            window.OcorrenciasApp.vinculos.autores.push({ 
+                nome: autor.nome, 
+                pessoa_id: id,
+                status_aprovacao: statusInicial 
+            });
         }
         window.OcorrenciasApp.atualizarChips('autores');
+        sugerirVinculoEmTempoReal(autor.nome, 'autores'); // ✅ Colaboração em tempo real
     } else {
         criarChip('autor', autor.nome, autor.id);
     }
 
-    // Limpa o formulário
-    $('#btnLimparAutor1').click();
+    // ✅ CORREÇÃO: Limpeza não-destrutiva
+    window.limparCamposEnvolvido('autores');
 
     // Mensagem de sucesso
     window.mostrarSucesso('Autor adicionado com sucesso!');
@@ -168,19 +250,22 @@ window.adicionarTestemunhaChip = function () {
             window.OcorrenciasApp.envolvidos.testemunhas.push(testemunha.nome);
             window.OcorrenciasApp.vinculos = window.OcorrenciasApp.vinculos || {};
             window.OcorrenciasApp.vinculos.testemunhas = window.OcorrenciasApp.vinculos.testemunhas || [];
-            while (window.OcorrenciasApp.vinculos.testemunhas.length < window.OcorrenciasApp.envolvidos.testemunhas.length - 1) {
-                window.OcorrenciasApp.vinculos.testemunhas.push(null);
-            }
-            window.OcorrenciasApp.vinculos.testemunhas.push({ nome: testemunha.nome, pessoa_id: id });
+            const statusInicial = window.OcorrenciasApp.isOwner === false ? 'pendente' : 'aprovado';
+            window.OcorrenciasApp.vinculos.testemunhas.push({ 
+                nome: testemunha.nome, 
+                pessoa_id: id,
+                status_aprovacao: statusInicial 
+            });
         }
         window.OcorrenciasApp.atualizarChips('testemunhas');
+        sugerirVinculoEmTempoReal(testemunha.nome, 'testemunhas'); // ✅ Colaboração em tempo real
     } else {
         // Cria o chip
         criarChip('testemunha', testemunha.nome, testemunha.id);
     }
 
-    // Limpa o formulário
-    $('#btnLimparTestemunha1').click();
+    // ✅ CORREÇÃO: Limpeza não-destrutiva
+    window.limparCamposEnvolvido('testemunhas');
 
     // Mensagem de sucesso
     window.mostrarSucesso('Testemunha adicionada com sucesso!');
@@ -223,19 +308,22 @@ window.adicionarCondutorChip = function () {
             window.OcorrenciasApp.envolvidos.condutores.push(condutor.nome);
             window.OcorrenciasApp.vinculos = window.OcorrenciasApp.vinculos || {};
             window.OcorrenciasApp.vinculos.condutores = window.OcorrenciasApp.vinculos.condutores || [];
-            while (window.OcorrenciasApp.vinculos.condutores.length < window.OcorrenciasApp.envolvidos.condutores.length - 1) {
-                window.OcorrenciasApp.vinculos.condutores.push(null);
-            }
-            window.OcorrenciasApp.vinculos.condutores.push({ nome: condutor.nome, pessoa_id: id });
+            const statusInicial = window.OcorrenciasApp.isOwner === false ? 'pendente' : 'aprovado';
+            window.OcorrenciasApp.vinculos.condutores.push({ 
+                nome: condutor.nome, 
+                pessoa_id: id,
+                status_aprovacao: statusInicial 
+            });
         }
         window.OcorrenciasApp.atualizarChips('condutores');
+        sugerirVinculoEmTempoReal(condutor.nome, 'condutores'); // ✅ Colaboração em tempo real
     } else {
         // Cria o chip
         criarChip('condutor', condutor.nome, condutor.id);
     }
 
-    // Limpa o formulário
-    $('#btnLimparCondutor').click();
+    // ✅ CORREÇÃO: Limpeza não-destrutiva (substituindo o #btnLimparCondutor.click())
+    window.limparCamposEnvolvido('condutores');
 
     // Mensagem de sucesso
     window.mostrarSucesso('Condutor adicionado com sucesso!');
@@ -280,18 +368,21 @@ window.adicionarOutroChip = function () {
             window.OcorrenciasApp.envolvidos.outros.push(outro.nome);
             window.OcorrenciasApp.vinculos = window.OcorrenciasApp.vinculos || {};
             window.OcorrenciasApp.vinculos.outros = window.OcorrenciasApp.vinculos.outros || [];
-            while (window.OcorrenciasApp.vinculos.outros.length < window.OcorrenciasApp.envolvidos.outros.length - 1) {
-                window.OcorrenciasApp.vinculos.outros.push(null);
-            }
-            window.OcorrenciasApp.vinculos.outros.push({ nome: outro.nome, pessoa_id: id });
+            const statusInicial = window.OcorrenciasApp.isOwner === false ? 'pendente' : 'aprovado';
+            window.OcorrenciasApp.vinculos.outros.push({ 
+                nome: outro.nome, 
+                pessoa_id: id,
+                status_aprovacao: statusInicial 
+            });
         }
         window.OcorrenciasApp.atualizarChips('outros');
+        sugerirVinculoEmTempoReal(outro.nome, 'outros'); // ✅ Colaboração em tempo real
     } else {
         criarChip('outro', outro.nome, outro.id);
     }
 
-    // Limpa o formulário
-    $('#btnLimparOutro').click();
+    // ✅ CORREÇÃO: Limpeza não-destrutiva
+    window.limparCamposEnvolvido('outros');
 
     // Mensagem de sucesso
     window.mostrarSucesso('Envolvido adicionado com sucesso!');
@@ -365,35 +456,75 @@ window.editarChip = function (tipo, id) {
     // Preenche o formulário correspondente
     if (tipo === 'vitima') {
         item.dados.forEach(field => {
-            $(`#formVitima1 [name="${field.name}"]`).val(field.value);
+            let val = field.value;
+            if (field.name.toLowerCase().includes('telefone') && (!val || val.trim() === '')) {
+                val = '(00) 00000-0000';
+            }
+            const $el = $(`#formVitima1 [name="${field.name}"]`);
+            $el.val(val);
+            if (field.name.toLowerCase().includes('cpf') || field.name.toLowerCase().includes('telefone')) {
+                $el.trigger('input');
+            }
         });
         if (window.ocTabs && typeof window.ocTabs.ensureTab === 'function') {
             window.ocTabs.ensureTab('tab-vitima', 'Vítima', 'tabLinkVitima');
         }
     } else if (tipo === 'autor') {
         item.dados.forEach(field => {
-            $(`#formAutor1 [name="${field.name}"]`).val(field.value);
+            let val = field.value;
+            if (field.name.toLowerCase().includes('telefone') && (!val || val.trim() === '')) {
+                val = '(00) 00000-0000';
+            }
+            const $el = $(`#formAutor1 [name="${field.name}"]`);
+            $el.val(val);
+            if (field.name.toLowerCase().includes('cpf') || field.name.toLowerCase().includes('telefone')) {
+                $el.trigger('input');
+            }
         });
         if (window.ocTabs && typeof window.ocTabs.ensureTab === 'function') {
             window.ocTabs.ensureTab('tab-autor', 'Autor', 'tabLinkAutor');
         }
     } else if (tipo === 'testemunha') {
         item.dados.forEach(field => {
-            $(`#formTestemunha1 [name="${field.name}"]`).val(field.value);
+            let val = field.value;
+            if (field.name.toLowerCase().includes('telefone') && (!val || val.trim() === '')) {
+                val = '(00) 00000-0000';
+            }
+            const $el = $(`#formTestemunha1 [name="${field.name}"]`);
+            $el.val(val);
+            if (field.name.toLowerCase().includes('cpf') || field.name.toLowerCase().includes('telefone')) {
+                $el.trigger('input');
+            }
         });
         if (window.ocTabs && typeof window.ocTabs.ensureTab === 'function') {
             window.ocTabs.ensureTab('tab-testemunha', 'Testemunha', 'tabLinkTestemunha');
         }
     } else if (tipo === 'condutor') {
         item.dados.forEach(field => {
-            $(`#formCondutor [name="${field.name}"]`).val(field.value);
+            let val = field.value;
+            if (field.name.toLowerCase().includes('telefone') && (!val || val.trim() === '')) {
+                val = '(00) 00000-0000';
+            }
+            const $el = $(`#formCondutor [name="${field.name}"]`);
+            $el.val(val);
+            if (field.name.toLowerCase().includes('cpf') || field.name.toLowerCase().includes('telefone')) {
+                $el.trigger('input');
+            }
         });
         if (window.ocTabs && typeof window.ocTabs.ensureTab === 'function') {
             window.ocTabs.ensureTab('tab-condutor', 'Condutor', 'tabLinkCondutor');
         }
     } else if (tipo === 'outro') {
         item.dados.forEach(field => {
-            $(`#formOutro [name="${field.name}"]`).val(field.value);
+            let val = field.value;
+            if (field.name.toLowerCase().includes('telefone') && (!val || val.trim() === '')) {
+                val = '(00) 00000-0000';
+            }
+            const $el = $(`#formOutro [name="${field.name}"]`);
+            $el.val(val);
+            if (field.name.toLowerCase().includes('cpf') || field.name.toLowerCase().includes('telefone')) {
+                $el.trigger('input');
+            }
         });
         if (window.ocTabs && typeof window.ocTabs.ensureTab === 'function') {
             window.ocTabs.ensureTab('tab-outro', 'Outros', 'tabLinkOutro');

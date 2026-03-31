@@ -14,7 +14,9 @@ class BoePessoaVinculo extends Model
     protected $fillable = [
         'boe',
         'pessoa_id',
-        'tipo_vinculo'
+        'tipo_vinculo',
+        'status_aprovacao',
+        'criado_por'
     ];
 
     // Relacionamento com a tabela CadPessoa (legada)

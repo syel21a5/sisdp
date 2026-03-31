@@ -71,7 +71,7 @@ const quill = new Quill('#editor', {
                             };
                             reader.readAsDataURL(file);
                         } else {
-                            alert('Por favor, selecione apenas imagens.');
+                            Swal.fire("Atenção", 'Por favor, selecione apenas imagens.', "warning");
                         }
                     };
                 }
@@ -103,11 +103,11 @@ function adjustInitialSpacing() {
         p.classList.add('preservar-espacamento');
     });
 
-    // Preservar o estilo do título (mantém tamanho maior para TODOS os títulos MANDADO DE INTIMAÇÃO)
+    // Preservar o estilo do título (mantém apenas negrito e centralizado, sem tamanho exagerado)
     const titulos = editorElement.querySelectorAll('p');
     titulos.forEach(titulo => {
         if (titulo.textContent.includes('MANDADO DE INTIMAÇÃO')) {
-            titulo.style.fontSize = '20pt';
+            titulo.style.fontSize = '12.5pt';
             titulo.style.fontWeight = 'bold';
             titulo.style.textAlign = 'center';
         }
@@ -200,7 +200,7 @@ function printDocument() {
     const csrfToken = document.querySelector('meta[name="csrf-token"]');
     if (!csrfToken) {
         console.error('CSRF token não encontrado!');
-        alert('Erro de segurança. CSRF token não encontrado.');
+        Swal.fire("Atenção", 'Erro de segurança. CSRF token não encontrado.', "warning");
         return;
     }
 

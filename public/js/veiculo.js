@@ -126,17 +126,12 @@ $(document).ready(function () {
         return `${partes[2]}-${partes[1]}-${partes[0]}`;
     }
 
-    // === FUNÇÕES DE MODAL ===
     function mostrarModalSucesso(mensagem) {
-        $('#sucessoMensagemVeiculo').text(mensagem);
-        var el = document.getElementById('modalSucessoVeiculo');
-        if (el) { var m = bootstrap.Modal.getOrCreateInstance(el); m.show(); }
+        window.mostrarSucesso(mensagem);
     }
 
     function mostrarModalErro(mensagem) {
-        $('#erroMensagemVeiculo').text(mensagem);
-        var el = document.getElementById('modalErroVeiculo');
-        if (el) { var m = bootstrap.Modal.getOrCreateInstance(el); m.show(); }
+        window.mostrarErro(mensagem);
     }
 
 
@@ -355,13 +350,38 @@ $(document).ready(function () {
             contentType: false,
             success: function(response) {
                 if (response.success) {
-                    mostrarModalSucesso(response.message);
+                    mostrarModalSucesso('Veículo salvo com sucesso!');
+                    
+                    // ✅ NOVO: Remover o item salvo da lista de pendentes da IA
+                    if (veiculosPendentesIA.length > 0) {
+                        const boe = $('#inputBoeVeiculo').val();
+                        if (boe) {
+                            const boeKey = boe.replace(/[^a-zA-Z0-9]/g, '');
+                            veiculosPendentesIA.splice(indiceIAPendenteVeiculo, 1);
+                            
+                            if (veiculosPendentesIA.length > 0) {
+                                localStorage.setItem('pendentes_veiculos_' + boeKey, JSON.stringify(veiculosPendentesIA));
+                                if (indiceIAPendenteVeiculo >= veiculosPendentesIA.length) indiceIAPendenteVeiculo = veiculosPendentesIA.length - 1;
+                                preencherComObjetoIAVeiculo(veiculosPendentesIA[indiceIAPendenteVeiculo]);
+                                atualizarControlesIAVeiculo();
+                            } else {
+                                localStorage.removeItem('pendentes_veiculos_' + boeKey);
+                                $('#avisoIA_Veiculo').fadeOut();
+                            }
+                            if (typeof window.atualizarBadgesPendentes === 'function') window.atualizarBadgesPendentes();
+                        }
+                    }
+
+                    let boeLocal = $('#inputBoeVeiculo').val();
                     limparFormularioVeiculo();
 
                     // ✅ GARANTIR QUE A LISTA É ATUALIZADA APÓS SALVAR
                     setTimeout(function() {
-                        // carregarUltimosVeiculos(); // Removido para não recarregar tabela automaticamente
-                        console.log('✅ Lista atualizada após salvar novo veículo');
+                        if (boeLocal) {
+                            $('#filtroVeiculo').val('boe');
+                            $('#termoPesquisaVeiculo').val(boeLocal);
+                            $('#btnPesquisarVeiculo').click();
+                        }
                     }, 500);
 
                 } else {
@@ -409,10 +429,16 @@ $(document).ready(function () {
                 if (response.success) {
                     mostrarModalSucesso(response.message);
 
+                    let boeLocal = $('#inputBoeVeiculo').val();
+                    limparFormularioVeiculo();
+
                     // ✅ ATUALIZAR LISTA APÓS EDITAR
                     setTimeout(function() {
-                        // carregarUltimosVeiculos(); // Removido para não recarregar tabela automaticamente
-                        console.log('✅ Lista atualizada após editar veículo');
+                        if (boeLocal) {
+                            $('#filtroVeiculo').val('boe');
+                            $('#termoPesquisaVeiculo').val(boeLocal);
+                            $('#btnPesquisarVeiculo').click();
+                        }
                     }, 500);
 
                 } else {
@@ -450,12 +476,16 @@ $(document).ready(function () {
             success: function(response) {
                 if (response.success) {
                     mostrarModalSucesso(response.message);
+                    let boeLocal = $('#inputBoeVeiculo').val();
                     limparFormularioVeiculo();
 
                     // ✅ ATUALIZAR LISTA APÓS EXCLUIR
                     setTimeout(function() {
-                        // carregarUltimosVeiculos(); // Removido para não recarregar tabela automaticamente
-                        console.log('✅ Lista atualizada após excluir veículo');
+                        if (boeLocal) {
+                            $('#filtroVeiculo').val('boe');
+                            $('#termoPesquisaVeiculo').val(boeLocal);
+                        }
+                        $('#btnPesquisarVeiculo').click();
                     }, 500);
 
                 } else {
@@ -492,6 +522,12 @@ $(document).ready(function () {
         $('#btnSalvarVeiculo').prop('disabled', false);
         $('#btnEditarVeiculo').prop('disabled', true).removeClass('btn-secondary').addClass('btn-warning').removeAttr('title');
         $('#btnExcluirVeiculo').prop('disabled', true).removeClass('btn-secondary').addClass('btn-danger').removeAttr('title');
+
+        // ✅ REINICIAR ESTADO DO MODAL DE IMPORTAÇÃO (caso o usuário tenha cancelado ou extraído)
+        $('#btnProcessarBoeVeiculo').prop('disabled', false).html('<i class="bi bi-cpu me-1"></i> Processar pelo Sistema');
+        $('#veiculoProgressWrapper').hide();
+        $('#veiculoProgressBar').css('width', '0%');
+        $('#veiculoProgressPercent').text('0%');
 
         console.log('✅ Formulário veículo limpo');
     }
@@ -960,150 +996,432 @@ $(document).ready(function () {
             }
         });
 
-        // ✅ NOVO: Checar se já existem dados globais ou no localStorage
-        const boeVeiculoAtual = $('#inputBoeVeiculo').val();
-        if (window.pendentesIA_Veiculos && window.pendentesIA_Veiculos.length > 0) {
-            console.log('🤖 Módulo Veículo detectou dados globais pendentes:', window.pendentesIA_Veiculos);
-            veiculosPendentesIA = window.pendentesIA_Veiculos;
-            indiceIAPendenteVeiculo = 0;
-            preencherComObjetoIAVeiculo(veiculosPendentesIA[0]);
-            mostrarAvisoIAVeiculo();
-        } else if (boeVeiculoAtual) {
-            // Tenta recuperar do localStorage pelo BOE
-            const dadosSalvosV = localStorage.getItem('pendentesSistema_Veiculos_' + boeVeiculoAtual);
-            if (dadosSalvosV) {
-                const listaV = JSON.parse(dadosSalvosV);
-                if (listaV.length > 0) {
-                    console.log('🤖 Módulo Veículo recuperou dados do localStorage para o BOE:', boeVeiculoAtual);
-                    veiculosPendentesIA = listaV;
-                    const dadosGeraisV = localStorage.getItem('pendentesSistema_Geral_' + boeVeiculoAtual);
-                    if (dadosGeraisV) window.pendenteIA_Geral = JSON.parse(dadosGeraisV);
-                    indiceIAPendenteVeiculo = 0;
-                    preencherComObjetoIAVeiculo(veiculosPendentesIA[0]);
-                    mostrarAvisoIAVeiculo();
+        // ✅ NOVO: Lógica de Importação Híbrida de Veículos
+        $(document).off('click', '#btnProcessarBoeVeiculo').on('click', '#btnProcessarBoeVeiculo', function () {
+            console.log('🔘 Botão Processar Ciclo de IA clicado!');
+            const formData = new FormData();
+            
+            // Verificar aba ativa (Texto ou PDF)
+            const isTextoAtivo = $('#tab-texto-veiculo').hasClass('active');
+            
+            if (isTextoAtivo) {
+                const texto = $('#textoBoeVeiculo').val();
+                if (!texto.trim()) {
+                    window.mostrarErro('Cole o texto do BOE antes de processar.');
+                    return;
+                }
+                formData.append('textoBOE', texto);
+            } else {
+                const inputPdf = document.getElementById('pdfBoeVeiculo');
+                if (inputPdf.files.length === 0) {
+                    window.mostrarErro('Selecione um arquivo PDF antes de processar.');
+                    return;
+                }
+                formData.append('pdfBOE', inputPdf.files[0]);
+            }
+
+            // Iniciar UI de carregamento
+            $('#btnProcessarBoeVeiculo').prop('disabled', true).html('<span class="spinner-border spinner-border-sm mt-1 mb-1 me-2" role="status" aria-hidden="true"></span> Extraindo...');
+            $('#veiculoProgressWrapper').show();
+            let percent = 0;
+            const progressInterval = setInterval(() => {
+                percent += 5;
+                if (percent > 90) percent = 90; // Trava no 90% até o retorno
+                $('#veiculoProgressBar').css('width', percent + '%');
+                $('#veiculoProgressPercent').text(percent + '%');
+            }, 500);
+
+            // Adicionar token CSRF
+            formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+
+            $.ajax({
+                url: rotasVeiculo.importarBoeTexto || '/veiculo/importar-boe-texto',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    clearInterval(progressInterval);
+                    $('#veiculoProgressBar').css('width', '100%');
+                    $('#veiculoProgressPercent').text('100%');
+
+                    if (response.success && response.dados) {
+                        const dados = response.dados;
+                        window.pendenteIA_Geral = { boe: dados.boe, ip: dados.ip, data: dados.data };
+                        
+                        if (dados.veiculos && dados.veiculos.length > 0) {
+                            // Preencher o primeiro se for APENAS UM veículo detectado
+                            if (dados.veiculos.length === 1) {
+                                if (dados.boe) {
+                                    $.ajax({
+                                        url: rotasVeiculo.pesquisar,
+                                        method: "GET",
+                                        data: { filtro: "boe", termo: dados.boe },
+                                        success: function(pesqResp) {
+                                            $('#modalImportarVeiculo').modal('hide');
+                                            
+                                            let placaLocal = dados.veiculos[0].placa ? dados.veiculos[0].placa.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() : '';
+                                            let chassiLocal = dados.veiculos[0].chassi ? dados.veiculos[0].chassi.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() : '';
+                                            let specLocal = ((dados.veiculos[0].marca_modelo || '') + ' ' + (dados.veiculos[0].cor || '')).replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+                                            
+                                            let jaExisteExato = false;
+                                            let jaExisteSimilar = false;
+                                            
+                                            let itensDB = (pesqResp.success && pesqResp.data) ? pesqResp.data : [];
+                                            
+                                            for (let dbItem of itensDB) {
+                                                let dbPlaca = dbItem.placa ? dbItem.placa.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() : '';
+                                                let dbChassi = dbItem.chassi ? dbItem.chassi.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() : '';
+                                                
+                                                let matchPlaca = placaLocal && placaLocal !== 'SPLACA' && dbPlaca === placaLocal;
+                                                let matchChassi = chassiLocal && chassiLocal !== 'SCHASSI' && dbChassi === chassiLocal;
+                                                
+                                                if (matchPlaca || matchChassi) {
+                                                    jaExisteExato = true;
+                                                    break;
+                                                }
+                                                
+                                                let placaAusente = (!placaLocal || placaLocal === 'SPLACA') && (!dbPlaca || dbPlaca === 'SPLACA');
+                                                let chassiAusente = (!chassiLocal || chassiLocal === 'SCHASSI') && (!dbChassi || dbChassi === 'SCHASSI');
+                                                
+                                                if (placaAusente && chassiAusente) {
+                                                    let dbSpec = (dbItem.veiculo || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+                                                    if (specLocal && dbSpec && (dbSpec.includes(specLocal) || specLocal.includes(dbSpec))) {
+                                                        jaExisteSimilar = true;
+                                                    }
+                                                }
+                                            }
+                                            
+                                            if (jaExisteExato) {
+                                                window.mostrarErro(`Atenção: Preenchimento automático bloqueado! Este veículo (Placa/Chassi) já foi salvo neste Boletim.`);
+                                            } else {
+                                                preencherComObjetoIAVeiculo(dados.veiculos[0]);
+                                                if (jaExisteSimilar) {
+                                                    window.mostrarAviso ? window.mostrarAviso(`⚠️ Atenção: Um veículo "similar" sem placa/chassi já consta neste BOE. Verifique se não é repetição.`) : window.mostrarErro(`⚠️ Atenção: Um veículo "similar" sem placa/chassi já consta neste BOE. Verifique se não é repetição.`);
+                                                } else {
+                                                    window.mostrarSucesso(`Extração concluída! 1 veículo detectado e preenchido no formulário.`);
+                                                }
+                                            }
+                                        },
+                                        error: function() {
+                                            $('#modalImportarVeiculo').modal('hide');
+                                            preencherComObjetoIAVeiculo(dados.veiculos[0]);
+                                            window.mostrarSucesso(`Extração concluída! 1 veículo detectado.`);
+                                        }
+                                    });
+                                } else {
+                                    $('#modalImportarVeiculo').modal('hide');
+                                    preencherComObjetoIAVeiculo(dados.veiculos[0]);
+                                    window.mostrarSucesso(`Extração concluída! 1 veículo detectado e preenchido.`);
+                                }
+                            } else {
+                                // MÚLTIPLOS VEÍCULOS - BATCH IMPORT MODAL
+                                $('#modalImportarVeiculo').modal('hide');
+                                
+                                // Nova funcionalidade: Pesquisar se já há veículos com este BOE cadastrados
+                                if (dados.boe) {
+                                    $.ajax({
+                                        url: rotasVeiculo.pesquisar,
+                                        method: "GET",
+                                        data: { filtro: "boe", termo: dados.boe },
+                                        success: function(pesqResp) {
+                                            let itensDB = (pesqResp.success && pesqResp.data) ? pesqResp.data : [];
+                                            abrirModalRevisaoMultiplosVeiculos(dados.veiculos, itensDB);
+                                        },
+                                        error: function() {
+                                            abrirModalRevisaoMultiplosVeiculos(dados.veiculos, []);
+                                        }
+                                    });
+                                } else {
+                                    abrirModalRevisaoMultiplosVeiculos(dados.veiculos, []);
+                                }
+                            }
+                        } else {
+                            window.mostrarSucesso('Extração concluída. NENHUM veículo foi detectado no documento.');
+                            $('#modalImportarVeiculo').modal('hide');
+                        }
+                    } else {
+                        window.mostrarErro(response.message || 'Erro na resposta do servidor.');
+                    }
+                },
+                error: function (xhr) {
+                    clearInterval(progressInterval);
+                    let msg = 'Erro ao processar a extração com o sistema.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    }
+                    window.mostrarErro(msg);
+                },
+                complete: function () {
+                    setTimeout(() => {
+                        $('#btnProcessarBoeVeiculo').prop('disabled', false).html('<i class="bi bi-cpu me-1"></i> Processar pelo Sistema');
+                        $('#veiculoProgressWrapper').hide();
+                        $('#veiculoProgressBar').css('width', '0%');
+                        $('#veiculoProgressPercent').text('0%');
+                    }, 1000);
+                }
+            });
+        });
+
+        // =========================================================================
+        // NOVO: MODAL DE BATCH IMPORT (LOTES) 
+        // Em vez de "salvar 1, clicar próximo", mostra todos de uma vez
+        // =========================================================================
+        function abrirModalRevisaoMultiplosVeiculos(veiculosList, itensDB = []) {
+            // Limpa modais defasados
+            $('#modalRevisaoMultiplosVeiculos').remove();
+            
+            let gridHtml = veiculosList.map((v, i) => {
+                let descOriginal = (v.marca_modelo || 'Veículo Não Especificado') + (v.cor ? ' - COR: ' + v.cor.toUpperCase() : '');
+                let desc = descOriginal;
+                let proprietario = v.proprietario || 'N/A';
+                let placa = v.placa || 'S/Placa';
+                let chassi = v.chassi || '<span class="text-muted fst-italic">Não Extraído</span>';
+                let status = v.status || 'APREENDIDO';
+                
+                // Precisamos escapar aspas pro onclick JS
+                let jsonStr = JSON.stringify(v).replace(/"/g, '&quot;');
+                
+                let placaLimpa = placa.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+                let chassiLimpo = chassi.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+                let specLimpa = descOriginal.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+                
+                let isDuplicadoExato = false;
+                let isDuplicadoSimilar = false;
+                
+                for (let dbItem of itensDB) {
+                    let dbPlaca = dbItem.placa ? dbItem.placa.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() : '';
+                    let dbChassi = dbItem.chassi ? dbItem.chassi.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() : '';
+                    
+                    let matchPlaca = placaLimpa && placaLimpa !== 'SPLACA' && dbPlaca === placaLimpa;
+                    let matchChassi = chassiLimpo && chassiLimpo !== 'NOEXTRAIDO' && chassiLimpo !== 'SCHASSI' && dbChassi === chassiLimpo;
+                    
+                    if (matchPlaca || matchChassi) {
+                        isDuplicadoExato = true;
+                        break;
+                    }
+                    
+                    let placaAusente = (!placaLimpa || placaLimpa === 'SPLACA') && (!dbPlaca || dbPlaca === 'SPLACA');
+                    let chassiAusente = (!chassiLimpo || chassiLimpo === 'NOEXTRAIDO' || chassiLimpo === 'SCHASSI') && (!dbChassi || dbChassi === 'SCHASSI' || dbChassi === 'NOEXTRAIDO');
+                    
+                    if (placaAusente && chassiAusente) {
+                        let dbSpec = (dbItem.veiculo || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+                        if (specLimpa && dbSpec && (dbSpec.includes(specLimpa) || specLimpa.includes(dbSpec))) {
+                            isDuplicadoSimilar = true;
+                        }
+                    }
+                }
+                
+                let btnHtml = '';
+                let rowClass = '';
+
+                if (isDuplicadoExato) {
+                    rowClass = 'table-secondary opacity-75';
+                    btnHtml = `<span class="badge bg-secondary border border-secondary shadow-sm py-2 px-3 fw-bold w-100" title="Veículo já atrelado a este boletim no seu sistema."><i class="bi bi-shield-check me-1"></i> Já Existe (Omitido)</span>`;
+                } else if (isDuplicadoSimilar) {
+                    rowClass = 'table-warning';
+                    btnHtml = `
+                        <span class="d-block mb-1 text-danger fw-bold" style="font-size:0.75rem;"><i class="bi bi-exclamation-triangle-fill"></i> Similar no BD</span>
+                        <button type="button" class="btn btn-sm btn-warning text-dark border-dark fw-bold shadow-sm w-100 btn-lote-salvar" onclick="window.salvarVeiculoEmLote(this, ${i}, '${jsonStr}')">
+                            <i class="bi bi-cloud-upload me-1"></i> Importar Mesmo Assim
+                        </button>
+                        <span class="lote-status text-success fw-bold d-none fs-6"><i class="bi bi-check-circle-fill"></i> Salvo!</span>
+                    `;
+                } else {
+                    btnHtml = `
+                        <button type="button" class="btn btn-sm btn-success fw-bold shadow-sm w-100 btn-lote-salvar" onclick="window.salvarVeiculoEmLote(this, ${i}, '${jsonStr}')">
+                            <i class="bi bi-cloud-upload me-1"></i> Importar
+                        </button>
+                        <span class="lote-status text-success fw-bold d-none fs-6"><i class="bi bi-check-circle-fill"></i> Salvo!</span>
+                    `;
+                }
+                
+                return `
+                    <tr id="linhaVtr_${i}" class="${rowClass}">
+                        <td class="align-middle fw-bold text-center">${placa}</td>
+                        <td class="align-middle text-wrap" style="max-width:250px;">${desc}</td>
+                        <td class="align-middle"><code>${chassi}</code></td>
+                        <td class="align-middle text-center"><span class="badge bg-warning text-dark">${status}</span></td>
+                        <td class="align-middle">${proprietario}</td>
+                        <td class="align-middle text-center" style="min-width: 170px;">
+                            ${btnHtml}
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+
+            const modalHtml = `
+                <div class="modal fade" id="modalRevisaoMultiplosVeiculos" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+                    <!-- Trocado para modal-xl para acomodar novas colunas com folga -->
+                    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+                        <div class="modal-content border-0 shadow-lg rounded-4" style="overflow: hidden;">
+                            <div class="modal-header bg-primary text-white border-0 py-3 d-flex justify-content-between align-items-center" style="cursor: move;" title="Clique e arraste para mover a janela">
+                                <h5 class="modal-title fw-bold mb-0"><i class="bi bi-car-front-fill me-2"></i> ${veiculosList.length} Veículos Encontrados no BOE</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body p-4 bg-light">
+                                <div class="alert alert-info border-0 shadow-sm d-flex align-items-center mb-3">
+                                    <i class="bi bi-info-circle-fill fs-4 me-3 text-info"></i>
+                                    <div>O sistema de inspeção encontrou múltiplos veículos no boletim. Para evitar retrabalho de digitação manual, você pode **revisar** e pular de forma seletiva, salvar de uma só vez apertando o botão [Importar] em apenas cada linha que desejar incluir no registro da apreensão.</div>
+                                </div>
+                                <div class="table-responsive bg-white rounded-3 shadow-sm border">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light text-secondary">
+                                            <tr>
+                                                <th class="text-center">Placa</th>
+                                                <th>Descrição</th>
+                                                <th>Chassi</th>
+                                                <th class="text-center">Status</th>
+                                                <th>Envolvido/Proprietário</th>
+                                                <th class="text-center">Confirmar Registro</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${gridHtml}
+                                        </tbody>
+                                        <tfoot class="border-top-0">
+                                            <tr><td colspan="6" class="text-center bg-light py-2"><small class="text-muted">Ações são enviadas para o banco de dados imedia e individualmente.</small></td></tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="modal-footer border-0 bg-white justify-content-center">
+                                <button type="button" class="btn btn-primary px-5 rounded-pill shadow-sm fw-bold" data-bs-dismiss="modal" onclick="limparFormularioVeiculo()">Finalizar e Fechar Tela de Lote</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            $('body').append(modalHtml);
+            const modalEl = document.getElementById('modalRevisaoMultiplosVeiculos');
+            const modal = new bootstrap.Modal(modalEl, { backdrop: 'static', keyboard: false, focus: true });
+            modal.show();
+
+            // Ativar jQuery UI Draggable no modal dialog usando o cabeçalho como alça
+            if (typeof $.ui !== 'undefined' && $.isFunction($.fn.draggable)) {
+                try {
+                    $(modalEl).find('.modal-dialog').draggable({
+                        handle: ".modal-header",
+                        cursor: "move"
+                    });
+                } catch(e) {
+                    console.log("Draggable ignorado. JQueryUI não detectado corretamente no form.");
                 }
             }
         }
 
-        function preencherComObjetoIAVeiculo(obj) {
-            console.log('📝 Preenchendo formulário de veículo com dados da IA:', obj);
-            
-            // Tenta pegar o BOE e Data do contexto geral se não estiver no objeto
+        // Função Disparada por CADA Linha da Tabela do Novo Modal de Lotes
+        window.salvarVeiculoEmLote = function(btnElement, indexLinha, objJsonStr) {
+            const obj = JSON.parse(objJsonStr);
+            console.log('📦 Solicitado salvar LOTE:', obj);
+
+            // Resgata o BOE global
             const boeIA = obj.boe || (window.pendenteIA_Geral ? window.pendenteIA_Geral.boe : '');
             const dataIA = obj.data || (window.pendenteIA_Geral ? window.pendenteIA_Geral.data : '');
             const ipIA = obj.ip || (window.pendenteIA_Geral ? window.pendenteIA_Geral.ip : '');
 
-            // Não resetar tudo, apenas o específico
+            let dataFormatada = dataIA;
+            if (dataFormatada && dataFormatada.includes(' ')) dataFormatada = dataFormatada.split(' ')[0];
+
+            const formAutoData = new FormData();
+            formAutoData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+            // Usar data default se a IA errar ou se o Python não trouxe Data
+            formAutoData.append('data', dataFormatada || $('#inputDataVeiculo').val() || ''); 
+            formAutoData.append('ip', ipIA || '');
+            formAutoData.append('boe', boeIA || '');
+            formAutoData.append('pessoa', obj.proprietario || '');
+            
+            const specAtual = obj.marca_modelo || '';
+            const descCor = obj.cor ? ' - COR: ' + obj.cor.toUpperCase() : '';
+            formAutoData.append('veiculo', specAtual + descCor);
+            
+            formAutoData.append('placa', obj.placa || '');
+            formAutoData.append('chassi', obj.chassi || '');
+            formAutoData.append('sei', '');
+            formAutoData.append('status', 'APREENDIDO');
+
+            const $btn = $(btnElement);
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Acessando BD...');
+
+            $.ajax({
+                url: rotasVeiculo.salvar,
+                method: "POST",
+                data: formAutoData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        // Linha Sucesso Visual
+                        $btn.addClass('d-none');
+                        $btn.siblings('.lote-status').removeClass('d-none');
+                        $('#linhaVtr_' + indexLinha).addClass('table-success');
+                        
+                        setTimeout(function() {
+                            if (boeIA) {
+                                $('#filtroVeiculo').val('boe');
+                                $('#termoPesquisaVeiculo').val(boeIA);
+                                $('#btnPesquisarVeiculo').click();
+                            }
+                        }, 500);
+                    } else {
+                        window.mostrarErro(response.message || 'Falha ao salvar linha do Lote.');
+                        $btn.prop('disabled', false).html('<i class="bi bi-cloud-upload me-1"></i> Falhou. Tentar Novamente');
+                    }
+                },
+                error: function(xhr) {
+                    let msg = 'Erro ao processar linha do Lote no Backend.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+                    // Custom fallback para regra única de data/validação
+                    if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                        msg = Object.values(xhr.responseJSON.errors).flat().join('<br>');
+                    }
+                    window.mostrarErro("LOTE FALHOU: " + msg);
+                    $btn.prop('disabled', false).html('<i class="bi bi-cloud-upload me-1"></i> Tentar Novamente');
+                }
+            });
+        };
+
+        // Mantém apenas a função antiga para preencher form simples (1 veículo)
+        function preencherComObjetoIAVeiculo(obj) {
+            console.log('📝 Preenchendo formulário de veículo ÚNICO:', obj);
+            
+            const boeIA = obj.boe || (window.pendenteIA_Geral ? window.pendenteIA_Geral.boe : '');
+            const dataIA = obj.data || (window.pendenteIA_Geral ? window.pendenteIA_Geral.data : '');
+            const ipIA = obj.ip || (window.pendenteIA_Geral ? window.pendenteIA_Geral.ip : '');
+
             if (boeIA) $('#inputBoeVeiculo').val(boeIA);
-            if (dataIA) $('#inputDataVeiculo').val(dataIA);
+            
+            if (dataIA) {
+                let dataFormatada = dataIA;
+                if (dataFormatada.includes(' ')) dataFormatada = dataFormatada.split(' ')[0];
+                if (!dataFormatada.includes(':')) {
+                    $('#inputDataVeiculo').val(dataFormatada);
+                }
+            }
+
             if (ipIA) $('#inputIpVeiculo').val(ipIA);
 
-            // Preenche campos específicos da IA
             if (obj.marca_modelo) $('#inputVeiculoVeiculo').val(obj.marca_modelo);
             if (obj.placa) $('#inputPlacaVeiculo').val(obj.placa);
             if (obj.chassi) $('#inputChassiVeiculo').val(obj.chassi);
             if (obj.cor) {
                 const specAtual = $('#inputVeiculoVeiculo').val();
-                if (!specAtual.includes(obj.cor)) {
+                if (!specAtual.includes(obj.cor.toUpperCase())) {
                     $('#inputVeiculoVeiculo').val(specAtual + ' - COR: ' + obj.cor.toUpperCase());
                 }
             }
             if (obj.proprietario) $('#inputPessoaVeiculo').val(obj.proprietario);
-            // O campo SEI deve ficar em branco conforme pedido do usuário
             $('#inputSeiVeiculo').val('');            
-            // Define status padrão
             $('#inputStatusVeiculo').val('APREENDIDO');
             
-            // Piscar os campos preenchidos
             $('#inputVeiculoVeiculo, #inputPlacaVeiculo, #inputChassiVeiculo, #inputPessoaVeiculo').addClass('is-valid');
             setTimeout(() => {
                 $('#inputVeiculoVeiculo, #inputPlacaVeiculo, #inputChassiVeiculo, #inputPessoaVeiculo').removeClass('is-valid');
             }, 3000);
         }
 
-        function mostrarAvisoIAVeiculo() {
-            if ($('#avisoIA_Veiculo').length === 0) {
-                const html = `
-                    <div id="avisoIA_Veiculo" class="alert alert-info d-flex justify-content-between align-items-center mb-3 shadow-sm" style="border-left: 5px solid #0dcaf0;">
-                        <div>
-                            <i class="bi bi-robot me-2"></i>
-                            <span id="textoAvisoIA_Veiculo">O sistema encontrou ${veiculosPendentesIA.length} veículos. Exibindo ${indiceIAPendenteVeiculo + 1} de ${veiculosPendentesIA.length}.</span>
-                        </div>
-                        <div>
-                            <button type="button" class="btn btn-sm btn-outline-primary me-2" id="btnAnteriorIA_Veiculo" disabled><i class="bi bi-chevron-left"></i></button>
-                            <button type="button" class="btn btn-sm btn-outline-primary me-2" id="btnProximoIA_Veiculo"><i class="bi bi-chevron-right"></i></button>
-                            <button type="button" class="btn btn-sm btn-outline-danger me-2" id="btnDispensarIA_Veiculo" title="Remover estas sugestões para este BOE"><i class="bi bi-trash"></i> Dispensar</button>
-                            <button type="button" class="btn btn-close" onclick="$('#avisoIA_Veiculo').fadeOut()"></button>
-                        </div>
-                    </div>
-                `;
-                $('#formVeiculo').prepend(html);
-                
-                $('#btnProximoIA_Veiculo').click(function() {
-                    if (indiceIAPendenteVeiculo < veiculosPendentesIA.length - 1) {
-                        indiceIAPendenteVeiculo++;
-                        preencherComObjetoIAVeiculo(veiculosPendentesIA[indiceIAPendenteVeiculo]);
-                        atualizarControlesIAVeiculo();
-                    }
-                });
-                
-                $('#btnAnteriorIA_Veiculo').click(function() {
-                    if (indiceIAPendenteVeiculo > 0) {
-                        indiceIAPendenteVeiculo--;
-                        preencherComObjetoIAVeiculo(veiculosPendentesIA[indiceIAPendenteVeiculo]);
-                        atualizarControlesIAVeiculo();
-                    }
-                });
-
-                $('#btnDispensarIA_Veiculo').click(function() {
-                    const boe = $('#inputBoeVeiculo').val();
-                    if (boe && confirm('Deseja remover permanentemente as sugestões extras deste BOE?')) {
-                        localStorage.removeItem('pendentesSistema_Veiculos_' + boe);
-                        $('#avisoIA_Veiculo').fadeOut();
-                        veiculosPendentesIA = [];
-                        console.log('🤖 Sugestões de veículo dispensadas para o BOE:', boe);
-                    }
-                });
-            } else {
-                $('#avisoIA_Veiculo').show();
-                indiceIAPendenteVeiculo = 0;
-                atualizarControlesIAVeiculo();
-            }
-        }
-
-        function atualizarControlesIAVeiculo() {
-            $('#textoAvisoIA_Veiculo').html(`O sistema encontrou ${veiculosPendentesIA.length} veículos. Exibindo <b>${indiceIAPendenteVeiculo + 1} de ${veiculosPendentesIA.length}</b>.`);
-            $('#btnAnteriorIA_Veiculo').prop('disabled', indiceIAPendenteVeiculo === 0);
-            $('#btnProximoIA_Veiculo').prop('disabled', indiceIAPendenteVeiculo === veiculosPendentesIA.length - 1);
-        }
-
-        // ✅ NOVO: Reabrir assistente ao digitar/mudar o BOE
-        $('#inputBoeVeiculo').on('blur change', function() {
-            const boe = $(this).val();
-            if (boe) {
-                const dadosSalvosV = localStorage.getItem('pendentesSistema_Veiculos_' + boe);
-                if (dadosSalvosV) {
-                    const listaV = JSON.parse(dadosSalvosV);
-                    if (listaV.length > 0) {
-                        console.log('🤖 Módulo Veículo reabrindo assistente para o BOE:', boe);
-                        veiculosPendentesIA = listaV;
-                        const dadosGeraisV = localStorage.getItem('pendentesSistema_Geral_' + boe);
-                        if (dadosGeraisV) window.pendenteIA_Geral = JSON.parse(dadosGeraisV);
-                        indiceIAPendenteVeiculo = 0;
-                        preencherComObjetoIAVeiculo(veiculosPendentesIA[0]);
-                        if ($('#avisoIA_Veiculo').length > 0) {
-                            $('#avisoIA_Veiculo').fadeIn();
-                            atualizarControlesIAVeiculo();
-                        } else {
-                            mostrarAvisoIAVeiculo();
-                        }
-                    }
-                }
-            }
-        });
-
         console.log('✅ VeiculoApp inicializada com sucesso!');
-        console.log('✅ Sistema de preenchimento automático ativado!');
     }
 
     // Inicializar o módulo

@@ -318,58 +318,7 @@
     </div>
 </div>
 
-<!-- Modais para feedback -->
-<div class="modal fade" id="modalSucessoVeiculo" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="tituloModalSucessoVeiculo" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title" id="tituloModalSucessoVeiculo">Sucesso</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p id="sucessoMensagemVeiculo"></p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-success" data-bs-dismiss="modal">OK</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="modalErroVeiculo" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="tituloModalErroVeiculo" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="tituloModalErroVeiculo">Erro</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p id="erroMensagemVeiculo"></p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Fechar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="modalConfirmacaoVeiculo" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="tituloModalConfirmacaoVeiculo" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-warning">
-                <h5 class="modal-title" id="tituloModalConfirmacaoVeiculo">Confirmação</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Tem certeza que deseja excluir este veículo?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-danger" id="btnConfirmarExclusaoVeiculo">Excluir</button>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- Modais para feedback (agora centralizados no core.js) -->
 
 <script>
     // Inicializa o flatpickr

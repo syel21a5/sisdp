@@ -29,15 +29,15 @@ $(document).ready(function () {
     $('#btnEditarAdministrativo').on('click', editarAdministrativo);
     $('#btnExcluirAdministrativo').on('click', function () {
         if (currentAdministrativoId) {
-            $('#modalConfirmacaoAdministrativo').modal('show');
+            window.confirmarExclusaoGenerica('Tem certeza que deseja excluir este registro administrativo?', excluirAdministrativo);
         } else {
-            mostrarModalErro('Nenhum registro selecionado para exclusão.');
+            window.mostrarErro('Nenhum registro selecionado para exclusão.');
         }
     });
     $('#btnConfirmarExclusaoAdministrativo').on('click', excluirAdministrativo);
     $('#btnLimparAdministrativo').on('click', limparFormulario);
     $('#btnImportarBoeTexto').on('click', function () {
-        $('#modalImportarBoeTexto').modal('show');
+        $('#modalImportarDadosBoe').modal('show');
     });
     $('#btnProcessarImportacaoBoe').on('click', importarBoeTexto);
     $('#btnPesquisarAdministrativo').on('click', pesquisarAdministrativo);
@@ -274,18 +274,16 @@ $(document).ready(function () {
             },
             success: function (response) {
                 if (response.success) {
-                    mostrarModalSucesso(response.message);
+                    window.mostrarSucesso(response.message);
                     limparFormulario();
                     carregarUltimosRegistros();
                 } else {
-                    mostrarModalErro(response.message);
+                    window.mostrarErro(response.message);
                 }
-                $('#modalConfirmacaoAdministrativo').modal('hide');
             },
             error: function (xhr) {
                 console.error('Erro ao excluir:', xhr);
-                mostrarModalErro('Erro ao excluir o registro.');
-                $('#modalConfirmacaoAdministrativo').modal('hide');
+                window.mostrarErro('Erro ao excluir o registro.');
             }
         });
     }
@@ -1664,8 +1662,8 @@ $(document).ready(function () {
                 return;
             }
             formData.append('textoBOE', texto);
-            $('#btnProcessarImportacaoBoe').prop('disabled', true).html('<i class="spinner-border spinner-border-sm me-1"></i> A IA está analisando o texto...');
-            iniciarProgressoAdmin('🤖 A IA está analisando o texto do BOE...');
+            $('#btnProcessarImportacaoBoe').prop('disabled', true).html('<i class="spinner-border spinner-border-sm me-1"></i> Processando...');
+            iniciarProgressoAdmin('🤖 O sistema está analisando o texto do BOE...');
         }
 
         $.ajax({
@@ -1707,23 +1705,32 @@ $(document).ready(function () {
                             dados.envolvidos.outros.forEach(nome => adicionarNome('outros', nome));
                         }
                     }
+                    // Remover localStorage antigo
 
-                    mostrarModalSucesso('Dados do BOE importados com sucesso!');
+                    // Fechar modal de importação e mostrar sucesso
+                    setTimeout(function () {
+                        var elModal = document.getElementById('modalImportarDadosBoe');
+                        if (elModal) {
+                            var bsModal = bootstrap.Modal.getOrCreateInstance(elModal);
+                            bsModal.hide();
+                        }
+                    }, 800);
+                    mostrarModalSucesso('Dados do BOE importados com sucesso! Formulário preenchido.');
                 } else {
                     mostrarModalErro('Erro na importação: Resposta inválida.');
                 }
             },
             error: function (xhr) {
                 finalizarProgressoAdmin(false);
-                $('#btnProcessarImportacaoBoe').prop('disabled', false).html('<i class="bi bi-gear me-1"></i> Processar com IA');
-                let msgErro = 'Erro ao se comunicar com a IA. Tente novamente.';
+                $('#btnProcessarImportacaoBoe').prop('disabled', false).html('<i class="bi bi-file-earmark-check-fill me-1"></i> Reprocessar');
+                let msgErro = 'Erro ao processar os dados. Tente novamente.';
                 if (xhr.responseJSON && xhr.responseJSON.message) {
                     msgErro = xhr.responseJSON.message;
                 }
                 mostrarModalErro(msgErro);
             },
             complete: function () {
-                $('#btnProcessarImportacaoBoe').prop('disabled', false).html('<i class="bi bi-gear me-1"></i> Processar e Preencher');
+                $('#btnProcessarImportacaoBoe').prop('disabled', false).html('<i class="bi bi-file-earmark-check-fill me-1"></i> Extrair Dados do BOE');
             }
         });
     }
@@ -1770,11 +1777,11 @@ $(document).ready(function () {
     }
 
     function mostrarModalSucesso(mensagem) {
-        mostrarToast(mensagem, 'success');
+        window.mostrarSucesso(mensagem);
     }
 
     function mostrarModalErro(mensagem) {
-        mostrarToast(mensagem, 'danger');
+        window.mostrarErro(mensagem);
     }
 
     // ========== EVENTOS ADICIONAIS ==========

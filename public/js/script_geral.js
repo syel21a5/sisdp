@@ -1,210 +1,7 @@
 // script_geral.js - Código reorganizado para o formulário geral
 
-// === GLOBAL MODAL HELPERS (Start) ===
-let sucessoTimer = null;
-window.mostrarSucesso = function (mensagem) {
-    if (sucessoTimer) clearTimeout(sucessoTimer);
-    
-    // Remove qualquer modal antigo para evitar conflitos e garantir o novo design
-    $('#modalSucessoDynamic').remove();
-    $('#modalSucesso').remove(); // Remove legado se existir
-    $('.modal-backdrop').remove(); // Limpa backdrops perdidos
+// Global Modal Helpers removidos. Agora residentes em public/js/core.js
 
-    const dynamicModalId = 'modalSucessoDynamic';
-    
-    // HTML do Modal Profissional de Sucesso
-    const modalHtml = `
-        <div class="modal fade" id="${dynamicModalId}" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-            <div class="modal-dialog modal-dialog-centered modal-sm"> <!-- Modal Pequeno e Centralizado -->
-                <div class="modal-content border-0 shadow-lg rounded-4" style="overflow: hidden;">
-                    <div class="modal-header bg-success text-white border-0 justify-content-center py-3">
-                        <h5 class="modal-title fw-bold"><i class="bi bi-check-circle-fill me-2"></i>Sucesso</h5>
-                    </div>
-                    <div class="modal-body text-center p-4">
-                        <div class="mb-3">
-                            <i class="bi bi-check-circle text-success" style="font-size: 4rem; display: block; animation: bounceIn 0.5s;"></i>
-                        </div>
-                        <h6 id="${dynamicModalId}Msg" class="fw-bold text-secondary mb-3 fs-6">${mensagem || 'Operação realizada com sucesso!'}</h6>
-                        <button type="button" class="btn btn-success w-100 rounded-pill fw-bold shadow-sm" data-bs-dismiss="modal">OK</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <style>
-            @keyframes bounceIn {
-                0% { opacity: 0; transform: scale(0.3); }
-                50% { opacity: 1; transform: scale(1.05); }
-                70% { transform: scale(0.9); }
-                100% { transform: scale(1); }
-            }
-        </style>
-    `;
-
-    $('body').append(modalHtml);
-
-    const modalEl = document.getElementById(dynamicModalId);
-    const modal = new bootstrap.Modal(modalEl, {
-        backdrop: 'static',
-        keyboard: false,
-        focus: true
-    });
-
-    modal.show();
-
-    // Auto-fechar após 3 segundos para fluidez, mas permitindo leitura
-    sucessoTimer = setTimeout(() => {
-        modal.hide();
-    }, 3000);
-};
-
-let erroTimer = null;
-window.mostrarErro = function (mensagem) {
-    if (erroTimer) clearTimeout(erroTimer);
-
-    // Remove qualquer modal antigo
-    $('#modalErroDynamic').remove();
-    $('#modalErro').remove(); // Remove legado
-    $('.modal-backdrop').remove();
-
-    const errorModalId = 'modalErroDynamic';
-
-    // HTML do Modal Profissional de Erro
-    const modalHtml = `
-        <div class="modal fade" id="${errorModalId}" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-sm">
-                <div class="modal-content border-0 shadow-lg rounded-4" style="overflow: hidden;">
-                    <div class="modal-header bg-danger text-white border-0 justify-content-center py-3">
-                        <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>Erro</h5>
-                    </div>
-                    <div class="modal-body text-center p-4">
-                        <div class="mb-3">
-                            <i class="bi bi-x-circle text-danger" style="font-size: 4rem; display: block; animation: shake 0.5s;"></i>
-                        </div>
-                        <h6 id="${errorModalId}Msg" class="fw-bold text-secondary mb-3 fs-6">${mensagem || 'Ocorreu um erro inesperado.'}</h6>
-                        <button type="button" class="btn btn-danger w-100 rounded-pill fw-bold shadow-sm" data-bs-dismiss="modal">Fechar</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <style>
-            @keyframes shake {
-                0% { transform: translateX(0); }
-                25% { transform: translateX(-5px); }
-                50% { transform: translateX(5px); }
-                75% { transform: translateX(-5px); }
-                100% { transform: translateX(0); }
-            }
-        </style>
-    `;
-
-    $('body').append(modalHtml);
-
-    const modalEl = document.getElementById(errorModalId);
-    const modal = new bootstrap.Modal(modalEl, {
-        focus: true
-    });
-
-    modal.show();
-};
-
-let alertaTimer = null;
-window.mostrarAlerta = function (mensagem, titulo = 'Atenção') {
-    if (alertaTimer) clearTimeout(alertaTimer);
-
-    // Remove qualquer modal antigo
-    $('#modalAlertaDynamic').remove();
-    $('#modalAlertaGenerico').remove(); // Remove legado
-    $('.modal-backdrop').remove();
-
-    const alertModalId = 'modalAlertaDynamic';
-
-    // HTML do Modal Profissional de Alerta/Atenção
-    const modalHtml = `
-        <div class="modal fade" id="${alertModalId}" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-sm">
-                <div class="modal-content border-0 shadow-lg rounded-4" style="overflow: hidden;">
-                    <div class="modal-header bg-warning text-dark border-0 justify-content-center py-3">
-                        <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>${titulo}</h5>
-                    </div>
-                    <div class="modal-body text-center p-4">
-                        <div class="mb-3">
-                            <i class="bi bi-exclamation-circle text-warning" style="font-size: 4rem; display: block; animation: pulse 1s infinite;"></i>
-                        </div>
-                        <h6 id="${alertModalId}Msg" class="fw-bold text-secondary mb-3 fs-6">${mensagem || 'Atenção necessária.'}</h6>
-                        <button type="button" class="btn btn-warning w-100 rounded-pill fw-bold shadow-sm text-dark" data-bs-dismiss="modal">Entendi</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <style>
-            @keyframes pulse {
-                0% { transform: scale(1); }
-                50% { transform: scale(1.1); }
-                100% { transform: scale(1); }
-            }
-        </style>
-    `;
-
-    $('body').append(modalHtml);
-
-    const modalEl = document.getElementById(alertModalId);
-    const modal = new bootstrap.Modal(modalEl, {
-        focus: true
-    });
-
-    modal.show();
-};
-// Alias para compatibilidade
-window.mostrarAtencao = window.mostrarAlerta;
-
-window.confirmarExclusaoGenerica = function (mensagem, callback) {
-    // Remove qualquer modal antigo
-    $('#modalConfirmacaoGenerico').remove();
-    $('.modal-backdrop').remove();
-
-    const modalId = 'modalConfirmacaoGenerico';
-    const modalHtml = `
-        <div class="modal fade" id="${modalId}" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-sm">
-                <div class="modal-content border-0 shadow-lg rounded-4" style="overflow: hidden;">
-                    <div class="modal-header bg-danger text-white border-0 justify-content-center py-3">
-                        <h5 class="modal-title fw-bold"><i class="bi bi-trash3-fill me-2"></i>Excluir</h5>
-                    </div>
-                    <div class="modal-body text-center p-4">
-                        <div class="mb-3">
-                            <i class="bi bi-question-circle text-danger" style="font-size: 4rem; display: block; animation: pulse 1s infinite;"></i>
-                        </div>
-                        <h6 class="fw-bold text-secondary mb-3 fs-6">${mensagem}</h6>
-                        <div class="d-flex justify-content-center gap-2">
-                            <button type="button" class="btn btn-secondary rounded-pill fw-bold shadow-sm" data-bs-dismiss="modal">Cancelar</button>
-                            <button type="button" id="btnConfirmarExclusaoGenerico" class="btn btn-danger rounded-pill fw-bold shadow-sm">Excluir</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <style>
-            @keyframes pulse {
-                0% { transform: scale(1); }
-                50% { transform: scale(1.1); }
-                100% { transform: scale(1); }
-            }
-        </style>
-    `;
-
-    $('body').append(modalHtml);
-    const modalEl = document.getElementById(modalId);
-    const modal = new bootstrap.Modal(modalEl, { focus: true });
-    modal.show();
-
-    $('#btnConfirmarExclusaoGenerico').off('click').on('click', function () {
-        if (typeof callback === 'function') {
-            callback();
-        }
-        modal.hide();
-    });
-};
-// === GLOBAL MODAL HELPERS (End) ===
 
 // Objeto principal para encapsular toda a funcionalidade
 const OcorrenciasApp = {
@@ -219,11 +16,17 @@ const OcorrenciasApp = {
     },
 
     setupMasks: function() {
-        $('#inputData').mask('00/00/0000');
-        $('#inputIP').mask('0000.0000.000000-00', {
-            placeholder: "____.____.______-__",
-            reverse: true
-        });
+        try {
+            if ($.fn.mask) {
+                $('#inputData').mask('00/00/0000');
+                $('#inputIP').mask('0000.0000.000000-00', {
+                    placeholder: "____.____.______-__",
+                    reverse: true
+                });
+            }
+        } catch(e) {
+            console.warn('Máscaras não carregadas:', e);
+        }
     },
 
     setupAutocomplete: function() {
@@ -407,6 +210,11 @@ const OcorrenciasApp = {
 
     salvarRegistro: function() {
         if (!this.validarCamposObrigatorios()) return;
+
+        const $btn = $('#btnSalvar');
+        const originalHtml = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Salvando...');
+
         const formData = $('#formInicio').serializeArray();
         const formDocumentos = $('#documentos form').serializeArray();
         const formDadosComplementares = $('#dados-complementares form').serializeArray();
@@ -468,16 +276,23 @@ const OcorrenciasApp = {
             error: (xhr) => {
                 const mensagem = xhr.responseJSON?.message || 'Erro ao salvar | Boletim de Ocorrência já cadastrado no sistema!';
                 this.mostrarErro(mensagem);
+            },
+            complete: () => {
+                $btn.prop('disabled', false).html(originalHtml);
             }
         });
     },
-
     editarRegistro: function() {
         if (!this.currentId) {
             this.mostrarErro('Nenhum registro selecionado para editar.');
             return;
         }
         if (!this.validarCamposObrigatorios()) return;
+
+        const $btn = $('#btnEditar');
+        const originalHtml = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Atualizando...');
+
         const formData = $('#formInicio').serializeArray();
         const formDocumentos = $('#documentos form').serializeArray();
         const formDadosComplementares = $('#dados-complementares form').serializeArray();
@@ -533,6 +348,9 @@ const OcorrenciasApp = {
             },
             error: (xhr) => {
                 this.mostrarErro('Erro ao editar: ' + (xhr.responseJSON?.message || 'Erro desconhecido'));
+            },
+            complete: () => {
+                $btn.prop('disabled', false).html(originalHtml);
             }
         });
     },
@@ -613,12 +431,34 @@ const OcorrenciasApp = {
     },
 
     validarCamposObrigatorios: function() {
-        if (!$('#inputData').val() || !$('#inputDelegado').val() ||
-            !$('#inputDelegacia').val() || !$('#inputBOE').val()) {
-            this.mostrarErro('Preencha os campos obrigatórios: Data, Delegado, Delegacia e BOE');
+        const required = [
+            { sel: '#inputData', label: 'Data' },
+            { sel: '#inputDelegado', label: 'Delegado' },
+            { sel: '#inputDelegacia', label: 'Delegacia' },
+            { sel: '#inputBOE', label: 'BOE' }
+        ];
+
+        const missing = required.filter(r => !$(r.sel).val());
+        if (missing.length) {
+            const nomes = missing.map(m => m.label).join(', ');
+            this.mostrarErro(`Preencha os campos obrigatórios: ${nomes}`);
+            missing.forEach(r => this.realcarCampoInvalido(r.sel, `Informe ${r.label}`));
             return false;
         }
         return true;
+    },
+
+    realcarCampoInvalido: function (selector, mensagem) {
+        const el = $(selector);
+        if (!el.length) return;
+        el.addClass('is-invalid');
+        if (mensagem) el.attr('title', mensagem);
+        el.off('input._val').on('input._val', function () {
+            $(this).removeClass('is-invalid').removeAttr('title');
+        });
+        const node = el.get(0);
+        if (node && node.scrollIntoView) node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.focus();
     },
 
     preencherDatasAutomaticamente: function(dataInput) {
@@ -666,11 +506,21 @@ const OcorrenciasApp = {
     },
 
     mostrarSucesso: function(mensagem) {
-        window.mostrarSucesso(mensagem);
+        if (typeof window.mostrarSucesso === 'function') {
+            window.mostrarSucesso(mensagem);
+        } else {
+            console.log(mensagem);
+            alert(mensagem);
+        }
     },
 
     mostrarErro: function(mensagem) {
-        window.mostrarErro(mensagem);
+        if (typeof window.mostrarErro === 'function') {
+            window.mostrarErro(mensagem);
+        } else {
+            console.error(mensagem);
+            alert(mensagem);
+        }
     }
 };
 

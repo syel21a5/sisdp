@@ -233,13 +233,11 @@ window.initIntimacaoIfPresent = function () {
     // === FUNÇÕES DE MODAL ===
     // Adaptado para usar funções globais (Toast)
     function mostrarModalSucesso(mensagem) {
-        if (window.mostrarSucesso) window.mostrarSucesso(mensagem);
-        else alert(mensagem);
+        window.mostrarSucesso(mensagem);
     }
 
     function mostrarModalErro(mensagem) {
-        if (window.mostrarErro) window.mostrarErro(mensagem);
-        else alert(mensagem);
+        window.mostrarErro(mensagem);
     }
 
     // === FUNÇÃO PARA IMPRIMIR INTIMAÇÃO - ABRIR EDITOR ===
@@ -304,7 +302,8 @@ window.initIntimacaoIfPresent = function () {
         let formData = new FormData();
         formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
 
-        const pdfAtivo = document.getElementById('tab-pdf-intimacao') && document.getElementById('tab-pdf-intimacao').classList.contains('active');
+        const fileInput = document.getElementById('pdfBoeIntimacao');
+        const pdfAtivo = fileInput && fileInput.files.length > 0;
 
         // Helper: progresso suave Intimacao
         let _intProgressInterval = null;
@@ -332,13 +331,12 @@ window.initIntimacaoIfPresent = function () {
         }
 
         if (pdfAtivo) {
-            var fileInput = document.getElementById('pdfBoeIntimacao');
             if (!fileInput || fileInput.files.length === 0) {
                 mostrarModalErro('Selecione um arquivo PDF antes de processar.');
                 return;
             }
             formData.append('pdfBOE', fileInput.files[0]);
-            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Lendo PDF...');
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processando PDF...');
             iniciarProgressoInt('🤖 O sistema está lendo o documento...');
         } else {
             var texto = $('#textoBoeIntimacao').val();
@@ -347,12 +345,12 @@ window.initIntimacaoIfPresent = function () {
                 return;
             }
             formData.append('textoBOE', texto);
-            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Analisando texto...');
-            iniciarProgressoInt('🤖 A IA está analisando o texto do BOE...');
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processando texto...');
+            iniciarProgressoInt('🤖 O sistema está analisando o texto do BOE...');
         }
 
         $.ajax({
-            url: '/apfd/importar-boe-texto',
+            url: '/intimacao/importar-boe-texto',
             method: 'POST',
             data: formData,
             processData: false,
@@ -379,6 +377,8 @@ window.initIntimacaoIfPresent = function () {
                         console.log('✅ Modal fechado e backdrop removido');
                     }, 300);
 
+                    mostrarModalSucesso('Análise concluída com sucesso! Verifique os envolvidos na lista.');
+
                     // Preenche BOE se disponível
                     if (dados.boe) {
                         $('#inputReferenciaIntimacao').val(dados.boe);
@@ -386,19 +386,8 @@ window.initIntimacaoIfPresent = function () {
                         $('#inputReferenciaIntimacao').val(response.boe_extraido);
                     }
 
-                    // Preenche outros campos se disponíveis no retorno
-                    if (dados.delegado) $('#inputDelegadoIntimacao').val(dados.delegado);
-                    if (dados.escrivao) $('#inputEscrivaoIntimacao').val(dados.escrivao);
-                    if (dados.delegacia) $('#inputDelegaciaIntimacao').val(dados.delegacia);
-
-                    // Tenta extrair cidade do cabeçalho ou usa padrão se disponível
-                    if (dados.cidade) {
-                        $('#inputCidadeIntimacao').val(dados.cidade);
-                    } else if (dados.unidade_policial && dados.unidade_policial.includes('-')) {
-                        // Tentativa de extrair cidade de string tipo "1 DP - CIDADE"
-                        const parts = dados.unidade_policial.split('-');
-                        if (parts.length > 1) $('#inputCidadeIntimacao').val(parts[parts.length - 1].trim());
-                    }
+                    // Os campos Delegado, Escrivão, Delegacia e Cidade não são auto-preenchidos nesta etapa
+                    // conforme solicitação do usuário, pois são preenchidos manualmente ou via form Geral.
 
                     // Unifica todos os envolvidos em uma lista única para chips
                     let todosEnvolvidos = [];
@@ -419,43 +408,23 @@ window.initIntimacaoIfPresent = function () {
                         dados.outros.forEach(nome => todosEnvolvidos.push({ nome: nome, tipo: 'ENVOLVIDO' }));
                     }
 
-                    // MERGE COM DETALHES (Híbrido: Backend + Frontend Fallback)
-                    // Pega o texto bruto do textarea para re-análise se necessário (igual ao script.js)
-                    const textoBruto = $('#textoBoeIntimacao').val();
-
-                    if (dados.envolvidos_detalhes || textoBruto) {
-                        console.log('🔍 Iniciando merge de detalhes (Backend + Frontend Parsing)...');
+                    // MERGE COM DETALHES vindos do backend (IA já fez a extração completa)
+                    if (dados.envolvidos_detalhes) {
+                        console.log('🔍 Aplicando detalhes extraídos pelo backend...');
 
                         todosEnvolvidos = todosEnvolvidos.map(pessoa => {
-                            // 1. Tenta pegar do Backend
-                            let detalhe = dados.envolvidos_detalhes ? dados.envolvidos_detalhes[pessoa.nome] : null;
-
-                            // 2. Se não tiver no backend (ou faltar endereço/telefone), tenta parsing no Frontend
-                            if (!detalhe || (!detalhe.endereco && !detalhe.telefone)) {
-                                console.log(`⚠️ Detalhes incompletos back-end para "${pessoa.nome}". Tentando parsing frontal...`);
-                                const detFront = extrairDetalhesDoTexto(pessoa.nome, textoBruto);
-
-                                if (detFront) {
-                                    if (!detalhe) detalhe = {};
-                                    // Mescla: O que veio do front tem prioridade se o do back for vazio
-                                    if (!detalhe.endereco && detFront.endereco) detalhe.endereco = detFront.endereco;
-                                    if (!detalhe.telefone && detFront.telefone) detalhe.telefone = detFront.telefone;
-                                    if (!detalhe.rg && detFront.rg) detalhe.rg = detFront.rg;
-                                    if (!detalhe.cpf && detFront.cpf) detalhe.cpf = detFront.cpf;
-                                    if (!detalhe.nmandado && detFront.nmandado) detalhe.nmandado = detFront.nmandado; // Exemplo
-                                }
-                            }
+                            const detalhe = dados.envolvidos_detalhes[pessoa.nome] || null;
 
                             if (detalhe) {
                                 return {
                                     ...pessoa,
-                                    endereco: detalhe.endereco || '',
-                                    telefone: detalhe.telefone || '',
-                                    rg: detalhe.rg || '',
-                                    cpf: detalhe.cpf || '',
-                                    pai: detalhe.pai || '',
-                                    mae: detalhe.mae || '',
-                                    nascimento: detalhe.nascimento || '',
+                                    endereco:     detalhe.endereco     || '',
+                                    telefone:     detalhe.telefone     || '',
+                                    rg:           detalhe.rg           || '',
+                                    cpf:          detalhe.cpf          || '',
+                                    pai:          detalhe.pai          || '',
+                                    mae:          detalhe.mae          || '',
+                                    nascimento:   detalhe.nascimento   || '',
                                     naturalidade: detalhe.naturalidade || ''
                                 };
                             }
@@ -467,15 +436,13 @@ window.initIntimacaoIfPresent = function () {
                         console.log('✅ Renderizando', todosEnvolvidos.length, 'chips...');
                         renderizarChipsIntimacao(todosEnvolvidos);
 
-                        // ✅ Verifica imediatamente se já existem salvos no banco
-                        let boe = dados.boe || conversasBoe(textoBruto) || $('#inputReferenciaIntimacao').val();
-                        if (boe) {
-                            // Garante que o input de BOE esteja preenchido também
-                            if (!$('#inputReferenciaIntimacao').val()) $('#inputReferenciaIntimacao').val(boe);
-                            verificarEnvolvidosSalvos(boe);
+                        // Verifica imediatamente se já existem salvos no banco
+                        const boeAtual = dados.boe || $('#inputReferenciaIntimacao').val();
+                        if (boeAtual) {
+                            if (!$('#inputReferenciaIntimacao').val()) $('#inputReferenciaIntimacao').val(boeAtual);
+                            verificarEnvolvidosSalvos(boeAtual);
                         }
 
-                        // Opcional: mostrarModalSucesso('Dados do BOE processados com sucesso! Selecione um envolvido.');
                     } else {
                         mostrarModalErro('Nenhum envolvido identificado no texto.');
                     }
@@ -487,11 +454,14 @@ window.initIntimacaoIfPresent = function () {
             error: function (xhr) {
                 finalizarProgressoInt(false);
                 $btn.prop('disabled', false).html(originalHtml);
-                let msgErro = 'Ocorreu um erro ao se comunicar com o servidor. Tente novamente.';
+                let msgErro = 'Ocorreu um erro ao processar os dados. Tente novamente.';
                 if (xhr.responseJSON && xhr.responseJSON.message) {
                     msgErro = xhr.responseJSON.message;
                 }
-                mostrarModalErro(msgErro);
+                window.mostrarErro(msgErro);
+            },
+            complete: function () {
+                $btn.prop('disabled', false).html(originalHtml);
             }
         });
     });
@@ -920,10 +890,34 @@ window.initIntimacaoIfPresent = function () {
         const $btn = $('#btnSalvarIntimacao');
         const form = document.getElementById('formIntimacao');
 
-        // ✅ VALIDAÇÃO FRONTEND: Impede envio se campos obrigatórios (como Nome) estiverem vazios
-        if (!form.checkValidity()) {
-            form.reportValidity(); // Mostra o balãozinho do navegador no campo inválido
-            return; // Para a execução aqui
+        // ✅ VALIDAÇÃO FRONTEND CUSTOMIZADA (Substitui HTML5 native)
+        const requiredFields = [
+            { id: '#inputDataIntimacao', nome: 'Data Cadastro' },
+            { id: '#inputDelegadoIntimacao', nome: 'Delegado(a)' },
+            { id: '#inputDelegaciaIntimacao', nome: 'Delegacia' },
+            { id: '#inputNomeIntimacao', nome: 'Nome do Envolvido' }
+        ];
+
+        const camposVazios = requiredFields.filter(f => !$(f.id).val().trim());
+
+        if (camposVazios.length > 0) {
+            const nomesFaltantes = camposVazios.map(f => f.nome).join(', ');
+            
+            if (typeof window.mostrarErro === 'function') {
+                window.mostrarErro(`Preencha os campos obrigatórios: ${nomesFaltantes}`);
+            } else {
+                alert(`Preencha os campos obrigatórios: ${nomesFaltantes}`);
+            }
+
+            // Realçar os campos
+            camposVazios.forEach(f => {
+                $(f.id).addClass('is-invalid');
+                $(f.id).off('input._val').on('input._val', function () {
+                    $(this).removeClass('is-invalid');
+                });
+            });
+            $(camposVazios[0].id).focus();
+            return;
         }
 
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Salvando...');

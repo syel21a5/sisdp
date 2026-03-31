@@ -284,8 +284,8 @@ $(document).ready(function () {
                     $('#inputProfissao').val(c.Profissao || '');
                     $('#inputInstrucao').val(c.Instrucao || '');
                     $('#inputRG').val(c.RG || '');
-                    $('#inputCPF').val(c.CPF || '');
-                    $('#inputTelefone').val(c.Telefone || '');
+                    $('#inputCPF').val(c.CPF || '').trigger('input');
+                    $('#inputTelefone').val(c.Telefone || '(00) 00000-0000').trigger('input');
                     $('#inputMae').val(c.Mae || '');
                     $('#inputPai').val(c.Pai || '');
                     $('#inputEndereco').val(c.Endereco || '');
@@ -327,8 +327,8 @@ $(document).ready(function () {
         $('#inputProfissao').val(dados.Profissao || '');
         $('#inputInstrucao').val(dados.Instrucao || '');
         $('#inputRG').val(dados.RG || '');
-        $('#inputCPF').val(dados.CPF || '');
-        $('#inputTelefone').val(dados.Telefone || '');
+        $('#inputCPF').val(dados.CPF || '').trigger('input');
+        $('#inputTelefone').val(dados.Telefone || '(00) 00000-0000').trigger('input');
         $('#inputMae').val(dados.Mae || '');
         $('#inputPai').val(dados.Pai || '');
         $('#inputEndereco').val(dados.Endereco || '');
@@ -345,8 +345,8 @@ $(document).ready(function () {
         $('#inputIdade').val('');
         $('#btnEditarCondutor, #btnExcluirCondutor').prop('disabled', true);
 
-        // ✅ EXCLUIR VÍNCULO AO CRIAR NOVO CONDUTOR
-        excluirVinculoBoeCondutor();
+        // ✅ REMOVIDO: Excluir vínculo ao criar novo condutor (conflitava com sistema de chips)
+        // excluirVinculoBoeCondutor();
     });
 
     // === CRUD: SALVAR E EDITAR ===

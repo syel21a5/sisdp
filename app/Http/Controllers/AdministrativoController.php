@@ -326,89 +326,46 @@ class AdministrativoController extends Controller
         return response()->json(['success' => true, 'data' => $registros]);
     }
 
-    public function importarBoeTexto(Request $request)
+    public function importarBoeTexto(Request $request, \App\Services\BoeExtractorService $extractorService)
     {
-        try {
-            // Suporte a PDF ou Texto colado
-            if ($request->hasFile('pdfBOE') && $request->file('pdfBOE')->isValid()) {
-                $pdf = $request->file('pdfBOE');
-                $tmpPath = sys_get_temp_dir() . '/boe_admin_upload_' . uniqid() . '.pdf';
-                $pdf->move(sys_get_temp_dir(), basename($tmpPath));
-            } else {
-                $texto = $request->input('textoBOE', '');
-                if (empty(trim($texto))) {
-                    return response()->json(['success' => false, 'message' => 'Escolha um PDF ou cole o texto do BOE antes de processar.']);
-                }
-                $tmpPath = sys_get_temp_dir() . '/boe_texto_admin_' . uniqid() . '.txt';
-                file_put_contents($tmpPath, $texto);
-            }
-
-            $scriptPath = base_path('scripts/python/boe_extractor.py');
-
-            // Detectar se está rodando no Windows ou Linux para chamar o python correto
-            $pythonCmd = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? 'python' : 'python3';
-            // Comando de shell nativo para burlar o isolamento do Symfony Process no Windows
-            $command = escapeshellcmd($pythonCmd) . " " . escapeshellarg($scriptPath) . " " . escapeshellarg($tmpPath) . " 2>&1";
-            $output = \shell_exec($command);
-
-            // Limpa o arquivo temporário
-            @unlink($tmpPath);
-
-            if (!$output) {
-                return response()->json(['success' => false, 'message' => "Falha silenciosa ao executar o extrator Python."], 500);
-            }
-
-            $json = json_decode($output, true);
-
-            if (json_last_error() === JSON_ERROR_NONE && isset($json['success'])) {
-                if ($json['success']) {
-                    // The original logic for processing $json['dados'] was here,
-                    // but the instruction implies returning $json directly if successful.
-                    // Re-integrating the original data adaptation logic.
-                    $dt = $json['dados'];
-
-                    $crime = null;
-                    $tipificacao = null;
-                    if (!empty($dt['natureza'])) {
-                        $parts = preg_split('/\s*-\s*/', $dt['natureza'], 2);
-                        $crime = trim($parts[0] ?? '');
-                        $tipificacao = trim($parts[1] ?? '');
-                    }
-
-                    $dados_adaptados = [
-                        'boe' => $dt['boe'] ?? null,
-                        'ip' => $dt['ip'] ?? null,
-                        'crime' => $crime,
-                        'tipificacao' => $tipificacao,
-                        'apreensao' => '',
-                        'cartorio' => null,
-                        'hora' => $dt['hora_fato'] ?? null,
-                        'motivacao' => '',
-                        'endereco' => $dt['end_fato'] ?? null,
-                        'local_fato' => null,
-                        'envolvidos' => [
-                            'vitimas' => $dt['vitimas'] ?? [],
-                            'autores' => $dt['autores'] ?? [],
-                            'testemunhas' => $dt['testemunhas'] ?? [],
-                            'capturados' => [],
-                            'outros' => array_merge($dt['condutor'] ?? [], $dt['outros'] ?? [])
-                        ]
-                    ];
-
-                    return response()->json(['success' => true, 'dados' => $dados_adaptados, 'fallback' => false]);
-                } else {
-                    $msg = $json['error'] ?? 'Erro no script Python (JSON recebido).';
-                    \Log::error("IA retornou erro mapeado no Admin: " . $msg);
-                    return response()->json(['success' => false, 'message' => "Falha na IA: " . $msg], 500);
-                }
-            } else {
-                \Log::error("Script Python falhou brutalmente no Admin: " . $output);
-                return response()->json(['success' => false, 'message' => "Falha estrutural ao executar Python:\n" . $output], 500);
-            }
-        } catch (\Exception $e) {
-            \Log::error("Exceção rotar importarBoeAdminTexto: " . $e->getMessage());
-            return response()->json(['success' => false, 'message' => "Erro no Servidor: " . $e->getMessage()], 500);
+        $result = $extractorService->extract($request, 'administrativo');
+        
+        if (!($result['success'] ?? false)) {
+            return response()->json($result, $result['status'] ?? 500);
         }
+        
+        $dt = $result['dados'];
+        $crime = null;
+        $tipificacao = null;
+        if (!empty($dt['natureza'])) {
+            $parts = preg_split('/\s*-\s*/', $dt['natureza'], 2);
+            $crime = trim($parts[0] ?? '');
+            $tipificacao = trim($parts[1] ?? '');
+        }
+
+        $dados_adaptados = [
+            'boe' => $dt['boe'] ?? null,
+            'ip' => $dt['ip'] ?? null,
+            'crime' => $crime,
+            'tipificacao' => $tipificacao,
+            'apreensao' => '',
+            'cartorio' => null,
+            'hora' => $dt['hora_fato'] ?? null,
+            'motivacao' => '',
+            'endereco' => $dt['end_fato'] ?? null,
+            'local_fato' => null,
+            'envolvidos' => [
+                'vitimas' => $dt['vitimas'] ?? [],
+                'autores' => $dt['autores'] ?? [],
+                'testemunhas' => $dt['testemunhas'] ?? [],
+                'capturados' => [],
+                'outros' => array_merge($dt['condutor'] ?? [], $dt['outros'] ?? [])
+            ],
+            'celulares' => $dt['celulares'] ?? [],
+            'veiculos' => $dt['veiculos'] ?? []
+        ];
+
+        return response()->json(['success' => true, 'dados' => $dados_adaptados, 'fallback' => false]);
     }
 
     // ✅ RELATÓRIO COMPLETO COM NOVAS CONSULTAS (CORRIGIDO)

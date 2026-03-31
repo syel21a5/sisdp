@@ -117,7 +117,7 @@
         <p style="text-align: center; margin: 8px 0 !important;">{{ !empty($dadosArray['cidade']) ? $dadosArray['cidade'] : '[CIDADE]' }}, {{ !empty($dadosArray['data']) ? $dadosArray['data'] : '[DATA]' }}</p>
 
         <!-- DOIS ESPAÇAMENTOS ENTRE [CIDADE], [DATA] E DELEGADO -->
-        <p style="text-align: left; margin: 30px 0 !important;">&nbsp;</p>
+        <p style="text-align: left; margin: 8px 0 !important;">&nbsp;</p>
 
         <p style="text-align: center; font-weight: bold; margin: 15px 0 5px 0 !important;"><strong>{{ !empty($dadosArray['delegado']) ? $dadosArray['delegado'] : '[DELEGADO]' }}</strong></p>
         <p style="text-align: center; margin: 2px 0 15px 0 !important;">DELEGADO (A) DE POLÍCIA</p>
@@ -125,13 +125,13 @@
         <p class="ql-align-justify preservar-espacamento">
                 <br>
         </p>
-        <p style="text-align: left; margin: 20px 0 30px 0 !important;">Recebedor(a):_____________________________________________________</p>
+        <p style="text-align: left; margin: 8px 0 10px 0 !important;">Recebedor(a):_____________________________________________________</p>
 
 
         <!-- SEGUNDO CABEÇALHO SERÁ INSERIDO AUTOMATICAMENTE AQUI PELO CONTROLLER -->
 
         <!-- SEGUNDA VIA -->
-        <div style="margin-top: 20px;">
+        <div style="margin-top: 8px;">
             <p style="text-align: center; font-weight: bold; margin-bottom: 5px !important;">MANDADO DE INTIMAÇÃO</p>
 
             <!-- ESPAÇAMENTO ENTRE MANDADO E TEXTO -->
@@ -154,14 +154,14 @@
             <p style="text-align: center; margin: 8px 0 !important;">{{ !empty($dadosArray['cidade']) ? $dadosArray['cidade'] : '[CIDADE]' }}, {{ !empty($dadosArray['data']) ? $dadosArray['data'] : '[DATA]' }}</p>
 
             <!-- DOIS ESPAÇAMENTOS ENTRE [CIDADE], [DATA] E DELEGADO -->
-            <p style="text-align: left; margin: 30px 0 !important;">&nbsp;</p>
+            <p style="text-align: left; margin: 8px 0 !important;">&nbsp;</p>
 
             <p style="text-align: center; font-weight: bold; margin: 15px 0 5px 0 !important;"><strong>{{ !empty($dadosArray['delegado']) ? $dadosArray['delegado'] : '[DELEGADO]' }}</strong></p>
             <p style="text-align: center; margin: 2px 0 15px 0 !important;">DELEGADO (A) DE POLÍCIA</p>
 
-            <p style="text-align: left; margin: 15px 0 !important;">&nbsp;</p>
+            <p style="text-align: left; margin: 4px 0 !important;">&nbsp;</p>
 
-            <p style="text-align: left; margin: 20px 0 10px 0 !important;">Recebedor(a):_____________________________________________________</p>
+            <p style="text-align: left; margin: 8px 0 5px 0 !important;">Recebedor(a):_____________________________________________________</p>
         </div>
     </div>
 

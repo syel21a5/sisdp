@@ -225,6 +225,9 @@ class IntimacaoController extends Controller
                 'updated_at' => now()
             ]);
 
+            // RESETAR TIMER DE INATIVIDADE
+            $this->touchProcedure($request->BOE);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Intimação cadastrada com sucesso',
@@ -341,6 +344,9 @@ class IntimacaoController extends Controller
                 ], 404);
             }
 
+            // RESETAR TIMER DE INATIVIDADE
+            $this->touchProcedure($request->BOE);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Intimação atualizada com sucesso'
@@ -379,12 +385,19 @@ class IntimacaoController extends Controller
                 }
             }
 
+            // Busca o BOE antes de deletar para poder dar o "touch"
+            $intimacao = DB::table('cadintimacao')->where('id', $id)->first();
+            $boe = $intimacao ? $intimacao->BOE : null;
+
             $deleted = DB::table('cadintimacao')
                 ->where('id', $id)
                 ->where('user_id', $userId) // GARANTIR QUE SÓ EXCLUI DO PRÓPRIO USUÁRIO
                 ->delete();
 
             if ($deleted) {
+                // RESETAR TIMER DE INATIVIDADE
+                if ($boe) $this->touchProcedure($boe);
+
                 return response()->json([
                     'success' => true,
                     'message' => 'Intimação excluída com sucesso'
@@ -446,6 +459,20 @@ class IntimacaoController extends Controller
                 'inicio' => $dataInicio->format('d/m/Y'),
                 'fim' => $dataFim->format('d/m/Y')
             ]
+        ]);
+    }
+
+    public function importarBoeTexto(Request $request, \App\Services\BoeExtractorService $extractorService)
+    {
+        $result = $extractorService->extract($request, 'intimacao');
+
+        if (!($result['success'] ?? false)) {
+            return response()->json($result, $result['status'] ?? 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'dados' => $result['dados']
         ]);
     }
 }

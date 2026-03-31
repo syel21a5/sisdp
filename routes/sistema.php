@@ -45,6 +45,7 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/atualizar/{id}', [IntimacaoController::class, 'atualizar'])->name('intimacao.atualizar');
         Route::delete('/excluir/{id}', [IntimacaoController::class, 'excluir'])->name('intimacao.excluir');
         Route::get('/controle-periodo', [IntimacaoController::class, 'controlePorPeriodo'])->name('intimacao.controle.periodo');
+        Route::post('/importar-boe-texto', [IntimacaoController::class, 'importarBoeTexto'])->name('intimacao.importar_boe_texto');
     });
 
     // ✅✅✅ ROTAS PARA ADMINISTRATIVO (ADICIONADAS)
@@ -149,6 +150,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/controle-status', [CelularController::class, 'controlePorStatus'])->name('celular.controle.status');
         Route::get('/exportar-excel', [CelularController::class, 'exportarExcel'])->name('celular.exportar.excel');
         Route::get('/exportar-pdf',   [CelularController::class, 'exportarPdf'])->name('celular.exportar.pdf');
+        Route::post('/importar-boe-texto', [CelularController::class, 'importarBoeTexto'])->name('celular.importar_boe_texto');
     });
 
     // ✅✅✅ ROTAS PARA VEÍCULO (CORRIGIDAS)
@@ -163,16 +165,20 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/controle-status', [VeiculoController::class, 'controlePorStatus'])->name('veiculo.controle.status');
         Route::get('/exportar-excel', [VeiculoController::class, 'exportarExcel'])->name('veiculo.exportar.excel');
         Route::get('/exportar-pdf',   [VeiculoController::class, 'exportarPdf'])->name('veiculo.exportar.pdf');
+        Route::post('/importar-boe-texto', [VeiculoController::class, 'importarBoeTexto'])->name('veiculo.importar_boe_texto');
     });
 
     // ✅ ROTAS UNIFICADAS PARA VÍNCULOS (COMPLETAS)
     Route::prefix('boe/vinculos')->group(function () {
         // ✅ NOVAS ROTAS DINÂMICAS
         Route::get('/listar/{boe}', [BoeVincularController::class, 'listarVinculos']);
+        Route::get('/sugestoes-pendentes', [BoeVincularController::class, 'listarSugestoesPendentes']);
         Route::post('/adicionar', [BoeVincularController::class, 'adicionarVinculo']);
         Route::delete('/remover/{id}', [BoeVincularController::class, 'removerVinculo']);
 
         Route::post('/salvar', [BoeVincularController::class, 'salvarVinculos']);
+        Route::post('/aprovar/{id}', [BoeVincularController::class, 'aprovarVinculo']);
+        Route::post('/rejeitar/{id}', [BoeVincularController::class, 'rejeitarVinculo']);
 
         // ROTAS DE EXCLUSÃO ESPECÍFICAS
         Route::delete('/excluir-todos/{boe}', [BoeVincularController::class, 'excluirTodosVinculos'])->name('boe.vinculos.excluir-todos');

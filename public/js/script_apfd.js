@@ -88,9 +88,12 @@ $(document).ready(function () {
         if (!tipoPessoaAtual || !nome) return;
 
         if (!boe) {
-            // Sem BOE: apenas atualiza UI local
+            // Sem BOE: apenas atualiza UI local e chips globais
             if (!OcorrenciasApp.envolvidos[tipoPessoaAtual].some(p => p === nome)) {
                 OcorrenciasApp.envolvidos[tipoPessoaAtual].push(nome);
+                if (window.envolvidosChips && window.envolvidosChips[tipoPessoaAtual] && !window.envolvidosChips[tipoPessoaAtual].some(c => c.nome === nome)) {
+                    window.envolvidosChips[tipoPessoaAtual].push({ nome: nome, id: id });
+                }
                 OcorrenciasApp.atualizarChips(tipoPessoaAtual);
             }
             bootstrap.Modal.getInstance($('#modalPessoa')).hide();
@@ -108,11 +111,25 @@ $(document).ready(function () {
             },
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
             success: function (resp) {
-                OcorrenciasApp.carregarVinculosDoBoe(boe);
+                if (!OcorrenciasApp.envolvidos[tipoPessoaAtual].some(p => p === nome)) {
+                    OcorrenciasApp.envolvidos[tipoPessoaAtual].push(nome);
+                    OcorrenciasApp.vinculos[tipoPessoaAtual] = OcorrenciasApp.vinculos[tipoPessoaAtual] || [];
+                    OcorrenciasApp.vinculos[tipoPessoaAtual].push({
+                        nome: nome,
+                        pessoa_id: id,
+                        vinculo_id: resp.vinculo_id || null,
+                        status_aprovacao: 'aprovado',
+                        criado_por_nome: null
+                    });
+                    if (window.envolvidosChips && window.envolvidosChips[tipoPessoaAtual] && !window.envolvidosChips[tipoPessoaAtual].some(c => c.nome === nome)) {
+                        window.envolvidosChips[tipoPessoaAtual].push({ nome: nome, id: id, boevinculo_id: resp.vinculo_id || null });
+                    }
+                    OcorrenciasApp.atualizarChips(tipoPessoaAtual);
+                }
                 bootstrap.Modal.getInstance($('#modalPessoa')).hide();
             },
             error: function (xhr) {
-                mostrarErro('Erro ao vincular pessoa: ' + (xhr.responseJSON?.message || 'Erro desconhecido'));
+                window.mostrarErro('Erro ao vincular pessoa: ' + (xhr.responseJSON?.message || 'Erro desconhecido'));
             }
         });
     });
@@ -181,7 +198,7 @@ $(document).ready(function () {
                         }
                     },
                     error: function () {
-                        mostrarErro('Erro ao salvar dados do autor');
+                        window.mostrarErro('Erro ao salvar dados do autor');
                     }
                 });
             } else {
@@ -247,7 +264,7 @@ $(document).ready(function () {
                             };
                         }
                     },
-                    error: function () { mostrarErro('Erro ao salvar dados da vítima'); }
+                    error: function () { window.mostrarErro('Erro ao salvar dados da vítima'); }
                 });
             } else {
                 bootstrap.Modal.getInstance($('#modalDadosVitima')).hide();
@@ -312,7 +329,7 @@ $(document).ready(function () {
                             };
                         }
                     },
-                    error: function () { mostrarErro('Erro ao salvar dados da testemunha'); }
+                    error: function () { window.mostrarErro('Erro ao salvar dados da testemunha'); }
                 });
             } else {
                 bootstrap.Modal.getInstance($('#modalDadosTestemunha')).hide();
@@ -402,6 +419,22 @@ $(document).ready(function () {
             $('#inputData').val(hoje);
         }
 
+        // ✅ NOVO: Ao limpar, sempre resetar para modo "dono" (novo procedimento)
+        if (window.OcorrenciasApp) {
+            window.OcorrenciasApp.isOwner = true;
+            window.OcorrenciasApp.ownerName = null;
+            if (typeof window.OcorrenciasApp.desbloquearCamposFormulario === 'function') {
+                window.OcorrenciasApp.desbloquearCamposFormulario();
+            }
+        }
+        $('#bannerPropriedade').remove();
+
+        // ✅ REINICIAR ESTADO DO MODAL DE IMPORTAÇÃO (caso o usuário tenha cancelado ou extraído)
+        $('#btnProcessarBoe').prop('disabled', false).html('Processar pelo Sistema');
+        $('#boeProgressWrapper').hide();
+        $('#boeProgressBar').css('width', '0%').attr('aria-valuenow', 0);
+        $('#boeProgressPercent').text('0%');
+
         console.log('✨ [script_apfd] Limpeza concluída.');
     }
 
@@ -436,17 +469,34 @@ $(document).ready(function () {
                             method: 'POST',
                             data: { boe: boe, pessoa_id: pessoa.id, tipo: papelMap[tipoPessoaAtual] },
                             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                            success: function () {
-                                OcorrenciasApp.carregarVinculosDoBoe(boe);
+                            success: function (resp) {
+                                if (!OcorrenciasApp.envolvidos[tipoPessoaAtual].some(p => p === pessoa.nome)) {
+                                    OcorrenciasApp.envolvidos[tipoPessoaAtual].push(pessoa.nome);
+                                    OcorrenciasApp.vinculos[tipoPessoaAtual] = OcorrenciasApp.vinculos[tipoPessoaAtual] || [];
+                                    OcorrenciasApp.vinculos[tipoPessoaAtual].push({
+                                        nome: pessoa.nome,
+                                        pessoa_id: pessoa.id,
+                                        vinculo_id: resp.vinculo_id || null,
+                                        status_aprovacao: 'aprovado',
+                                        criado_por_nome: null
+                                    });
+                                    if (window.envolvidosChips && window.envolvidosChips[tipoPessoaAtual] && !window.envolvidosChips[tipoPessoaAtual].some(c => c.nome === pessoa.nome)) {
+                                        window.envolvidosChips[tipoPessoaAtual].push({ nome: pessoa.nome, id: pessoa.id, boevinculo_id: resp.vinculo_id || null });
+                                    }
+                                    OcorrenciasApp.atualizarChips(tipoPessoaAtual);
+                                }
                                 bootstrap.Modal.getInstance($('#modalPessoa')).hide();
                             },
                             error: function (xhr) {
-                                mostrarErro('Erro ao vincular pessoa: ' + (xhr.responseJSON?.message || 'Erro desconhecido'));
+                                window.mostrarErro('Erro ao vincular pessoa: ' + (xhr.responseJSON?.message || 'Erro desconhecido'));
                             }
                         });
                     } else {
                         if (tipoPessoaAtual && !OcorrenciasApp.envolvidos[tipoPessoaAtual].some(p => p === pessoa.nome)) {
                             OcorrenciasApp.envolvidos[tipoPessoaAtual].push(pessoa.nome);
+                            if (window.envolvidosChips && window.envolvidosChips[tipoPessoaAtual] && !window.envolvidosChips[tipoPessoaAtual].some(c => c.nome === pessoa.nome)) {
+                                window.envolvidosChips[tipoPessoaAtual].push({ nome: pessoa.nome, id: pessoa.id });
+                            }
                             OcorrenciasApp.atualizarChips(tipoPessoaAtual);
                         }
                         bootstrap.Modal.getInstance($('#modalPessoa')).hide();
@@ -457,7 +507,7 @@ $(document).ready(function () {
                     if (window.mostrarAlerta) {
                         window.mostrarAlerta('Erro ao salvar a pessoa. Verifique os dados e tente novamente.');
                     } else {
-                        alert('Erro ao salvar a pessoa. Verifique os dados e tente novamente.');
+                        Swal.fire("Atenção", 'Erro ao salvar a pessoa. Verifique os dados e tente novamente.', "warning");
                     }
                     console.error(response);
                 }
@@ -473,6 +523,9 @@ $(document).ready(function () {
             if (!pessoaSelecionadaId && nomeDigitado) {
                 if (tipoPessoaAtual && nomeDigitado && !OcorrenciasApp.envolvidos[tipoPessoaAtual].some(p => p === nomeDigitado)) {
                     OcorrenciasApp.envolvidos[tipoPessoaAtual].push(nomeDigitado);
+                    if (window.envolvidosChips && window.envolvidosChips[tipoPessoaAtual] && !window.envolvidosChips[tipoPessoaAtual].some(c => c.nome === nomeDigitado)) {
+                        window.envolvidosChips[tipoPessoaAtual].push({ nome: nomeDigitado, id: null });
+                    }
                     OcorrenciasApp.atualizarChips(tipoPessoaAtual);
                 }
             }
@@ -557,7 +610,7 @@ $(document).ready(function () {
         if (pdfAtivo) {
             var fileInput = document.getElementById('pdfBoe');
             if (!fileInput || fileInput.files.length === 0) {
-                mostrarErro('Selecione um arquivo PDF antes de processar.');
+                window.mostrarErro('Selecione um arquivo PDF antes de processar.');
                 return;
             }
             formData.append('pdfBOE', fileInput.files[0]);
@@ -566,7 +619,7 @@ $(document).ready(function () {
         } else {
             var texto = $('#textoBoe').val();
             if (!texto || texto.trim() === '') {
-                mostrarErro('Cole o texto do BOE primeiro.');
+                window.mostrarErro('Cole o texto do BOE primeiro.');
                 return;
             }
             formData.append('textoBOE', texto);
@@ -582,8 +635,7 @@ $(document).ready(function () {
             contentType: false,
             success: function (response) {
                 finalizarProgresso(response.success);
-                $btn.prop('disabled', false).html(originalHtml);
-
+                
                 if (response.success) {
                     const dados = response.dados;
                     // Preenche os campos do formulário principal com os dados retornados
@@ -612,9 +664,6 @@ $(document).ready(function () {
                     }
 
                     if (dados.condutor && dados.condutor.length > 0) {
-                        // Se houver mais de um, pega o primeiro ou junta. Geralmente é um.
-                        $('#inputCondutor').val(dados.condutor[0]);
-
                         // ✅ Adicionar também ao array de envolvidos para gerar chips e permitir conciliação
                         dados.condutor.forEach(nome => {
                             if (!OcorrenciasApp.envolvidos.condutores.some(p => p === nome)) {
@@ -672,27 +721,6 @@ $(document).ready(function () {
                         veiculos: window.pendentesIA_Veiculos.length
                     });
 
-                    // Mensagem específica de sucesso para objetos
-                    let msgIA = 'Extração concluída!';
-                    if (window.pendentesIA_Celulares.length > 0 || window.pendentesIA_Veiculos.length > 0) {
-                        msgIA += `<br>O sistema encontrou: <b>${window.pendentesIA_Celulares.length} celular(es)</b> e <b>${window.pendentesIA_Veiculos.length} veículo(s)</b>.`;
-                        msgIA += `<br><small>Verifique as abas correspondentes.</small>`;
-                        window.mostrarSucesso(msgIA);
-                    } else {
-                        window.mostrarSucesso('Extração de nomes concluída com sucesso!');
-                    }
-
-                    // ✅ NOVO: Enviar celulares e veículos para as abas correspondentes
-                    if (dados.celulares && dados.celulares.length > 0) {
-                        console.log('📱 Enviando celulares extraídos para o módulo Celular...');
-                        $(document).trigger('celularesExtraidosIA', [dados.celulares]);
-                    }
-
-                    if (dados.veiculos && dados.veiculos.length > 0) {
-                        console.log('🚗 Enviando veículos extraídos para o módulo Veículo...');
-                        $(document).trigger('veiculosExtraidosIA', [dados.veiculos]);
-                    }
-
                     // ✅ NOVO: Conciliar nomes importados com o banco de dados imediatamente
                     // Isso fará com que nomes já existentes fiquem AZUIS e novos fiquem VERMELHOS
                     if (typeof OcorrenciasApp.conciliarEnvolvidosBD === 'function') {
@@ -735,13 +763,13 @@ $(document).ready(function () {
                         });
                     });
 
-                    mostrarSucesso('Dados do BOE importados com sucesso!');
+                    window.mostrarSucesso('Dados do BOE importados com sucesso!');
 
                     // Fecha o modal
                     var modal = bootstrap.Modal.getInstance(document.getElementById('modalImportarBoe'));
                     modal.hide();
                 } else {
-                    mostrarErro('Falha ao processar o texto. Nenhum dado foi extraído.');
+                    window.mostrarErro('Falha ao processar o texto. Nenhum dado foi extraído.');
                 }
             },
             error: function (xhr) {
@@ -751,7 +779,10 @@ $(document).ready(function () {
                 if (xhr.responseJSON && xhr.responseJSON.message) {
                     msgErro = xhr.responseJSON.message;
                 }
-                mostrarErro(msgErro);
+                window.mostrarErro(msgErro);
+            },
+            complete: function () {
+                $btn.prop('disabled', false).html(originalHtml);
             }
         });
     });

@@ -26,11 +26,11 @@ import subprocess
 
 def ensure_package(module_name: str, pip_name: str):
     try:
-        __import__(module_name)
+        __import__(module_name)  # type: ignore[import]
     except ImportError:
         try:
             subprocess.check_call([sys.executable, "-m", "pip", "install", pip_name])
-            __import__(module_name)
+            __import__(module_name)  # type: ignore[import]
         except Exception as e:
             print(json.dumps({"success": False, "error": f"A biblioteca '{pip_name}' não está instalada no Python local '{sys.executable}' e a instalação falhou."}))
             sys.exit(1)
@@ -38,8 +38,8 @@ def ensure_package(module_name: str, pip_name: str):
 ensure_package('google.genai', 'google-genai')
 ensure_package('fitz', 'PyMuPDF')
 
-from google import genai
-import fitz  # PyMuPDF
+from google import genai  # type: ignore
+import fitz  # type: ignore  # PyMuPDF
 
 def fallback_json(error_msg: str):
     """Fallback simples caso o processo falhe."""
@@ -78,131 +78,199 @@ def ler_arquivo(file_path: str) -> str:
         fallback_json(f"Erro ao tentar ler o arquivo {ext}: {str(e)}")
     return ""
 
-def extract_with_gemini(texto: str, api_key: str):
+def extract_with_gemini(texto: str, api_key: str, ext_type: str = 'apfd'):
     try:
         client = genai.Client(api_key=api_key)
     except Exception as e:
         return {"success": False, "error": f"Erro de credenciais na IA: {str(e)}"}
 
-    prompt = rf"""Você é um sistema especializado em extração de dados estruturados a partir de textos de Boletins de Ocorrência Policial (BOE) brasileiros, especialmente do sistema INFOPOL da Polícia Civil de Pernambuco.
+    # Prompt base com regras comuns
+    prompt_base = rf"""Você é um sistema especializado em extração de dados estruturados a partir de textos de Boletins de Ocorrência Policial (BOE) brasileiros.
+Sua missão é extrair as informações solicitadas e retornar **somente** um JSON válido, sem formato markdown.
 
-Sua missão é extrair as informações do texto fornecido e retornar **somente** um JSON válido. Não inclua blocos markdown (como ```json) ou qualquer outro texto explicativo, apenas o JSON bruto.
+REGRAS GERAIS:
+1. Todas as strings devem estar em MAIÚSCULO (exceto chaves do JSON).
+2. Para `boe`: extraia apenas o número limpo do Boletim de Ocorrência (ex: "25E0257000128").
+3. Para `ip`: inquérito policial (se houver).
+4. Em caso de não encontrar dados, use os formatos vazios especificados na estrutura.
+"""
 
----
+    if ext_type == 'veiculo':
+        prompt = prompt_base + rf"""
+Foque APENAS em dados relacionados a VEÍCULOS e as pessoas diretamente ligadas a eles (proprietários ou condutores).
+IGNORE aparelhos celulares, drogas, armas e outras pessoas não relacionadas a veículos.
 
-### REGRAS DE CLASSIFICAÇÃO DE PAPÉIS DOS ENVOLVIDOS:
-
-Mapeie os papéis encontrados no BOE para os arrays corretos do JSON. Considere os seguintes sinônimos e equivalências:
-
-| Papel no BOE | Array de destino |
-|---|---|
-| VÍTIMA, VITIMA, OFENDIDO, VÍTIMA/LESADA | `vitimas` |
-| AUTOR, AUTOR\\AGENTE, AGENTE, SUSPEITO, INDICIADO, ACUSADO, INFRATOR, INVESTIGADO, RÉU | `autores` |
-| TESTEMUNHA, TESTEMUNHA OCULAR | `testemunhas` |
-| CONDUTOR (quando explicitamente nomeado como condutor do veículo ou condutor do flagrante) | `condutor` |
-| NOTICIANTE, COMUNICANTE, SOLICITANTE, DECLARANTE | `outros` (se não houver informação extra de condutor) |
-| OUTRO, OUTROS, DESCONHECIDO, DESCONHECIDA, MENOR, ACOMPANHANTE, REPRESENTANTE LEGAL | `outros` |
-
-⚠️ IMPORTANTE: Um envolvido pode ter mais de um papel (ex: "AUTOR\AGENTE") — use o papel PRINCIPAL para classificá-lo.
-⚠️ IMPORTANTE: O array `condutor` deve ser preenchido SOMENTE se o texto do BOE indicar claramente um CONDUTOR (de veículo ou do flagrante). Caso contrário, deixe `condutor` como array vazio `[]`.
-⚠️ IMPORTANTE: Nomes "DESCONHECIDA" ou "DESCONHECIDO" são válidos — inclua-os em `outros`.
-⚠️ IMPORTANTE: Campos de identidade de gênero, orientação sexual e cor de pele NÃO devem ser extraídos — ignore-os completamente.
-
----
-
-### REGRAS GERAIS DE EXTRAÇÃO E FORMATAÇÃO:
-
-1. Retorne as chaves conforme o schema exato abaixo.
-2. Todas as strings devem estar em MAIÚSCULO (exceto chaves do JSON).
-3. Datas devem ser obrigatoriamente formatadas DD/MM/YYYY (ex: 9/8/1998 → 09/08/1998). Se não encontrar, envie "".
-4. Hora deve ser formatada HH:MM. Se não encontrar, envie "".
-5. CPF: apenas os números puros ou com máscara (###.###.###-##). Remova rótulos como "(CPF)".
-6. RG: inclua o número E o órgão emissor (ex: "55262/PM/PE", "10683541/SDS/PE"). Remova rótulos desnecessários.
-7. Telefone: remova "Telefones Celulares:", traços e espaços extras. Só números ou separados por vírgula.
-8. Naturalidade: extraia APENAS a CIDADE e o ESTADO no formato exato: "CIDADE-UF" (ex: "SAO JOSE DO EGITO / PERNAMBUCO / BRASIL" → "SAO JOSE DO EGITO-PE", "NÃO INFORMADO / PERNAMBUCO / BRASIL" → ""). Nunca inclua "BRASIL" ni barra. Se for "NÃO INFORMADO", envie "".
-9. Endereço: limpe sufixos como "Características", "Documentos", pontos e vírgulas extras. Formato: "Rua X, N, Bairro, Cidade".
-10. Profissão: remova sufixos "(A)" ou texto redundante.
-11. Escolaridade: simplifique (ex: "1°. GRAU INCOMPLETO" → "FUNDAMENTAL INCOMPLETO"). Se "NAO INFORMADO", envie "".
-12. Estado civil: se "NAO INFORMADO", envie "".
-13. Para `boe`: use apenas o número limpo do Boletim de Ocorrência (ex: "25E0257000128"). Ignore "Complemento" ou BOEs relacionados.
-14. Para `delegacia`: use o nome completo da Delegacia/Unidade policial conforme constar no cabeçalho.
-15. Para `natureza`: se houver múltiplas naturezas, junte todas separadas por " / ".
-16. Para `celulares`: extraia marca/modelo, IMEIs (15 dígitos), cor e proprietário. Se encontrar apenas um IMEI, deixe o outro vazio.
-17. Para `veiculos`: extraia marca/modelo, placa e chassi. Limpe a placa de ruídos. Se o chassi não tiver numeração, estiver suprimido ou ilegível, use EXATAMENTE a string "SUPRIMIDA / NAO IDENTIFICADA".
-18. Caso não encontre certa informação, preencha com "". Não crie propriedades além das descritas. O campo de processo externo ou SEI deve ser ignorado.
-19. Os nomes nos arrays vitimas, autores, testemunhas, condutor e outros DEVEM bater EXATAMENTE com a chave dentro de envolvidos_detalhes.
-20. Para `objetos_apreendidos`: gere uma lista consolidada em formato texto (bullet points) de TODOS os itens onde conste explicitamente "Objeto apreendido: Sim". IGNORE itens onde conste "Não".
-21. Detalhes por categoria (USE APENAS A DESCRIÇÃO DIRETA E COMPLETA): 
-    - Veículos e Eletrônicos: OBRIGATÓRIO incluir Marca, Modelo, Placa (se houver), Chassi (se houver), IMEIs (se houver) e **COR** (importante). 
-    - Entorpecentes: OBRIGATÓRIO peso e tipo. **NÃO inclua a cor** para entorpecentes.
-    - GRAMÁTICA: A unidade "grama" de peso é MASCULINA. Use sempre "UM GRAMA", "02 GRAMAS", etc. NUNCA use "uma grama".
-    - FORMATAÇÃO: NÃO inclua títulos como "CELULAR:", "VEÍCULO:", "CATEGORIA:" ou "DESCRIÇÃO:". Vá direto ao ponto. Termine cada item com um ponto e vírgula ";". Comece cada um com "- ".
-
----
-
-### ESTRUTURA DO JSON ESPERADA:
+ESTRUTURA ESPERADA ("success" sempre true se retornou formato JSON corretamente, "dados" com os dados extraídos):
 {{
   "success": true,
   "dados": {{
-    "boe": "número do BOE (somente o número principal)",
-    "ip": "número do Inquérito Policial, se houver, senão vazio",
-    "delegado": "nome da autoridade policial, senão vazio",
-    "escrivao": "nome do escrivão, senão vazio",
-    "delegacia": "nome da unidade policial/delegacia",
-    "data_fato": "data do ocorrido (DD/MM/YYYY)",
-    "hora_fato": "hora do ocorrido (HH:MM)",
-    "end_fato": "endereço completo do local do fato",
-    "natureza": "natureza(s) do fato — se múltiplas, unir com ' / '",
-    "objetos_apreendidos": "LISTA CONSOLIDADA DE ITENS APREENDIDOS EM BULLET POINTS",
-    "celulares": [
-      {{
-        "marca_modelo": "MARCA E MODELO DO CELULAR",
-        "imei1": "IMEI 1",
-        "imei2": "IMEI 2",
-        "cor": "COR",
-        "proprietario": "NOME DO PROPRIETÁRIO (SE HOUVER)",
-        "observacao": "OUTROS DETALHES"
-      }}
-    ],
+    "boe": "número do BOE",
+    "ip": "número do IP se houver",
     "veiculos": [
       {{
         "marca_modelo": "MARCA E MODELO DO VEÍCULO",
-        "placa": "PLACA (formato AAA-0000 ou AAA0A00)",
-        "chassi": "NÚMERO DO CHASSI",
+        "placa": "PLACA (AAA-0000 ou AAA0A00)",
+        "chassi": "NÚMERO DO CHASSI ou 'SUPRIMIDA / NAO IDENTIFICADA'",
         "cor": "COR",
-        "proprietario": "NOME DO PROPRIETÁRIO (SE HOUVER)",
-        "observacao": "OUTROS DETALHES"
+        "proprietario": "NOME DO PROPRIETÁRIO (Se houver)"
       }}
     ],
-    "vitimas": ["NOME COMPLETO 1"],
-    "autores": ["NOME COMPLETO 2"],
-    "testemunhas": ["NOME COMPLETO 3"],
-    "condutor": ["NOME COMPLETO 4"],
-    "outros": ["NOME COMPLETO 5"],
+    "pessoas_relacionadas": ["Lista apenas com nomes envolvidos com o veículo"]
+  }}
+}}
+
+TEXTO DO BOE:
+{texto}
+"""
+    elif ext_type == 'celular':
+        prompt = prompt_base + rf"""
+Foque APENAS em dados relacionados a CELULARES/TELEFONES MÓVEIS e os proprietários.
+IGNORE veículos, drogas e outras testemunhas não vinculadas aos celulares.
+
+ESTRUTURA ESPERADA ("success" sempre true se retornou formato JSON corretamente, "dados" com os dados extraídos):
+{{
+  "success": true,
+  "dados": {{
+    "boe": "número do BOE",
+    "ip": "número do IP se houver",
+    "hora_fato": "hora do ocorrido (HH:MM Se houver)",
+    "celulares": [
+      {{
+        "marca_modelo": "MARCA E MODELO DO CELULAR",
+        "imei1": "IMEI 1 (15 dígitos)",
+        "imei2": "IMEI 2 (15 dígitos)",
+        "cor": "COR",
+        "proprietario": "NOME DO PROPRIETÁRIO DO CELULAR (Se houver)"
+      }}
+    ],
+    "pessoas_relacionadas": ["Lista apenas com nomes envolvidos com o celular"]
+  }}
+}}
+
+TEXTO DO BOE:
+{texto}
+"""
+    elif ext_type == 'intimacao':
+        prompt = prompt_base + rf"""
+Foque EXCLUSIVAMENTE nos DADOS BÁSICOS do BOE e em TODAS AS PESSOAS físicas citadas.
+Isto é para um formulário de INTIMAÇÃO.
+Como uma Intimação NÃO trata de bens materiais e foca apenas em chamar as partes para depor, VOCÊ DEVE IGNORAR COMPLETAMENTE aparelhos celulares, veículos, drogas, armas e qualquer outro objeto apreendido. Foque 100% nas pessoas e nos detalhes delas, para economizar tempo de análise.
+
+REGRAS ESPECÍFICAS PARA PESSOAS:
+- 'vitimas': Nomes das Vítimas (VÍTIMA, OFENDIDO, SOCIEDADE).
+- 'autores': Nomes dos Autores (AUTOR, SUSPEITO, INDICIADO, IMPUTADO).
+- 'testemunhas': Nomes das Testemunhas.
+- 'condutor': ESTRITAMENTE o Policial (Condutor da ocorrência). Nunca coloque o suspeito aqui.
+- 'outros': Outros envolvidos (COMUNICANTE, NOTICIANTE).
+- UMA MESMA PESSOA NÃO PODE ESTAR EM DUAS CATEGORIAS SIMULTANEAMENTE.
+
+ESTRUTURA ESPERADA:
+{{
+  "success": true,
+  "dados": {{
+    "boe": "número BOE",
+    "delegado": "Delegado",
+    "escrivao": "Escrivao",
+    "delegacia": "Delegacia",
+    "cidade": "Cidade",
+    "vitimas": ["NOME 1"],
+    "autores": ["NOME 2"],
+    "testemunhas": ["NOME 3"],
+    "condutor": [],
+    "outros": ["NOME 4"],
     "envolvidos_detalhes": {{
-      "NOME COMPLETO 1": {{
-        "nome": "NOME COMPLETO 1",
-        "alcunha": "apelido se houver, senão vazio",
-        "nascimento": "DD/MM/YYYY",
-        "cpf": "números do CPF",
-        "rg": "número/ORGAO (ex: 10683541/SDS/PE)",
-        "mae": "NOME DA MÃE",
-        "pai": "NOME DO PAI",
-        "estado_civil": "SOLTEIRO, CASADO, AMASIADO, etc.",
-        "naturalidade": "CIDADE - UF",
-        "profissao": "PROFISSÃO LIMPA",
-        "telefone": "número(s) separados por vírgula",
-        "endereco": "logradouro, número, bairro, cidade",
-        "escolaridade": "grau de instrução simplificado"
+      "NOME DA PESSOA EM MAIÚSCULO": {{
+        "nome": "NOME REGISTRADO (OBRIGATÓRIO)",
+        "cpf": "CPF",
+        "rg": "RG",
+        "nascimento": "NASCIMENTO (DD/MM/YYYY)",
+        "mae": "Mãe",
+        "pai": "Pai",
+        "estado_civil": "Estado Civil",
+        "naturalidade": "CIDADE / ESTADO (Não coloque o país)",
+        "profissao": "Profissão",
+        "telefone": "Telefone ou Celular se listado",
+        "endereco": "Endereço Completo",
+        "escolaridade": "Grau de Instrução"
       }}
     }}
   }}
 }}
 
----
+TEXTO DO BOE:
+{texto}
+"""
+    elif ext_type == 'administrativo':
+        prompt = prompt_base + rf"""
+Foque APENAS nos dados principais do caso (Natureza), objetos apreendidos gerais e as PESSOAS envolvidas.
 
-AGORA, EXTRAIA OS DADOS DO SEGUINTE TEXTO (PODE SER TEXTO COLADO OU CONTEÚDO EXTRAÍDO DE PDF VIA OCR):
+REGRAS ESPECÍFICAS PARA PESSOAS:
+- 'vitimas': Nomes das Vítimas (VÍTIMA, OFENDIDO, SOCIEDADE).
+- 'autores': Nomes dos Autores (AUTOR, SUSPEITO, INDICIADO, IMPUTADO). Mesmo que o texto diga "estava conduzindo o veículo", ele é o AUTOR, não condutor policial.
+- 'testemunhas': Nomes das Testemunhas.
+- 'condutor': ESTRITAMENTE o Policial 'Condutor da ocorrência' que apresenta a ocorrência na delegacia. Nunca coloque o criminoso/traficante aqui.
+- 'outros': Outros envolvidos (COMUNICANTE, NOTICIANTE, etc).
+- REGRA DE OURO 1: DEVE RETORNAR APENAS AS STRINGS (Nomes completos em maiúsculo). Não extraia CPF ou RG aqui.
+- REGRA DE OURO 2: UMA MESMA PESSOA NÃO PODE ESTAR EM DUAS CATEGORIAS SIMULTANEAMENTE. Escolha apenas a categoria MAIS RELEVANTE para cada pessoa. Nunca duplique o mesmo nome.
 
+ESTRUTURA ESPERADA:
+{{
+  "success": true,
+  "dados": {{
+    "boe": "número do BOE",
+    "ip": "número do IP se houver",
+    "natureza": "natureza do fato — se múltiplas, unir com ' / '",
+    "hora_fato": "HH:MM",
+    "end_fato": "Endereço completo do fato",
+    "vitimas": ["NOME 1"],
+    "autores": ["NOME 2"],
+    "testemunhas": ["NOME 3"],
+    "condutor": [],
+    "outros": ["NOME 4"],
+    "celulares": [],
+    "veiculos": [],
+    "objetos_apreendidos": "Separe os objetos com quebras de linha explícitas (\\n). Use ponto e vírgula (;) no final de cada objeto, e finalize o último objeto com um ponto final (.)."
+  }}
+}}
+
+TEXTO DO BOE:
+{texto}
+"""
+    else:
+        # Padrão APFD completo
+        prompt = prompt_base + rf"""
+Foque em extrair os dados estruturados do BOE para o formulário completo do inquérito.
+MAPEAMENTO DE PESSOAS: 
+- 'vitimas' (VÍTIMA/OFENDIDO)
+- 'autores' (IMPUTADO/SUSPEITO/AUTOR) - Mesmo que ele "conduzia" o veículo roubado, a função dele é AUTOR.
+- 'testemunhas'
+- 'condutor' - ISSO É EXCLUSIVO PARA O POLICIAL "Condutor da ocorrência". NÃO confunda com o motorista do veículo.
+- 'outros' (NOTICIANTE/COMUNICANTE).
+
+REGRAS CRÍTICAS PARA PESSOAS:
+1. UMA MESMA PESSOA NÃO PODE ESTAR EM DUAS CATEGORIAS SIMULTANEAMENTE.
+2. O "IMPUTADO" nunca pode ser o "CONDUTOR". O Policial Condutor nunca pode ser o Imputado/Autor.
+3. Se o texto listar explicitly "Condutor da ocorrência: LUIS CARLOS...", ele entra em 'condutor'.
+4. **REGRA DE CONDUTOR ÚNICO**: Extraia APENAS o Policial Principal que consta como 'Condutor da Ocorrência'. Se houver outros policiais, coloque-os em 'testemunhas'. A lista 'condutor' deve ter no máximo 1 nome.
+5. **FILTRO DE PESSOAS**: Extraia apenas pessoas que aparecem nas seções de qualificação (Envolvidos). IGNORE nomes citados apenas no texto narrativo (Histórico) se eles não estiverem qualificados como partes no BOE.
+
+ESTRUTURA ESPERADA:
+{{
+  "success": true,
+  "dados": {{
+    "boe": "número BOE", "ip": "IP", "delegado": "Delegado", "escrivao": "Escrivao", "delegacia": "Delegacia",
+    "data_fato": "DATA", "hora_fato": "HORA", "end_fato": "ENDERECO", "natureza": "NATUREZAS",
+    "objetos_apreendidos": "SEPARE CADA OBJETO COM \\n. USE PONTO E VÍRGULA (;) NO FINAL DE CADA OBJETO, E PONTO FINAL (.) NO ÚLTIMO.",
+    "celulares": [ {{"marca_modelo": "", "imei1": "", "imei2": "", "cor": "", "proprietario": ""}} ],
+    "veiculos": [ {{"marca_modelo": "", "placa": "", "chassi": "", "cor": "", "proprietario": ""}} ],
+    "vitimas": [], "autores": [], "testemunhas": [], "condutor": [], "outros": [],
+    "envolvidos_detalhes": {{
+      "NOME 1": {{"nome": "NOME 1", "cpf": "", "rg": "", "nascimento": "", "mae": "", "pai": "", "estado_civil": "", "naturalidade": "CIDADE / ESTADO (Não coloque o país)", "profissao": "", "telefone": "", "endereco": "", "escolaridade": ""}}
+    }}
+  }}
+}}
+
+TEXTO DO BOE:
 {texto}
 """
 
@@ -213,7 +281,13 @@ AGORA, EXTRAIA OS DADOS DO SEGUINTE TEXTO (PODE SER TEXTO COLADO OU CONTEÚDO EX
                 model='gemini-2.5-flash',
                 contents=prompt,
             )
-            texto_limpo = response.text.replace("```json", "").replace("```", "").strip()
+            import re
+            match = re.search(r'\{.*\}', response.text, re.DOTALL)
+            if match:
+                texto_limpo = match.group(0)
+            else:
+                texto_limpo = response.text.replace("```json", "").replace("```", "").strip()
+            
             js_data = json.loads(texto_limpo)
             return js_data
         except Exception as e:
@@ -223,13 +297,18 @@ AGORA, EXTRAIA OS DADOS DO SEGUINTE TEXTO (PODE SER TEXTO COLADO OU CONTEÚDO EX
                 continue
             return {"success": False, "error": f"Erro na IA: {err_str}"}
 
+import argparse
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        fallback_json("Uso: python3 boe_extractor.py <caminho_arquivo>")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("file_path", nargs="?", help="Caminho do arquivo BOE")
+    parser.add_argument("--type", choices=['veiculo', 'celular', 'administrativo', 'apfd', 'intimacao'], default='apfd', help="Tipo de extração otimizada")
+    args = parser.parse_args()
 
-    file_path = sys.argv[1]
-    texto = ler_arquivo(file_path)
+    if not args.file_path:
+        fallback_json("Uso: python3 boe_extractor.py <caminho_arquivo> [--type t]")
+
+    texto = ler_arquivo(args.file_path)
 
     if not texto.strip():
         fallback_json("Arquivo vazio ou texto não localizável.")
@@ -249,5 +328,5 @@ if __name__ == "__main__":
     if not api_key:
         fallback_json("Chave API não encontrada.")
 
-    resultado = extract_with_gemini(texto, api_key)
+    resultado = extract_with_gemini(texto, str(api_key), args.type)
     print(json.dumps(resultado, ensure_ascii=False))

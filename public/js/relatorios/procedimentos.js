@@ -284,7 +284,7 @@ $(document).ready(function () {
         if (typeof window.mostrarAlerta === 'function') {
             window.mostrarAlerta(msg);
         } else {
-            alert(msg);
+            Swal.fire("Atenção", msg, "warning");
         }
     }
 });

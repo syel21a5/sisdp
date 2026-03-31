@@ -189,6 +189,9 @@ class CelularController extends Controller
                 'updated_at' => now()
             ]);
 
+            // RESETAR TIMER DE INATIVIDADE
+            $this->touchProcedure($request->boe);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Celular cadastrado com sucesso',
@@ -281,6 +284,9 @@ class CelularController extends Controller
                 ], 404);
             }
 
+            // RESETAR TIMER DE INATIVIDADE
+            $this->touchProcedure($request->boe);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Celular atualizado com sucesso'
@@ -343,12 +349,20 @@ class CelularController extends Controller
                 }
             }
 
-            $deleted = DB::table('cadcelular')
-                ->where('id', $id)
-                ->where('user_id', $userId)
-                ->delete();
+            // Busca o BOE antes de deletar para poder dar o "touch"
+            $celular = DB::table('cadcelular')->where('id', $id)->first();
+            $boe = $celular ? $celular->boe : null;
+
+            $queryDelete = DB::table('cadcelular')->where('id', $id);
+            if ($userId != 4) {
+                $queryDelete->where('user_id', $userId);
+            }
+            $deleted = $queryDelete->delete();
 
             if ($deleted) {
+                // RESETAR TIMER DE INATIVIDADE
+                if ($boe) $this->touchProcedure($boe);
+
                 return response()->json([
                     'success' => true,
                     'message' => 'Celular excluído com sucesso'
@@ -365,6 +379,25 @@ class CelularController extends Controller
                 'message' => 'Erro ao excluir celular: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function importarBoeTexto(Request $request, \App\Services\BoeExtractorService $extractorService)
+    {
+        $result = $extractorService->extract($request, 'celular');
+        
+        if (!($result['success'] ?? false)) {
+            return response()->json($result, $result['status'] ?? 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'dados' => [
+                'boe' => $result['dados']['boe'] ?? null,
+                'ip' => $result['dados']['ip'] ?? null,
+                'data' => $result['dados']['hora_fato'] ?? null,
+                'celulares' => $result['dados']['celulares'] ?? []
+            ]
+        ]);
     }
 
     public function controlePorStatus(Request $request)

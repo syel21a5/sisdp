@@ -21,214 +21,7 @@ window.ocTabs.closeTab = function (id, linkId) {
     if (apfdLink) new bootstrap.Tab(apfdLink).show();
 };
 
-// Global Helper Functions for Modals - PROFESSIONAL REDESIGN
-window.sucessoTimer = window.sucessoTimer || null;
-window.mostrarSucesso = function (mensagem) {
-    if (window.sucessoTimer) clearTimeout(window.sucessoTimer);
-
-    // Remove qualquer modal antigo para evitar conflitos e garantir o novo design
-    $('#modalSucessoDynamic').remove();
-    $('#modalSucesso').remove(); // Remove legado se existir
-    $('.modal-backdrop').remove(); // Limpa backdrops perdidos
-
-    const dynamicModalId = 'modalSucessoDynamic';
-
-    // HTML do Modal Profissional de Sucesso
-    const modalHtml = `
-        <div class="modal fade" id="${dynamicModalId}" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-            <div class="modal-dialog modal-dialog-centered modal-sm"> <!-- Modal Pequeno e Centralizado -->
-                <div class="modal-content border-0 shadow-lg rounded-4" style="overflow: hidden;">
-                    <div class="modal-header bg-success text-white border-0 justify-content-center py-3">
-                        <h5 class="modal-title fw-bold"><i class="bi bi-check-circle-fill me-2"></i>Sucesso</h5>
-                    </div>
-                    <div class="modal-body text-center p-4">
-                        <div class="mb-3">
-                            <i class="bi bi-check-circle text-success" style="font-size: 4rem; display: block; animation: bounceIn 0.5s;"></i>
-                        </div>
-                        <h6 id="${dynamicModalId}Msg" class="fw-bold text-secondary mb-3 fs-6">${mensagem || 'Operação realizada com sucesso!'}</h6>
-                        <button type="button" class="btn btn-success w-100 rounded-pill fw-bold shadow-sm" data-bs-dismiss="modal">OK</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <style>
-            @keyframes bounceIn {
-                0% { opacity: 0; transform: scale(0.3); }
-                50% { opacity: 1; transform: scale(1.05); }
-                70% { transform: scale(0.9); }
-                100% { transform: scale(1); }
-            }
-        </style>
-    `;
-
-    $('body').append(modalHtml);
-
-    const modalEl = document.getElementById(dynamicModalId);
-    const modal = new bootstrap.Modal(modalEl, {
-        backdrop: 'static',
-        keyboard: false,
-        focus: true
-    });
-
-    modal.show();
-
-    // Auto-fechar após 3 segundos para fluidez, mas permitindo leitura
-    window.sucessoTimer = setTimeout(() => {
-        modal.hide();
-    }, 3000);
-};
-
-window.erroTimer = window.erroTimer || null;
-window.mostrarErro = function (mensagem) {
-    if (window.erroTimer) clearTimeout(window.erroTimer);
-
-    // Remove qualquer modal antigo
-    $('#modalErroDynamic').remove();
-    $('#modalErro').remove(); // Remove legado
-    $('.modal-backdrop').remove();
-
-    const errorModalId = 'modalErroDynamic';
-
-    // HTML do Modal Profissional de Erro
-    const modalHtml = `
-        <div class="modal fade" id="${errorModalId}" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-sm">
-                <div class="modal-content border-0 shadow-lg rounded-4" style="overflow: hidden;">
-                    <div class="modal-header bg-danger text-white border-0 justify-content-center py-3">
-                        <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>Erro</h5>
-                    </div>
-                    <div class="modal-body text-center p-4">
-                        <div class="mb-3">
-                            <i class="bi bi-x-circle text-danger" style="font-size: 4rem; display: block; animation: shake 0.5s;"></i>
-                        </div>
-                        <h6 id="${errorModalId}Msg" class="fw-bold text-secondary mb-3 fs-6">${mensagem || 'Ocorreu um erro inesperado.'}</h6>
-                        <button type="button" class="btn btn-danger w-100 rounded-pill fw-bold shadow-sm" data-bs-dismiss="modal">Fechar</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <style>
-            @keyframes shake {
-                0% { transform: translateX(0); }
-                25% { transform: translateX(-5px); }
-                50% { transform: translateX(5px); }
-                75% { transform: translateX(-5px); }
-                100% { transform: translateX(0); }
-            }
-        </style>
-    `;
-
-    $('body').append(modalHtml);
-
-    const modalEl = document.getElementById(errorModalId);
-    const modal = new bootstrap.Modal(modalEl, {
-        focus: true
-    });
-
-    modal.show();
-
-    // Erros não fecham sozinhos por padrão para garantir que o usuário leia,
-    // mas se quiser consistência com o sucesso, podemos descomentar abaixo:
-    // erroTimer = setTimeout(() => { modal.hide(); }, 5000);
-};
-
-window.alertaTimer = window.alertaTimer || null;
-window.mostrarAlerta = function (mensagem, titulo = 'Atenção') {
-    if (window.alertaTimer) clearTimeout(window.alertaTimer);
-
-    // Remove qualquer modal antigo
-    $('#modalAlertaDynamic').remove();
-    $('#modalAlertaGenerico').remove(); // Remove legado
-    $('.modal-backdrop').remove();
-
-    const alertModalId = 'modalAlertaDynamic';
-
-    // HTML do Modal Profissional de Alerta/Atenção
-    const modalHtml = `
-        <div class="modal fade" id="${alertModalId}" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-sm">
-                <div class="modal-content border-0 shadow-lg rounded-4" style="overflow: hidden;">
-                    <div class="modal-header bg-warning text-dark border-0 justify-content-center py-3">
-                        <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>${titulo}</h5>
-                    </div>
-                    <div class="modal-body text-center p-4">
-                        <div class="mb-3">
-                            <i class="bi bi-exclamation-circle text-warning" style="font-size: 4rem; display: block; animation: pulse 1s infinite;"></i>
-                        </div>
-                        <h6 id="${alertModalId}Msg" class="fw-bold text-secondary mb-3 fs-6">${mensagem || 'Atenção necessária.'}</h6>
-                        <button type="button" class="btn btn-warning w-100 rounded-pill fw-bold shadow-sm text-dark" data-bs-dismiss="modal">Entendi</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <style>
-            @keyframes pulse {
-                0% { transform: scale(1); }
-                50% { transform: scale(1.1); }
-                100% { transform: scale(1); }
-            }
-        </style>
-    `;
-
-    $('body').append(modalHtml);
-
-    const modalEl = document.getElementById(alertModalId);
-    const modal = new bootstrap.Modal(modalEl, {
-        focus: true
-    });
-
-    modal.show();
-};
-// Alias para compatibilidade
-window.mostrarAtencao = window.mostrarAlerta;
-
-window.confirmarExclusaoGenerica = function (mensagem, callback) {
-    // Remove qualquer modal antigo
-    $('#modalConfirmacaoGenerico').remove();
-    $('.modal-backdrop').remove();
-
-    const modalId = 'modalConfirmacaoGenerico';
-    const modalHtml = `
-        <div class="modal fade" id="${modalId}" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-sm">
-                <div class="modal-content border-0 shadow-lg rounded-4" style="overflow: hidden;">
-                    <div class="modal-header bg-danger text-white border-0 justify-content-center py-3">
-                        <h5 class="modal-title fw-bold"><i class="bi bi-trash3-fill me-2"></i>Excluir</h5>
-                    </div>
-                    <div class="modal-body text-center p-4">
-                        <div class="mb-3">
-                            <i class="bi bi-question-circle text-danger" style="font-size: 4rem; display: block; animation: pulse 1s infinite;"></i>
-                        </div>
-                        <h6 class="fw-bold text-secondary mb-3 fs-6">${mensagem}</h6>
-                        <div class="d-flex justify-content-center gap-2">
-                            <button type="button" class="btn btn-secondary rounded-pill fw-bold shadow-sm" data-bs-dismiss="modal">Cancelar</button>
-                            <button type="button" id="btnConfirmarExclusaoGenerico" class="btn btn-danger rounded-pill fw-bold shadow-sm">Excluir</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <style>
-            @keyframes pulse {
-                0% { transform: scale(1); }
-                50% { transform: scale(1.1); }
-                100% { transform: scale(1); }
-            }
-        </style>
-    `;
-
-    $('body').append(modalHtml);
-    const modalEl = document.getElementById(modalId);
-    const modal = new bootstrap.Modal(modalEl, { focus: true });
-    modal.show();
-
-    $('#btnConfirmarExclusaoGenerico').off('click').on('click', function () {
-        if (typeof callback === 'function') {
-            callback();
-        }
-        modal.hide();
-    });
-};
+// Global Modal Helpers removidos. Agora residentes em public/js/core.js
 
 window.OcorrenciasApp = {
     init: function () {
@@ -245,6 +38,8 @@ window.OcorrenciasApp = {
         $('#btnSalvar').prop('disabled', false).html('<i class="bi bi-save"></i> Salvar');
         $('#btnEditar').prop('disabled', true).html('<i class="bi bi-pencil-square"></i> Editar');
         $('#btnExcluir').prop('disabled', true);
+
+        // Atualizar badges de itens pendentes (celulares/veículos) removido
     },
 
     setupMasks: function () {
@@ -310,19 +105,14 @@ window.OcorrenciasApp = {
     // ✅ NOVO: Sistema de envolvidos
     setupEnvolvidos: function () {
         this.envolvidos = {
-            vitimas: [],
-            autores: [],
-            testemunhas: [],
-            condutores: [],
-            outros: []
+            vitimas: [], autores: [], testemunhas: [], condutores: [], outros: []
         };
         this.vinculos = {
-            vitimas: [],
-            autores: [],
-            testemunhas: [],
-            condutores: [],
-            outros: []
+            vitimas: [], autores: [], testemunhas: [], condutores: [], outros: []
         };
+        this.isOwner = true;
+        this.ownerName = null;
+        this.pollingSugestoes = null;
         this.detalhes = { AUTOR: {}, VITIMA: {}, TESTEMUNHA: {} };
 
         this.bindEnvolvidosEvents();
@@ -483,15 +273,25 @@ window.OcorrenciasApp = {
 
     bindEnvolvidosEvents: function () {
         const ensureTab = window.ocTabs.ensureTab;
+        const limpar = (tipo) => {
+            if (typeof window.limparCamposEnvolvido === 'function') {
+                window.limparCamposEnvolvido(tipo);
+            } else {
+                // Fallback caso o módulo de chips não esteja carregado
+                const btnMap = { vitimas: '#btnNovaVitima1', autores: '#btnNovoAutor1', testemunhas: '#btnNovaTestemunha1', condutores: '#btnNovoCondutor', outros: '#btnNovoOutro' };
+                try { $(btnMap[tipo]).trigger('click'); } catch (e) { }
+            }
+        };
+
         // Abrir sub-aba Vítima
         $('#btnAddVitima').off('click').on('click', () => {
-            try { $('#btnNovaVitima1').trigger('click'); } catch (e) { }
+            limpar('vitimas');
             ensureTab('tab-vitima', 'Vítima', 'tabLinkVitima');
         });
         $('#inputVitima').off('keypress').on('keypress', (e) => {
             if (e.which === 13) {
                 e.preventDefault();
-                try { $('#btnNovaVitima1').trigger('click'); } catch (e) { }
+                limpar('vitimas');
                 const el = document.querySelector('#tabLinkVitima');
                 if (el) new bootstrap.Tab(el).show();
             }
@@ -499,13 +299,13 @@ window.OcorrenciasApp = {
 
         // Abrir sub-aba Autor
         $('#btnAddAutor').off('click').on('click', () => {
-            try { $('#btnNovoAutor1').trigger('click'); } catch (e) { }
+            limpar('autores');
             ensureTab('tab-autor', 'Autor', 'tabLinkAutor');
         });
         $('#inputAutor').off('keypress').on('keypress', (e) => {
             if (e.which === 13) {
                 e.preventDefault();
-                try { $('#btnNovoAutor1').trigger('click'); } catch (e) { }
+                limpar('autores');
                 const el = document.querySelector('#tabLinkAutor');
                 if (el) new bootstrap.Tab(el).show();
             }
@@ -513,13 +313,13 @@ window.OcorrenciasApp = {
 
         // Abrir sub-aba Testemunha
         $('#btnAddTestemunha').off('click').on('click', () => {
-            try { $('#btnNovaTestemunha1').trigger('click'); } catch (e) { }
+            limpar('testemunhas');
             ensureTab('tab-testemunha', 'Testemunha', 'tabLinkTestemunha');
         });
         $('#inputTestemunha').off('keypress').on('keypress', (e) => {
             if (e.which === 13) {
                 e.preventDefault();
-                try { $('#btnNovaTestemunha1').trigger('click'); } catch (e) { }
+                limpar('testemunhas');
                 const el = document.querySelector('#tabLinkTestemunha');
                 if (el) new bootstrap.Tab(el).show();
             }
@@ -528,7 +328,7 @@ window.OcorrenciasApp = {
         // Abrir sub-aba Condutor
         $('#btnAddCondutor').off('click').on('click', () => {
             ensureTab('tab-condutor', 'Condutor', 'tabLinkCondutor');
-            setTimeout(() => { try { $('#btnNovoCondutor').trigger('click'); } catch (e) { } }, 50);
+            setTimeout(() => { limpar('condutores'); }, 50);
         });
 
         $(document).off('click', '#btnFecharVitima1').on('click', '#btnFecharVitima1', () => {
@@ -548,7 +348,7 @@ window.OcorrenciasApp = {
                 e.preventDefault();
                 const el = document.querySelector('#tabLinkCondutor');
                 if (el) new bootstrap.Tab(el).show();
-                setTimeout(() => { try { $('#btnNovoCondutor').trigger('click'); } catch (e) { } }, 50);
+                setTimeout(() => { limpar('condutores'); }, 50);
             }
         });
 
@@ -560,13 +360,13 @@ window.OcorrenciasApp = {
 
         // ✅ NOVO: Adicionar Outros (Simples, sem abas)
         $('#btnAddOutro').off('click').on('click', () => {
-            try { $('#btnNovoOutro').trigger('click'); } catch (e) { }
+            limpar('outros');
             window.ocTabs.ensureTab('tab-outro', 'Outros', 'tabLinkOutro');
         });
         $('#inputOutro').off('keypress').on('keypress', (e) => {
             if (e.which === 13) {
                 e.preventDefault();
-                try { $('#btnNovoOutro').trigger('click'); } catch (e) { }
+                limpar('outros');
                 window.ocTabs.ensureTab('tab-outro', 'Outros', 'tabLinkOutro');
             }
         });
@@ -679,20 +479,123 @@ window.OcorrenciasApp = {
         const container = $(`#chips${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`);
         container.empty();
 
+        const isOwner = this.isOwner !== undefined ? this.isOwner : true;
+
         this.envolvidos[tipo].forEach((nome, index) => {
             const vinculo = (this.vinculos[tipo] && this.vinculos[tipo][index]) ? this.vinculos[tipo][index] : null;
             const temVinculo = !!(vinculo && (vinculo.pessoa_id || vinculo.vinculo_id));
-            const classeBadge = temVinculo ? 'bg-primary' : 'bg-danger';
-            const btnEdit = `<button type="button" class="btn btn-sm btn-outline-light ms-2 btn-edit-chip" data-tipo="${tipo}" data-index="${index}" title="Editar Detalhes"><i class="bi bi-pencil-square"></i></button>`;
-            const btnRefresh = `<button type="button" class="btn btn-sm btn-outline-light ms-1 btn-refresh-chip" data-tipo="${tipo}" data-index="${index}" title="Atualizar do Banco"><i class="bi bi-arrow-repeat"></i></button>`;
-            const btnSwitch = `<button type="button" class="btn btn-sm btn-outline-light ms-1 btn-switch-chip" data-tipo="${tipo}" data-index="${index}" title="Trocar Papel"><i class="bi bi-arrow-left-right"></i></button>`;
-            const extraBtn = btnEdit + btnSwitch + btnRefresh;
+            const statusAprovacao = vinculo ? (vinculo.status_aprovacao || 'aprovado') : 'aprovado';
+            const isPendente = statusAprovacao === 'pendente';
+            const criadoPorNome = vinculo ? vinculo.criado_por_nome : null;
+
+            if (!$('#premium-chip-styles').length) {
+                $('head').append(`
+                    <style id="premium-chip-styles">
+                        .chip-premium {
+                            border-radius: 6px;
+                            padding: 0.4rem 0.65rem !important;
+                            font-size: 0.82rem !important;
+                            font-weight: 600;
+                            letter-spacing: 0.2px;
+                            border: 1px solid rgba(0,0,0,0.05);
+                            transition: all 0.2s ease;
+                            display: inline-flex;
+                            align-items: center;
+                            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+                            color: white !important;
+                        }
+                        .chip-premium:hover {
+                            transform: translateY(-1px);
+                            box-shadow: 0 4px 6px rgba(0,0,0,0.12);
+                        }
+                        .chip-blue { background: linear-gradient(135deg, #0d6efd, #084298); border-color: #0b5ed7; }
+                        .chip-red { background: linear-gradient(135deg, #dc3545, #9c2532); border-color: #b02a37; }
+                        .chip-orange { background: linear-gradient(135deg, #fd7e14, #ca6510); border-color: #d9620b; color: white !important;}
+                        .chip-orange .badge.bg-light { color: #000 !important; background: rgba(255,255,255,0.85) !important; }
+                        
+                        .chip-premium .btn-link {
+                            color: rgba(255,255,255,0.6) !important;
+                            transition: all 0.2s;
+                            padding: 2px 4px !important;
+                        }
+                        .chip-premium .btn-link:hover {
+                            color: #ffffff !important;
+                            transform: scale(1.15);
+                        }
+                        .chip-premium .btn-close-white {
+                            filter: invert(1) grayscale(100%) brightness(200%);
+                            opacity: 0.6;
+                            transition: all 0.2s;
+                            margin-left: 0.5rem !important;
+                        }
+                        .chip-premium .btn-close-white:hover {
+                            opacity: 1;
+                            transform: scale(1.15);
+                        }
+                    </style>
+                `);
+            }
+
+            // ✅ Cores baseadas no status
+            let classeBadge = 'chip-premium ';
+            if (isPendente) {
+                classeBadge += 'chip-orange'; // Laranja para pendente
+            } else if (temVinculo) {
+                classeBadge += 'chip-blue'; // Azul para aprovado com vínculo
+            } else {
+                classeBadge += 'chip-red'; // Vermelho para sem vínculo no banco
+            }
+
+            // Botões de ação normais
+            const btnEdit = `<button type="button" class="btn btn-sm btn-link text-white ms-2 btn-edit-chip p-0" data-tipo="${tipo}" data-index="${index}" title="Editar Detalhes"><i class="bi bi-pencil-square"></i></button>`;
+            const btnRefresh = `<button type="button" class="btn btn-sm btn-link text-white ms-1 btn-refresh-chip p-0" data-tipo="${tipo}" data-index="${index}" title="Atualizar do Banco"><i class="bi bi-arrow-repeat"></i></button>`;
+            const btnSwitch = `<button type="button" class="btn btn-sm btn-link text-white ms-1 btn-switch-chip p-0" data-tipo="${tipo}" data-index="${index}" title="Trocar Papel"><i class="bi bi-arrow-left-right"></i></button>`;
+
+            // ✅ Botões de aprovação/rejeição (apenas para o dono, em chips pendentes)
+            let btnAprovar = '';
+            let btnRejeitar = '';
+            if (isPendente && isOwner && vinculo && vinculo.vinculo_id) {
+                btnAprovar = `<button type="button" class="btn btn-sm btn-success ms-2 btn-aprovar-chip px-2" data-vinculo-id="${vinculo.vinculo_id}" title="Aprovar Sugestão"><i class="bi bi-check-lg"></i></button>`;
+                btnRejeitar = `<button type="button" class="btn btn-sm btn-danger ms-1 btn-rejeitar-chip px-2" data-vinculo-id="${vinculo.vinculo_id}" title="Recusar Sugestão"><i class="bi bi-x-lg"></i></button>`;
+            }
+
+            // ✅ Botão de fechar: não-donos NÃO podem excluir chips aprovados
+            let btnClose = '';
+            if (isOwner || isPendente) {
+                btnClose = `<button type="button" class="btn-close btn-close-white ms-2" data-tipo="${tipo}" data-index="${index}" ${vinculo && vinculo.vinculo_id ? `data-vinculo-id="${vinculo.vinculo_id}"` : ''} style="font-size: 0.65rem;"></button>`;
+            }
+
+            // Botões extras (edit/switch/refresh) - non-owners still see edit but not switch
+            let extraBtn = '';
+            if (isOwner) {
+                extraBtn = btnEdit + btnSwitch + btnRefresh;
+            } else {
+                extraBtn = btnEdit;
+            }
+
+            // ✅ Layout flexível para acomodar o label embaixo do nome quando for sugestão
+            let nomeArea = `<span class="lh-1" style="margin-top:2px;">${nome}</span>`;
+            if (isPendente) {
+                const quem = criadoPorNome || 'Colega';
+                const labelSugestao = `<span class="badge bg-light text-dark fw-normal mt-1" style="font-size: 0.62rem; padding: 2px 5px; width: fit-content; text-transform:none;">Sugestão de: <b>${quem}</b></span>`;
+                nomeArea = `
+                    <div class="d-flex flex-column justify-content-center">
+                        <span class="lh-1" style="margin-top:2px;">${nome}</span>
+                        ${labelSugestao}
+                    </div>
+                `;
+            }
 
             const chip = $(`
-                <div class="chip-envolvido badge ${classeBadge} d-flex align-items-center">
-                    ${nome}
-                    ${extraBtn}
-                    <button type="button" class="btn-close btn-close-white ms-2" data-tipo="${tipo}" data-index="${index}" ${vinculo && vinculo.vinculo_id ? `data-vinculo-id="${vinculo.vinculo_id}"` : ''}></button>
+                <div class="chip-envolvido ${classeBadge} mb-1 me-1 d-inline-flex align-items-center" title="${nome}">
+                    <div class="ms-1 d-flex flex-column justify-content-center h-100">
+                        ${nomeArea}
+                    </div>
+                    <div class="d-flex align-items-center ms-2 h-100" style="gap:2px;">
+                        ${extraBtn}
+                        ${btnAprovar}${btnRejeitar}
+                        ${btnClose}
+                    </div>
                 </div>
             `);
             container.append(chip);
@@ -700,10 +603,57 @@ window.OcorrenciasApp = {
 
         container.find('.chip-envolvido').on('click', (e) => {
             const target = $(e.target);
-            if (target.hasClass('btn-close') || target.closest('.btn-edit-chip').length || target.closest('.btn-refresh-chip').length || target.closest('.btn-switch-chip').length || target.closest('.btn-gerar-intimacao').length) return;
+            if (target.hasClass('btn-close') || target.closest('.btn-edit-chip').length || target.closest('.btn-refresh-chip').length || target.closest('.btn-switch-chip').length || target.closest('.btn-gerar-intimacao').length || target.closest('.btn-aprovar-chip').length || target.closest('.btn-rejeitar-chip').length) return;
             const chip = $(e.currentTarget);
             const pencil = chip.find('.btn-edit-chip');
             if (pencil.length) pencil.trigger('click');
+        });
+
+        // ✅ NOVO: Handlers de aprovação/rejeição de chips pendentes
+        container.find('.btn-aprovar-chip').on('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const vinculoId = $(e.currentTarget).data('vinculo-id');
+            const boe = $('#inputBOE').val();
+            $.ajax({
+                url: `/boe/vinculos/aprovar/${vinculoId}`,
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                success: (resp) => {
+                    if (resp.success) {
+                        window.mostrarSucesso('Envolvido aprovado com sucesso!');
+                        this.carregarVinculosDoBoe(boe);
+                    } else {
+                        window.mostrarErro(resp.message || 'Erro ao aprovar');
+                    }
+                },
+                error: (xhr) => {
+                    window.mostrarErro(xhr.responseJSON?.message || 'Erro ao aprovar o vínculo.');
+                }
+            });
+        });
+
+        container.find('.btn-rejeitar-chip').on('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const vinculoId = $(e.currentTarget).data('vinculo-id');
+            const boe = $('#inputBOE').val();
+            $.ajax({
+                url: `/boe/vinculos/rejeitar/${vinculoId}`,
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                success: (resp) => {
+                    if (resp.success) {
+                        window.mostrarSucesso('Sugestão rejeitada.');
+                        this.carregarVinculosDoBoe(boe);
+                    } else {
+                        window.mostrarErro(resp.message || 'Erro ao rejeitar');
+                    }
+                },
+                error: (xhr) => {
+                    window.mostrarErro(xhr.responseJSON?.message || 'Erro ao rejeitar o vínculo.');
+                }
+            });
         });
 
 
@@ -820,8 +770,10 @@ window.OcorrenciasApp = {
 
                 $(`#inputInstrucao${prefixo}`).val(dados.instrucao || dados.Instrucao || dados.escolaridade || dados.Escolaridade || '');
                 $(`#inputRG${prefixo}`).val(dados.rg || dados.RG || '');
-                $(`#inputCPF${prefixo}`).val(dados.cpf || dados.CPF || '');
-                $(`#inputTelefone${prefixo}`).val(dados.telefone || dados.Telefone || dados.telefones || dados.Telefones || '');
+                $(`#inputCPF${prefixo}`).val(dados.cpf || dados.CPF || '').trigger('input');
+                let tel = dados.telefone || dados.Telefone || dados.telefones || dados.Telefones || '';
+                if (!tel || tel.trim() === '') tel = '(00) 00000-0000';
+                $(`#inputTelefone${prefixo}`).val(tel).trigger('input');
                 $(`#inputProfissao${prefixo}`).val(dados.profissao || dados.Profissao || '');
                 $(`#inputMae${prefixo}`).val(dados.mae || dados.Mae || '');
                 $(`#inputPai${prefixo}`).val(dados.pai || dados.Pai || '');
@@ -929,6 +881,7 @@ window.OcorrenciasApp = {
                 if (pessoaId) {
                     // ✅ FORCE FETCH: Always fetch if we have an ID
                     const btn = $(`button[data-tipo="${tipo}"][data-index="${index}"].btn-edit-chip`);
+                    if (btn.prop('disabled')) return; // Prevenir cliques duplos/loop infinito
                     const originalIcon = btn.html();
                     btn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>').prop('disabled', true);
 
@@ -980,6 +933,7 @@ window.OcorrenciasApp = {
 
                 if (pessoaId) {
                     const btn = $(`button[data-tipo="${tipo}"][data-index="${index}"].btn-edit-chip`);
+                    if (btn.prop('disabled')) return;
                     const originalIcon = btn.html();
                     btn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>').prop('disabled', true);
 
@@ -1027,6 +981,7 @@ window.OcorrenciasApp = {
 
                 if (pessoaId) {
                     const btn = $(`button[data-tipo="${tipo}"][data-index="${index}"].btn-edit-chip`);
+                    if (btn.prop('disabled')) return;
                     const originalIcon = btn.html();
                     btn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>').prop('disabled', true);
 
@@ -1083,6 +1038,7 @@ window.OcorrenciasApp = {
 
                 if (pessoaId) {
                     const btn = $(`button[data-tipo="${tipo}"][data-index="${index}"].btn-edit-chip`);
+                    if (btn.prop('disabled')) return;
                     const originalIcon = btn.html();
                     btn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>').prop('disabled', true);
 
@@ -1197,7 +1153,9 @@ window.OcorrenciasApp = {
                     this.vinculos[tipo][index] = { nome: nomeEncontrado || nome, pessoa_id: id };
                     console.log('✅ Vínculo aplicado ao chip:', { tipo, index, id });
 
-                    // Persistir vínculo no BOE (opcional) para refletir em futuras cargas
+                    // ✅ DESATIVADO: A persistência automática agora é centralizada em sugerirVinculoEmTempoReal
+                    // ou no "Salvar" geral para evitar conflitos de status (pendente vs aprovado).
+                    /*
                     const boe = ($('#inputBOE').val() || '').trim();
                     const tipoMap = { vitimas: 'VITIMA', autores: 'AUTOR', testemunhas: 'TESTEMUNHA', condutores: 'CONDUTOR' };
                     const tipoVinc = tipoMap[tipo];
@@ -1212,6 +1170,7 @@ window.OcorrenciasApp = {
                             console.warn('⚠️ Falha ao persistir vínculo BOE:', xhr.responseJSON || xhr.status);
                         });
                     }
+                    */
                 } else {
                     // ✅ FIX: Se não encontrou, remove o vínculo para o chip ficar vermelho
                     console.warn('❌ Pessoa não encontrada (Nome exato ou CPF). Removendo vínculo do chip:', nome);
@@ -1267,13 +1226,19 @@ window.OcorrenciasApp = {
                 $('#acoes-botoes').append('<div id="avisoChipVermelho" class="text-danger mt-2 small"><i class="bi bi-exclamation-triangle"></i> Resolva os itens em vermelho antes de salvar.</div>');
             }
         } else {
-            // Reabilita apenas se não estiver processando (loading)
-            if (!$btnSalvar.html().includes('spinner')) {
+            // ✅ CORREÇÃO: Salvar só habilita para NOVOS registros (sem ID)
+            if (!this.currentId && !$btnSalvar.html().includes('spinner')) {
                 $btnSalvar.prop('disabled', false);
+            } else {
+                $btnSalvar.prop('disabled', true);
             }
-            // Editar só habilita se tiver ID selecionado
-            if (this.currentId && !$btnEditar.html().includes('spinner')) {
+
+            // Editar só habilita se tiver ID selecionado e for o dono
+            const isOwner = this.isOwner !== undefined ? this.isOwner : true;
+            if (this.currentId && isOwner && !$btnEditar.html().includes('spinner')) {
                 $btnEditar.prop('disabled', false);
+            } else {
+                $btnEditar.prop('disabled', true);
             }
             $('#avisoChipVermelho').remove();
         }
@@ -1443,28 +1408,78 @@ window.OcorrenciasApp = {
             success: (response) => {
                 if (response.success && response.data) {
                     const data = response.data;
+
+                    // ✅ NOVO: Capturar flag de propriedade
+                    this.isOwner = response.is_owner !== undefined ? response.is_owner : true;
+                    this.ownerName = response.owner_name || null;
+
+                    // ✅ BACKUP: Preservando os chips que o usuário adicionou manualmente (sem vinculo_id no banco)
+                    const backupManuais = { vitimas: [], autores: [], testemunhas: [], condutores: [], outros: [] };
+                    ['vitimas', 'autores', 'testemunhas', 'condutores', 'outros'].forEach(tipo => {
+                        (this.vinculos[tipo] || []).forEach((v, index) => {
+                            if (v && !v.vinculo_id) {
+                                backupManuais[tipo].push({
+                                    nome: this.envolvidos[tipo] && this.envolvidos[tipo][index] ? this.envolvidos[tipo][index] : v.nome,
+                                    vinculo: v,
+                                    chipCompleto: (window.envolvidosChips && window.envolvidosChips[tipo]) ? window.envolvidosChips[tipo].find(c => c.nome === (this.envolvidos[tipo][index] || v.nome)) : null
+                                });
+                            }
+                        });
+                    });
+
                     this.envolvidos.vitimas = (data.vitimas || []).map(p => p.Nome || p.nome || '');
                     this.envolvidos.autores = (data.autores || []).map(p => p.Nome || p.nome || '');
                     this.envolvidos.testemunhas = (data.testemunhas || []).map(p => p.Nome || p.nome || '');
                     this.envolvidos.condutores = (data.condutor || []).map(p => p.Nome || p.nome || '');
                     this.envolvidos.outros = (data.outros || []).map(p => p.Nome || p.nome || '');
-                    this.vinculos.vitimas = (data.vitimas || []).map(p => ({ nome: p.Nome || p.nome || '', vinculo_id: p.vinculo_id, pessoa_id: p.IdCad || p.id }));
-                    this.vinculos.autores = (data.autores || []).map(p => ({ nome: p.Nome || p.nome || '', vinculo_id: p.vinculo_id, pessoa_id: p.IdCad || p.id }));
-                    this.vinculos.testemunhas = (data.testemunhas || []).map(p => ({ nome: p.Nome || p.nome || '', vinculo_id: p.vinculo_id, pessoa_id: p.IdCad || p.id }));
-                    this.vinculos.condutores = (data.condutor || []).map(p => ({ nome: p.Nome || p.nome || '', vinculo_id: p.vinculo_id, pessoa_id: p.IdCad || p.id }));
-                    this.vinculos.outros = (data.outros || []).map(p => ({ nome: p.Nome || p.nome || '', vinculo_id: p.vinculo_id, pessoa_id: p.IdCad || p.id }));
+
+                    // ✅ NOVO: Incluir status_aprovacao, criado_por_nome e vinculo_id nos vínculos
+                    const mapVinculo = (p) => ({
+                        nome: p.Nome || p.nome || '',
+                        vinculo_id: p.vinculo_id,
+                        pessoa_id: p.IdCad || p.id,
+                        status_aprovacao: p.status_aprovacao || 'aprovado',
+                        criado_por_nome: p.criado_por_nome || null
+                    });
+
+                    this.vinculos.vitimas = (data.vitimas || []).map(mapVinculo);
+                    this.vinculos.autores = (data.autores || []).map(mapVinculo);
+                    this.vinculos.testemunhas = (data.testemunhas || []).map(mapVinculo);
+                    this.vinculos.condutores = (data.condutor || []).map(mapVinculo);
+                    this.vinculos.outros = (data.outros || []).map(mapVinculo);
+
+                    // ✅ MERGE: Restaurar os envolvidos manuais que não vieram do banco
+                    ['vitimas', 'autores', 'testemunhas', 'condutores', 'outros'].forEach(tipo => {
+                        backupManuais[tipo].forEach(itemManual => {
+                            if (itemManual.nome && !this.envolvidos[tipo].includes(itemManual.nome)) {
+                                this.envolvidos[tipo].push(itemManual.nome);
+                                this.vinculos[tipo].push(itemManual.vinculo);
+                            }
+                        });
+                    });
+
                     this.atualizarChips('vitimas');
                     this.atualizarChips('autores');
                     this.atualizarChips('testemunhas');
                     this.atualizarChips('condutores');
                     this.atualizarChips('outros');
 
-                    // ✅ FIX: Sincronizar com window.envolvidosChips para garantir salvamento correto
+                    // ✅ NOVO: Se for o dono, inicia monitoramento de novas sugestões
+                    if (this.isOwner) {
+                        this.iniciarPollingSugestoes(boe);
+                    } else {
+                        this.pararPollingSugestoes();
+                    }
+
+                    // ✅ NOVO: Mostrar banner de propriedade se não for dono
+                    this.mostrarBannerPropriedade();
+
+                    // Sincronizar com window.envolvidosChips para garantir salvamento correto
                     if (window.envolvidosChips) {
                         window.envolvidosChips.vitimas = (data.vitimas || []).map(p => ({
                             id: p.IdCad || p.id || Date.now(),
                             nome: p.Nome || p.nome || '',
-                            dados: p // Agora passa o objeto completo
+                            dados: p
                         }));
                         window.envolvidosChips.autores = (data.autores || []).map(p => ({
                             id: p.IdCad || p.id || Date.now(),
@@ -1475,7 +1490,6 @@ window.OcorrenciasApp = {
                             id: p.IdCad || p.id || Date.now(),
                             nome: p.Nome || p.nome || '',
                             dados: p,
-                            // Normalização extra de campos comuns para visualização imediata se necessário
                             rg: p.RG || p.rg || '',
                             cpf: p.CPF || p.cpf || ''
                         }));
@@ -1489,7 +1503,17 @@ window.OcorrenciasApp = {
                             nome: p.Nome || p.nome || '',
                             dados: p
                         }));
-                        console.log('✅ Chips sincronizados com dados do banco:', window.envolvidosChips);
+
+                        // ✅ MERGE CHIPS LAB/FORMS: Restaurar arrays inteiros das abas manuais sem perder os dados dos inputs
+                        ['vitimas', 'autores', 'testemunhas', 'condutores', 'outros'].forEach(tipo => {
+                            backupManuais[tipo].forEach(itemManual => {
+                                if (itemManual.chipCompleto && itemManual.nome && !window.envolvidosChips[tipo].find(c => c.nome === itemManual.nome)) {
+                                    window.envolvidosChips[tipo].push(itemManual.chipCompleto);
+                                }
+                            });
+                        });
+
+                        console.log('✅ Chips sincronizados com dados do banco (preservados manuais combinados):', window.envolvidosChips);
                     }
 
                     if (this.currentId) {
@@ -1516,13 +1540,16 @@ window.OcorrenciasApp = {
     },
 
     conciliarEnvolvidosBD: function (tipos = ['vitimas', 'autores', 'testemunhas', 'condutores', 'outros']) {
-        const normaliza = (s) => (s || '').toString().trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const normaliza = (s) => this.normalizarNome(s);
         const buscar = (termo) => $.ajax({ url: '/pesquisar-pessoa', method: 'GET', dataType: 'json', data: { term: termo } });
 
         const tarefas = [];
         const self = this;
 
         tipos.forEach((tipo) => {
+            // ✅ FIX: Limpar vínculos anteriores antes de conciliar novos nomes extraídos
+            self.vinculos[tipo] = [];
+
             (self.envolvidos[tipo] || []).forEach((nome, index) => {
                 // Tenta pegar CPF e Nascimento dos detalhes importados
                 let detImportado = null;
@@ -1592,8 +1619,10 @@ window.OcorrenciasApp = {
 
                         const id = item ? (item.id || item.IdCad) : null;
                         if (id) {
-                            self.vinculos[tipo] = self.vinculos[tipo] || [];
                             self.vinculos[tipo][index] = { nome, pessoa_id: id };
+                        } else {
+                            // Explicitamente marcar como nulo se não achar no banco
+                            self.vinculos[tipo][index] = null;
                         }
                     })
                 );
@@ -1606,6 +1635,8 @@ window.OcorrenciasApp = {
             self.atualizarChips('testemunhas');
             self.atualizarChips('condutores');
             self.atualizarChips('outros');
+            // ✅ Garante que o estado dos botões seja atualizado após carregar todos os chips
+            self.atualizarEstadoBotoes();
         });
     },
 
@@ -2233,7 +2264,7 @@ window.OcorrenciasApp = {
         if (!termo) {
             $('#gridResultados tbody').html(`
                 <tr>
-                    <td colspan="6" class="text-center py-3 text-muted">
+                    <td colspan="7" class="text-center py-3 text-muted">
                         <i class="bi bi-search display-6 d-block mb-2 opacity-25" style="font-size: 2rem;"></i>
                         Digite um termo para iniciar a pesquisa.
                     </td>
@@ -2250,6 +2281,9 @@ window.OcorrenciasApp = {
                 tbody.empty();
                 if (response.data?.length > 0) {
                     response.data.forEach(item => {
+                        const dono = item.owner_name && item.owner_name !== '-' 
+                            ? item.owner_name.split(' ')[0] 
+                            : 'Sistema';
                         tbody.append(`
                             <tr>
                                 <td>${item.BOE || ''}</td>
@@ -2265,6 +2299,9 @@ window.OcorrenciasApp = {
                                 : '-'}
                                 </td>
                                 <td class="text-center">
+                                    <span class="badge bg-secondary"><i class="bi bi-person-fill"></i> ${dono}</span>
+                                </td>
+                                <td class="text-center">
                                     <button type="button" class="btn btn-sm btn-success btn-selecionar" data-id="${item.id}">
                                         Selecionar
                                     </button>
@@ -2275,7 +2312,7 @@ window.OcorrenciasApp = {
                 } else {
                     tbody.append(`
                         <tr>
-                            <td colspan="6" class="text-center py-3 text-muted">
+                            <td colspan="7" class="text-center py-3 text-muted">
                                 <i class="bi bi-search display-6 d-block mb-2 opacity-25" style="font-size: 2rem;"></i>
                                 Nenhum registro encontrado.
                             </td>
@@ -2285,7 +2322,7 @@ window.OcorrenciasApp = {
             },
             error: (xhr) => {
                 const errorMsg = xhr.responseJSON?.message || 'Erro na pesquisa';
-                $('#gridResultados tbody').html(`<tr><td colspan="6" class="text-center text-danger py-4">${errorMsg}</td></tr>`);
+                $('#gridResultados tbody').html(`<tr><td colspan="7" class="text-center text-danger py-4">${errorMsg}</td></tr>`);
             }
         });
     },
@@ -2300,6 +2337,18 @@ window.OcorrenciasApp = {
         this.currentId = id;
 
         console.log('🔄 CARREGANDO REGISTRO ID:', id);
+
+        // ✅ CORREÇÃO: Limpar TUDO antes de carregar o novo registro para evitar mistura de chips
+        this.resetForms();
+        // Limpar chips e envolvidos explicitamente
+        ['vitimas', 'autores', 'testemunhas', 'condutores', 'outros'].forEach(tipo => {
+            this.envolvidos[tipo] = [];
+            this.vinculos[tipo] = [];
+            if (window.envolvidosChips && window.envolvidosChips[tipo]) {
+                window.envolvidosChips[tipo] = [];
+            }
+            this.atualizarChips(tipo);
+        });
 
         $.ajax({
             url: `${rotas.inicio.buscar}/${id}`,
@@ -2343,13 +2392,25 @@ window.OcorrenciasApp = {
                     // ✅ NOVO: Carregar envolvidos
                     this.carregarEnvolvidos(response.data);
 
-                    $('#btnEditar').prop('disabled', false);
-                    $('#btnExcluir').prop('disabled', false);
+                    // ✅ NOVO: Capturar is_owner da resposta e bloquear/desbloquear formulário
+                    this.isOwner = response.data.is_owner !== undefined ? response.data.is_owner : true;
+                    this.ownerName = response.data.owner_name || null;
+                    if (this.isOwner) {
+                        this.desbloquearCamposFormulario();
+                        $('#btnSalvar').prop('disabled', true); // ✅ Desabilita Salvar (já existe, deve usar Editar)
+                        $('#btnEditar').prop('disabled', false);
+                        $('#btnExcluir').prop('disabled', false);
+                    } else {
+                        this.bloquearCamposFormulario();
+                        $('#btnSalvar').prop('disabled', true);
+                        $('#btnEditar').prop('disabled', true);
+                        $('#btnExcluir').prop('disabled', true);
+                    }
 
                     // ✅ CORREÇÃO: Garantir que pegamos o BOE independente de maiúscula/minúscula
                     const boeValue = response.data.BOE || response.data.boe;
 
-                    console.log('✅ FORMULÁRIO INÍCIO PREENCHIDO - BOE:', boeValue);
+                    console.log('✅ FORMULÁRIO INÍCIO PREENCHIDO - BOE:', boeValue, '| isOwner:', this.isOwner);
                     console.log('✅ ENVOLVIDOS CARREGADOS:', this.envolvidos);
 
                     // ✅✅✅ CORREÇÃO: USAR O SISTEMA DE VÍNCULOS COM FALLBACK
@@ -2360,6 +2421,19 @@ window.OcorrenciasApp = {
                         console.log('🔄 Sistema de vínculos não carregado, usando fallback...');
                         this.carregarVinculosFallback(boeValue);
                     }
+
+                    // Polling de sugestões (só para o dono)
+                    this.iniciarPollingSugestoes(boeValue);
+
+                    // Auto-resize do campo Apreensão após carregar dados
+                    if (typeof autoResizeApreensao === 'function') {
+                        setTimeout(autoResizeApreensao, 100);
+                    }
+                    if (typeof atualizarContadorItens === 'function') {
+                        atualizarContadorItens(response.data.Apreensao);
+                    }
+
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
 
                     // ✅ Carregar todos vínculos para chips (vitimas/autores/testemunhas)
                     this.carregarVinculosDoBoe(boeValue);
@@ -2377,6 +2451,67 @@ window.OcorrenciasApp = {
                 this.mostrarErro('Erro ao carregar registro: ' + (xhr.responseJSON?.message || 'Erro desconhecido'));
             }
         });
+    },
+
+    // ✅ NOVO: Mostrar banner de modo somente-leitura quando não é dono
+    mostrarBannerPropriedade: function () {
+        $('#bannerPropriedade').remove(); // Remove banner anterior se existir
+        if (!this.isOwner && this.ownerName) {
+            const banner = $(`
+                <div id="bannerPropriedade" class="alert mb-2 d-flex align-items-center gap-2" 
+                     style="background: linear-gradient(135deg, #f0a500 0%, #e07b00 100%); border:none; border-radius:10px; color:#fff; font-size:0.85rem; padding: 8px 14px;">
+                    <i class="bi bi-shield-lock-fill fs-5"></i>
+                    <div>
+                        <strong>Modo Colaborador</strong> — Este procedimento pertence a <strong>${this.ownerName}</strong>.
+                        Você pode <em>sugerir novos envolvidos</em>, mas não pode editar ou excluir dados existentes.
+                    </div>
+                </div>
+            `);
+            // Inserir no início do formulário principal
+            const target = $('#formInicio').length ? $('#formInicio') : $('.card-body').first();
+            target.prepend(banner);
+        }
+    },
+
+    // ✅ NOVO: Bloquear todos os campos textuais do formulário para não-donos
+    bloquearCamposFormulario: function () {
+        const campos = [
+            '#inputData','#inputDataComp','#inputDataExt','#inputBOE','#inputBOEPM',
+            '#inputIP','#inputDelegado','#inputEscrivao','#inputDelegacia','#inputCidade',
+            '#inputPolicial1','#inputPolicial2','#inputDPResp','#inputCidResp',
+            '#inputBelResp','#inputEscrResp','#inputDataFato','#inputDataInstauracao',
+            '#inputHoraFato','#inputEndFato','#inputMeiosEmpregados','#inputMotivacao',
+            '#inputIncidenciaPenal','#inputComarca','#inputStatus','#inputPrioridade',
+            '#inputApreensao'
+        ];
+        campos.forEach(id => {
+            $(id).prop('readonly', true).css({ 'background': 'rgba(0,0,0,0.05)', 'cursor': 'not-allowed', 'opacity': '0.75' });
+        });
+        // Desabilitar botão Salvar/Editar mas manter botão de Adicionar Envolvido
+        $('#btnSalvar').prop('disabled', true);
+        $('#btnEditar').prop('disabled', true);
+        $('#btnExcluir').prop('disabled', true);
+        // Tooltip informativo
+        $('#btnSalvar').attr('title', 'Apenas o responsável pode salvar alterações neste procedimento.');
+        console.log('🔒 [Propriedade] Formulário bloqueado para não-dono.');
+    },
+
+    // ✅ NOVO: Desbloquear campos quando é o dono
+    desbloquearCamposFormulario: function () {
+        const campos = [
+            '#inputData','#inputDataComp','#inputDataExt','#inputBOE','#inputBOEPM',
+            '#inputIP','#inputDelegado','#inputEscrivao','#inputDelegacia','#inputCidade',
+            '#inputPolicial1','#inputPolicial2','#inputDPResp','#inputCidResp',
+            '#inputBelResp','#inputEscrResp','#inputDataFato','#inputDataInstauracao',
+            '#inputHoraFato','#inputEndFato','#inputMeiosEmpregados','#inputMotivacao',
+            '#inputIncidenciaPenal','#inputComarca','#inputStatus','#inputPrioridade',
+            '#inputApreensao'
+        ];
+        campos.forEach(id => {
+            $(id).prop('readonly', false).css({ 'background': '', 'cursor': '', 'opacity': '' });
+        });
+        $('#bannerPropriedade').remove();
+        console.log('🔓 [Propriedade] Formulário desbloqueado para o dono.');
     },
 
     // ✅ NOVA FUNÇÃO FALLBACK PARA VÍNCULOS
@@ -2460,10 +2595,97 @@ window.OcorrenciasApp = {
         }
     },
 
+    // ✅ NOVO: MONITORAMENTO DE SUGESTÕES (POLLING 30S)
+    iniciarPollingSugestoes: function (boe) {
+        this.pararPollingSugestoes();
+        if (!boe || !this.isOwner) return;
+
+        console.log('⏰ [Polling] Iniciado monitoramento de sugestões para BOE:', boe);
+        this.pollingSugestoes = setInterval(() => {
+            // Apenas atualiza se o BOE no campo ainda for o mesmo e a aba ativa for a de APFD
+            const boeAtual = $('#inputBOE').val();
+            if (boeAtual === boe && this.isOwner) {
+                console.log('🔄 [Polling] Verificando novas sugestões...');
+                // Faz o fetch silencioso (sem flags visíveis se possível, ou apenas atualiza chips)
+                this.atualizarApenasVinculos(boe);
+            }
+        }, 30000); // 30 segundos
+    },
+
+    pararPollingSugestoes: function () {
+        if (this.pollingSugestoes) {
+            clearInterval(this.pollingSugestoes);
+            this.pollingSugestoes = null;
+            console.log('🛑 [Polling] Monitoramento parado.');
+        }
+    },
+
+    atualizarApenasVinculos: function (boe) {
+        $.ajax({
+            url: "/boe/vinculos/listar/" + encodeURIComponent(boe),
+            method: 'GET',
+            success: (response) => {
+                if (response.success && response.data) {
+                    const data = response.data;
+                    const mapVinculo = (p) => ({
+                        nome: p.Nome || p.nome || '',
+                        vinculo_id: p.vinculo_id,
+                        pessoa_id: p.IdCad || p.id,
+                        status_aprovacao: p.status_aprovacao || 'aprovado',
+                        criado_por_nome: p.criado_por_nome || null
+                    });
+
+                    const mergeVinculos = (tipo, novosDb) => {
+                        const localEnvolvidos = [ ...(this.envolvidos[tipo] || []) ];
+                        const localVinculosMap = {};
+                        (this.vinculos[tipo] || []).forEach(v => {
+                            if(v && v.nome) localVinculosMap[v.nome] = v;
+                        });
+
+                        const dbNomes = new Set(novosDb.map(v => v.nome));
+                        const novosVinculos = [];
+                        const novosEnvolvidos = [];
+
+                        // 1. Manter os chips locais (manuais) não salvos no BD
+                        localEnvolvidos.forEach(nome => {
+                            if (!dbNomes.has(nome)) {
+                                novosEnvolvidos.push(nome);
+                                novosVinculos.push(localVinculosMap[nome] || { nome: nome });
+                            }
+                        });
+
+                        // 2. Adicionar os do BD
+                        novosDb.forEach(v => {
+                            novosEnvolvidos.push(v.nome);
+                            novosVinculos.push(v);
+                        });
+
+                        this.envolvidos[tipo] = novosEnvolvidos;
+                        this.vinculos[tipo] = novosVinculos;
+                    };
+
+                    mergeVinculos('vitimas', (data.vitimas || []).map(mapVinculo));
+                    mergeVinculos('autores', (data.autores || []).map(mapVinculo));
+                    mergeVinculos('testemunhas', (data.testemunhas || []).map(mapVinculo));
+                    mergeVinculos('condutores', (data.condutor || []).map(mapVinculo));
+                    mergeVinculos('outros', (data.outros || []).map(mapVinculo));
+
+                    this.atualizarChips('vitimas');
+                    this.atualizarChips('autores');
+                    this.atualizarChips('testemunhas');
+                    this.atualizarChips('condutores');
+                    this.atualizarChips('outros');
+                }
+            }
+        });
+    },
+
     novoRegistro: function () {
         this.currentId = null;
+        this.pararPollingSugestoes();
         this.resetForms();
         this.preencherDataAtual();
+        $('#btnSalvar').prop('disabled', false); // ✅ Reabilita Salvar para novo registro
         $('#btnEditar').prop('disabled', true);
         $('#btnExcluir').prop('disabled', true);
     },
@@ -2535,7 +2757,7 @@ window.OcorrenciasApp = {
                         tbody.empty();
                     }
 
-                    // Cria a nova linha com TODAS as 6 colunas (igual ao carregarGrid)
+                    // Cria a nova linha com TODAS as 7 colunas (igual ao carregarGrid)
                     const novaLinha = `
                         <tr>
                             <td>${boe}</td>
@@ -2549,6 +2771,9 @@ window.OcorrenciasApp = {
                                     prioridade.includes('BAIXA') ? 'bg-success' : 'bg-secondary'}">
                                        ${prioridade}</span>`
                             : '-'}
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-secondary"><i class="bi bi-person-fill"></i> Você</span>
                             </td>
                             <td class="text-center">
                                 <button type="button" class="btn btn-sm btn-success btn-selecionar" data-id="${id}">
@@ -2687,7 +2912,7 @@ window.OcorrenciasApp = {
 
                             // Se a tabela ficar vazia
                             if ($('#gridResultados tbody tr').length === 0) {
-                                $('#gridResultados tbody').html('<tr><td colspan="4" class="text-center">Nenhum registro encontrado.</td></tr>');
+                                $('#gridResultados tbody').html('<tr><td colspan="7" class="text-center">Nenhum registro encontrado.</td></tr>');
                             }
 
                             // Recarrega apenas se houver pesquisa ativa e a grid estiver vazia
@@ -2747,8 +2972,10 @@ window.OcorrenciasApp = {
 
     limparFormularios: function () {
         this.currentId = null;
+        this.pararPollingSugestoes();
         this.resetForms();
         this.preencherDataAtual();
+        $('#btnSalvar').prop('disabled', false);
         $('#btnEditar').prop('disabled', true);
         $('#btnExcluir').prop('disabled', true);
     },
@@ -2910,22 +3137,25 @@ window.OcorrenciasApp = {
         el.focus();
     },
 
-    mostrarSucesso: function (mensagem) {
-        window.mostrarSucesso(mensagem);
+    // Global Modal Helpers removidos. Agora residentes exclusivamente em public/js/core.js
+    // MAS expostos como proxy para retrocompatibilidade no OcorrenciasApp para evitar silent errors
+    mostrarErro: function(mensagem) {
+        if (typeof window.mostrarErro === 'function') {
+            window.mostrarErro(mensagem);
+        } else {
+            console.error(mensagem);
+            alert(mensagem);
+        }
     },
-
-    mostrarErro: function (mensagem) {
-        window.mostrarErro(mensagem);
+    
+    mostrarSucesso: function(mensagem) {
+        if (typeof window.mostrarSucesso === 'function') {
+            window.mostrarSucesso(mensagem);
+        } else {
+            console.log(mensagem);
+            alert(mensagem);
+        }
     }
-};
-
-// ✅ FUNÇÃO GLOBAL PARA MODAL GENÉRICO
-window.confirmarExclusaoGenerica = function (mensagem, callback) {
-    $('#modalConfirmacaoGenericoBody').text(mensagem);
-    $('#btnConfirmarExclusaoGenerico').off('click').on('click', function () {
-        callback();
-    });
-    $('#modalConfirmacaoGenerico').modal('show');
 };
 
 // Inicializa a aplicação quando o documento estiver pronto
@@ -2935,13 +3165,6 @@ $(document).ready(function () {
     // ✅ FIX: Garantir que a barra de rolagem seja restaurada após fechar modais
     $(document).on('hidden.bs.modal', '.modal', function () {
         const modalId = $(this).attr('id');
-
-        // ✅ CORREÇÃO: Ignora modais dinâmicos de sucesso/erro para evitar duplicação
-        if (modalId === 'modalSucessoDynamic' || modalId === 'modalErroDynamic' || modalId === 'modalAlertaDynamic') {
-            // Limpa o modal dinâmico após fechar
-            $(this).remove();
-            return;
-        }
 
         // Remove a classe modal-open se não houver outros modais abertos
         if ($('.modal:visible').length === 0) {

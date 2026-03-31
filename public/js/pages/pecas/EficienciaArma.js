@@ -71,7 +71,7 @@ const quill = new Quill('#editor', {
                             };
                             reader.readAsDataURL(file);
                         } else {
-                            alert('Por favor, selecione apenas imagens.');
+                            Swal.fire("Atenção", 'Por favor, selecione apenas imagens.', "warning");
                         }
                     };
                 }
@@ -181,7 +181,7 @@ function printDocument() {
 
     // ✅ VERIFICAR SE O CONTEÚDO ESTÁ VAZIO
     if (!content || content.trim().length === 0 || content === '<p><br></p>') {
-        alert('O conteúdo do documento não pode estar vazio.');
+        Swal.fire("Atenção", 'O conteúdo do documento não pode estar vazio.', "warning");
         return;
     }
 
@@ -204,7 +204,7 @@ function printDocument() {
     const csrfToken = document.querySelector('meta[name="csrf-token"]');
     if (!csrfToken) {
         console.error('CSRF token não encontrado!');
-        alert('Erro de segurança. CSRF token não encontrado.');
+        Swal.fire("Atenção", 'Erro de segurança. CSRF token não encontrado.', "warning");
         return;
     }
 

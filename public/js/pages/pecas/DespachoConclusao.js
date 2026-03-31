@@ -102,7 +102,7 @@ const quill = new Quill('#editor', {
                             };
                             reader.readAsDataURL(file);
                         } else {
-                            alert('Por favor, selecione apenas imagens.');
+                            Swal.fire("Atenção", 'Por favor, selecione apenas imagens.', "warning");
                         }
                     };
                 }
@@ -231,7 +231,7 @@ function printDocument() {
     const csrfToken = document.querySelector('meta[name="csrf-token"]');
     if (!csrfToken) {
         console.error('CSRF token não encontrado!');
-        alert('Erro de segurança. CSRF token não encontrado.');
+        Swal.fire("Atenção", 'Erro de segurança. CSRF token não encontrado.', "warning");
         return;
     }
 

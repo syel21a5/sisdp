@@ -210,8 +210,8 @@ $(document).ready(function () {
                     $('#inputProfissaoTestemunha1').val(c.Profissao || '');
                     $('#inputInstrucaoTestemunha1').val(c.Instrucao || '');
                     $('#inputRGTestemunha1').val(c.RG || '');
-                    $('#inputCPFTestemunha1').val(c.CPF || '');
-                    $('#inputTelefoneTestemunha1').val(c.Telefone || '');
+                    $('#inputCPFTestemunha1').val(c.CPF || '').trigger('input');
+                    $('#inputTelefoneTestemunha1').val(c.Telefone || '(00) 00000-0000').trigger('input');
                     $('#inputMaeTestemunha1').val(c.Mae || '');
                     $('#inputPaiTestemunha1').val(c.Pai || '');
                     $('#inputEnderecoTestemunha1').val(c.Endereco || '');
@@ -253,8 +253,8 @@ $(document).ready(function () {
         $('#inputProfissaoTestemunha1').val(dados.Profissao || '');
         $('#inputInstrucaoTestemunha1').val(dados.Instrucao || '');
         $('#inputRGTestemunha1').val(dados.RG || '');
-        $('#inputCPFTestemunha1').val(dados.CPF || '');
-        $('#inputTelefoneTestemunha1').val(dados.Telefone || '');
+        $('#inputCPFTestemunha1').val(dados.CPF || '').trigger('input');
+        $('#inputTelefoneTestemunha1').val(dados.Telefone || '(00) 00000-0000').trigger('input');
         $('#inputMaeTestemunha1').val(dados.Mae || '');
         $('#inputPaiTestemunha1').val(dados.Pai || '');
         $('#inputEnderecoTestemunha1').val(dados.Endereco || '');
@@ -271,8 +271,8 @@ $(document).ready(function () {
         $('#inputIdadeTestemunha1').val('');
         $('#btnEditarTestemunha1, #btnExcluirTestemunha1').prop('disabled', true);
 
-        // ✅ EXCLUIR VÍNCULO AO CRIAR NOVA TESTEMUNHA1
-        excluirVinculoBoeTestemunha1();
+        // ✅ REMOVIDO: Excluir vínculo ao criar nova testemunha (conflitava com sistema de chips)
+        // excluirVinculoBoeTestemunha1();
     });
 
     // === CRUD: SALVAR E EDITAR ===

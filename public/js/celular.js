@@ -139,17 +139,12 @@ $(document).ready(function () {
         return `${partes[2]}-${partes[1]}-${partes[0]}`;
     }
 
-    // === FUNÇÕES DE MODAL ===
     function mostrarModalSucesso(mensagem) {
-        $('#sucessoMensagemCelular').text(mensagem);
-        var el = document.getElementById('modalSucessoCelular');
-        if (el) { var m = bootstrap.Modal.getOrCreateInstance(el); m.show(); }
+        window.mostrarSucesso(mensagem);
     }
 
     function mostrarModalErro(mensagem) {
-        $('#erroMensagemCelular').text(mensagem);
-        var el = document.getElementById('modalErroCelular');
-        if (el) { var m = bootstrap.Modal.getOrCreateInstance(el); m.show(); }
+        window.mostrarErro(mensagem);
     }
 
 
@@ -373,12 +368,35 @@ $(document).ready(function () {
             success: function (response) {
                 if (response.success) {
                     mostrarModalSucesso(response.message);
+                    // ✅ NOVO: Remover o item salvo da lista de pendentes da IA
+                    if (celularesPendentesIA.length > 0) {
+                        const boe = $('#inputBoeCelular').val();
+                        if (boe) {
+                            const boeKey = boe.replace(/[^a-zA-Z0-9]/g, '');
+                            celularesPendentesIA.splice(indiceIAPendente, 1);
+                            
+                            if (celularesPendentesIA.length > 0) {
+                                localStorage.setItem('pendentes_celulares_' + boeKey, JSON.stringify(celularesPendentesIA));
+                                if (indiceIAPendente >= celularesPendentesIA.length) indiceIAPendente = celularesPendentesIA.length - 1;
+                                preencherComObjetoIA(celularesPendentesIA[indiceIAPendente]);
+                                atualizarControlesIA();
+                            } else {
+                                localStorage.removeItem('pendentes_celulares_' + boeKey);
+                                $('#avisoIA_Celular').fadeOut();
+                            }
+                            if (typeof window.atualizarBadgesPendentes === 'function') window.atualizarBadgesPendentes();
+                        }
+                    }
+                    let boeLocal = $('#inputBoeCelular').val();
                     limparFormularioCelular();
 
                     // ✅ GARANTIR QUE A LISTA É ATUALIZADA APÓS SALVAR
                     setTimeout(function () {
-                        // carregarUltimosCelulares(); // Removido para não recarregar tabela automaticamente
-                        console.log('✅ Lista atualizada após salvar novo celular');
+                        if (boeLocal) {
+                            $('#filtroCelular').val('boe');
+                            $('#termoPesquisaCelular').val(boeLocal);
+                            $('#btnPesquisarCelular').click();
+                        }
                     }, 500);
 
                 } else {
@@ -427,11 +445,16 @@ $(document).ready(function () {
             success: function (response) {
                 if (response.success) {
                     mostrarModalSucesso(response.message);
+                    let boeLocal = $('#inputBoeCelular').val();
+                    limparFormularioCelular();
 
                     // ✅ ATUALIZAR LISTA APÓS EDITAR
                     setTimeout(function () {
-                        // carregarUltimosCelulares(); // Removido para não recarregar tabela automaticamente
-                        console.log('✅ Lista atualizada após editar celular');
+                        if (boeLocal) {
+                            $('#filtroCelular').val('boe');
+                            $('#termoPesquisaCelular').val(boeLocal);
+                            $('#btnPesquisarCelular').click();
+                        }
                     }, 500);
 
                 } else {
@@ -478,12 +501,16 @@ $(document).ready(function () {
             success: function (response) {
                 if (response.success) {
                     mostrarModalSucesso(response.message);
+                    let boeLocal = $('#inputBoeCelular').val();
                     limparFormularioCelular();
 
                     // ✅ ATUALIZAR LISTA APÓS EXCLUIR
                     setTimeout(function () {
-                        // carregarUltimosCelulares(); // Removido para não recarregar tabela automaticamente
-                        console.log('✅ Lista atualizada após excluir celular');
+                        if (boeLocal) {
+                            $('#filtroCelular').val('boe');
+                            $('#termoPesquisaCelular').val(boeLocal);
+                        }
+                        $('#btnPesquisarCelular').click();
                     }, 500);
 
                 } else {
@@ -520,6 +547,12 @@ $(document).ready(function () {
         $('#btnSalvarCelular').prop('disabled', false);
         $('#btnEditarCelular').prop('disabled', true).removeClass('btn-secondary').addClass('btn-warning').removeAttr('title');
         $('#btnExcluirCelular').prop('disabled', true).removeClass('btn-secondary').addClass('btn-danger').removeAttr('title');
+
+        // ✅ REINICIAR ESTADO DO MODAL DE IMPORTAÇÃO (caso o usuário tenha cancelado ou extraído)
+        $('#btnProcessarBoeCelular').prop('disabled', false).html('<i class="bi bi-cpu me-1"></i> Processar pelo Sistema');
+        $('#celularProgressWrapper').hide();
+        $('#celularProgressBar').css('width', '0%');
+        $('#celularProgressPercent').text('0%');
 
         console.log('✅ Formulário celular limpo e data atual preenchida');
     }
@@ -954,12 +987,17 @@ $(document).ready(function () {
 
         $('#inputDataCelular').val(dataFormatada);
 
-        // Inicializar Flatpickr no campo data (igual ao administrativo)
+        // Inicializar Flatpickr no campo data e definir data atual via API do flatpickr
         var localeCfg = (window.flatpickr && flatpickr.l10ns && flatpickr.l10ns.pt) ? flatpickr.l10ns.pt : 'default';
-        flatpickr("#inputDataCelular", {
+        var fpCelular = flatpickr("#inputDataCelular", {
             dateFormat: "d/m/Y",
             allowInput: true,
-            locale: localeCfg
+            locale: localeCfg,
+            onReady: function(selectedDates, dateStr, instance) {
+                if (!instance.selectedDates.length) {
+                    instance.setDate(new Date(), true);
+                }
+            }
         });
 
         // Desabilitar botões inicialmente
@@ -991,151 +1029,408 @@ $(document).ready(function () {
             }
         });
 
-        // ✅ NOVO: Checar se já existem dados globais ou no localStorage
-        const boeAtual = $('#inputBoeCelular').val();
-        if (window.pendentesIA_Celulares && window.pendentesIA_Celulares.length > 0) {
-            console.log('🤖 Módulo Celular detectou dados globais pendentes:', window.pendentesIA_Celulares);
-            celularesPendentesIA = window.pendentesIA_Celulares;
-            indiceIAPendente = 0;
-            preencherComObjetoIA(celularesPendentesIA[0]);
-            mostrarAvisoIA();
-        } else if (boeAtual) {
-            // Tenta recuperar do localStorage pelo BOE
-            const dadosSalvos = localStorage.getItem('pendentesSistema_Celulares_' + boeAtual);
-            if (dadosSalvos) {
-                const lista = JSON.parse(dadosSalvos);
-                if (lista.length > 0) {
-                    console.log('🤖 Módulo Celular recuperou dados do localStorage para o BOE:', boeAtual);
-                    celularesPendentesIA = lista;
-                    const dadosGerais = localStorage.getItem('pendentesSistema_Geral_' + boeAtual);
-                    if (dadosGerais) window.pendenteIA_Geral = JSON.parse(dadosGerais);
-                    indiceIAPendente = 0;
-                    preencherComObjetoIA(celularesPendentesIA[0]);
-                    mostrarAvisoIA();
+        // ✅ NOVO: Lógica de Importação Híbrida de Celulares
+        $('#btnProcessarBoeCelular').click(function () {
+            const formData = new FormData();
+            
+            // Verificar aba ativa (Texto ou PDF)
+            const isTextoAtivo = $('#tab-texto-celular').hasClass('active');
+            
+            if (isTextoAtivo) {
+                const texto = $('#textoBoeCelular').val();
+                if (!texto.trim()) {
+                    window.mostrarErro('Cole o texto do BOE antes de processar.');
+                    return;
+                }
+                formData.append('textoBOE', texto);
+            } else {
+                const inputPdf = document.getElementById('pdfBoeCelular');
+                if (inputPdf.files.length === 0) {
+                    window.mostrarErro('Selecione um arquivo PDF antes de processar.');
+                    return;
+                }
+                formData.append('pdfBOE', inputPdf.files[0]);
+            }
+
+            // Iniciar UI de carregamento
+            $('#btnProcessarBoeCelular').prop('disabled', true).html('<span class="spinner-border spinner-border-sm mt-1 mb-1 me-2" role="status" aria-hidden="true"></span> Extraindo...');
+            $('#celularProgressWrapper').show();
+            let percent = 0;
+            const progressInterval = setInterval(() => {
+                percent += 5;
+                if (percent > 90) percent = 90; // Trava no 90% até o retorno
+                $('#celularProgressBar').css('width', percent + '%');
+                $('#celularProgressPercent').text(percent + '%');
+            }, 500);
+
+            // Adicionar token CSRF
+            formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+
+            $.ajax({
+                url: rotasCelular.importarBoeTexto || '/celular/importar-boe-texto',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    clearInterval(progressInterval);
+                    $('#celularProgressBar').css('width', '100%');
+                    $('#celularProgressPercent').text('100%');
+
+                    if (response.success && response.dados) {
+                        const dados = response.dados;
+                        window.pendenteIA_Geral = { boe: dados.boe, ip: dados.ip, data: dados.data };
+                        
+                        if (dados.celulares && dados.celulares.length > 0) {
+                            celularesPendentesIA = dados.celulares;
+                            indiceIAPendente = 0;
+                            
+                            // MUDANÇA ENTRA AQUI! 
+                            if (dados.celulares.length === 1) {
+                                if (dados.boe) {
+                                    $.ajax({
+                                        url: rotasCelular.pesquisar,
+                                        method: "GET",
+                                        data: { filtro: "boe", termo: dados.boe },
+                                        success: function(pesqResp) {
+                                            $('#modalImportarCelular').modal('hide');
+                                            
+                                            let imeiLocal = dados.celulares[0].imei1 ? dados.celulares[0].imei1.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() : '';
+                                            let specLocal = ((dados.celulares[0].marca_modelo || '') + ' ' + (dados.celulares[0].cor || '')).replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+                                            
+                                            let jaExisteExato = false;
+                                            let jaExisteSimilar = false;
+                                            
+                                            let itensDB = (pesqResp.success && pesqResp.data) ? pesqResp.data : [];
+                                            
+                                            for (let dbItem of itensDB) {
+                                                let imeiDB = dbItem.imei1 ? dbItem.imei1.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() : '';
+                                                
+                                                if (imeiLocal && imeiLocal !== 'SIMEI' && imeiDB === imeiLocal) {
+                                                    jaExisteExato = true;
+                                                    break;
+                                                }
+                                                
+                                                if ((!imeiLocal || imeiLocal === 'SIMEI') && (!imeiDB || imeiDB === 'SIMEI')) {
+                                                    let specDB = (dbItem.telefone || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+                                                    if (specLocal && specDB && (specDB.includes(specLocal) || specLocal.includes(specDB))) {
+                                                        jaExisteSimilar = true;
+                                                    }
+                                                }
+                                            }
+                                            
+                                            if (jaExisteExato) {
+                                                window.mostrarErro(`Atenção: Preenchimento automático bloqueado! Este celular (IMEI ${dados.celulares[0].imei1 || 'N/A'}) já foi salvo neste Boletim.`);
+                                            } else {
+                                                preencherComObjetoIA(celularesPendentesIA[0]);
+                                                if (jaExisteSimilar) {
+                                                    window.mostrarAviso ? window.mostrarAviso(`⚠️ Atenção: Um celular "similar" sem IMEI já consta neste BOE. Verifique se não é repetição.`) : window.mostrarErro(`⚠️ Atenção: Um celular "similar" sem IMEI já consta neste BOE. Verifique se não é duplicado.`);
+                                                } else {
+                                                    window.mostrarSucesso(`Extração concluída! 1 celular detectado e preenchido no formulário.`);
+                                                }
+                                            }
+                                        },
+                                        error: function() {
+                                            $('#modalImportarCelular').modal('hide');
+                                            preencherComObjetoIA(celularesPendentesIA[0]);
+                                            window.mostrarSucesso(`Extração concluída! 1 celular detectado.`);
+                                        }
+                                    });
+                                } else {
+                                    $('#modalImportarCelular').modal('hide');
+                                    preencherComObjetoIA(celularesPendentesIA[0]);
+                                    window.mostrarSucesso(`Extração concluída! 1 celular detectado e preenchido.`);
+                                }
+                            } else {
+                                // MÚLTIPLOS CELULARES - BATCH IMPORT MODAL
+                                $('#modalImportarCelular').modal('hide');
+                                
+                                // Nova funcionalidade: Pesquisar se já há celulares com este BOE cadastrados
+                                if (dados.boe) {
+                                    $.ajax({
+                                        url: rotasCelular.pesquisar,
+                                        method: "GET",
+                                        data: { filtro: "boe", termo: dados.boe },
+                                        success: function(pesqResp) {
+                                            let itensDB = (pesqResp.success && pesqResp.data) ? pesqResp.data : [];
+                                            abrirModalRevisaoMultiplosCelulares(dados.celulares, itensDB);
+                                        },
+                                        error: function() {
+                                            abrirModalRevisaoMultiplosCelulares(dados.celulares, []);
+                                        }
+                                    });
+                                } else {
+                                    abrirModalRevisaoMultiplosCelulares(dados.celulares, []);
+                                }
+                            }
+                        } else {
+                            window.mostrarSucesso('Extração concluída. NENHUM celular foi detectado no documento.');
+                            $('#modalImportarCelular').modal('hide');
+                        }
+                    } else {
+                        window.mostrarErro(response.message || 'Erro na resposta do servidor.');
+                    }
+                },
+                error: function (xhr) {
+                    clearInterval(progressInterval);
+                    let msg = 'Erro ao processar a extração com o sistema.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    }
+                    window.mostrarErro(msg);
+                },
+                complete: function () {
+                    setTimeout(() => {
+                        $('#btnProcessarBoeCelular').prop('disabled', false).html('<i class="bi bi-cpu me-1"></i> Processar pelo Sistema');
+                        $('#celularProgressWrapper').hide();
+                        $('#celularProgressBar').css('width', '0%');
+                        $('#celularProgressPercent').text('0%');
+                    }, 1000);
+                }
+            });
+        });
+
+        // =========================================================================
+        // NOVO: MODAL DE BATCH IMPORT (LOTES) 
+        // Em vez de "salvar 1, clicar próximo", mostra todos de uma vez
+        // =========================================================================
+        function abrirModalRevisaoMultiplosCelulares(celularesList, itensDB = []) {
+            // Limpa modais defasados
+            $('#modalRevisaoMultiplosCelulares').remove();
+            
+            let gridHtml = celularesList.map((c, i) => {
+                let descOriginal = (c.marca_modelo || 'Celular Não Especificado') + (c.cor ? ' - COR: ' + c.cor.toUpperCase() : '');
+                let desc = descOriginal;
+                let proprietario = c.proprietario || 'N/A';
+                let imei1 = c.imei1 || 'S/IMEI';
+                let imei2 = c.imei2 || '<span class="text-muted fst-italic">N/A</span>';
+                let status = c.status || 'APREENDIDO';
+                
+                // Precisamos escapar aspas pro onclick JS
+                let jsonStr = JSON.stringify(c).replace(/"/g, '&quot;');
+                
+                let imeiLimpo = imei1.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+                let specLimpo = descOriginal.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+                
+                let isDuplicadoExato = false;
+                let isDuplicadoSimilar = false;
+                
+                for (let dbItem of itensDB) {
+                    let dbImei = dbItem.imei1 ? dbItem.imei1.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() : '';
+                    if (imeiLimpo && imeiLimpo !== 'SIMEI' && dbImei === imeiLimpo) {
+                        isDuplicadoExato = true;
+                        break;
+                    }
+                    if ((!imeiLimpo || imeiLimpo === 'SIMEI') && (!dbImei || dbImei === 'SIMEI')) {
+                        let dbSpec = (dbItem.telefone || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+                        if (specLimpo && dbSpec && (dbSpec.includes(specLimpo) || specLimpo.includes(dbSpec))) {
+                            isDuplicadoSimilar = true;
+                        }
+                    }
+                }
+                
+                let btnHtml = '';
+                let rowClass = '';
+
+                if (isDuplicadoExato) {
+                    rowClass = 'table-secondary opacity-75';
+                    btnHtml = `<span class="badge bg-secondary border border-secondary shadow-sm py-2 px-3 fw-bold w-100" title="Celular já atrelado a este boletim no seu sistema."><i class="bi bi-shield-check me-1"></i> Já Existe (Omitido)</span>`;
+                } else if (isDuplicadoSimilar) {
+                    rowClass = 'table-warning';
+                    btnHtml = `
+                        <span class="d-block mb-1 text-danger fw-bold" style="font-size:0.72rem;"><i class="bi bi-exclamation-triangle-fill"></i> Similar no BD</span>
+                        <button type="button" class="btn btn-sm btn-warning text-dark border-dark fw-bold shadow-sm w-100 btn-lote-salvar" onclick="window.salvarCelularEmLote(this, ${i}, '${jsonStr}')">
+                            <i class="bi bi-cloud-upload me-1"></i> Importar Mesmo Assim
+                        </button>
+                        <span class="lote-status text-success fw-bold d-none fs-6"><i class="bi bi-check-circle-fill"></i> Salvo!</span>
+                    `;
+                } else {
+                    btnHtml = `
+                        <button type="button" class="btn btn-sm btn-success fw-bold shadow-sm w-100 btn-lote-salvar" onclick="window.salvarCelularEmLote(this, ${i}, '${jsonStr}')">
+                            <i class="bi bi-cloud-upload me-1"></i> Importar
+                        </button>
+                        <span class="lote-status text-success fw-bold d-none fs-6"><i class="bi bi-check-circle-fill"></i> Salvo!</span>
+                    `;
+                }
+                
+                return `
+                    <tr id="linhaCelular_${i}" class="${rowClass}">
+                        <td class="align-middle fw-bold text-center">${imei1}</td>
+                        <td class="align-middle text-wrap" style="max-width:250px;">${desc}</td>
+                        <td class="align-middle text-center"><code>${imei2}</code></td>
+                        <td class="align-middle text-center"><span class="badge bg-warning text-dark">${status}</span></td>
+                        <td class="align-middle">${proprietario}</td>
+                        <td class="align-middle text-center" style="min-width: 170px;">
+                            ${btnHtml}
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+
+            const modalHtml = `
+                <div class="modal fade" id="modalRevisaoMultiplosCelulares" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+                    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+                        <div class="modal-content border-0 shadow-lg rounded-4" style="overflow: hidden;">
+                            <div class="modal-header bg-primary text-white border-0 py-3 d-flex justify-content-between align-items-center" style="cursor: move;" title="Clique e arraste para mover a janela">
+                                <h5 class="modal-title fw-bold mb-0"><i class="bi bi-phone-fill me-2"></i> ${celularesList.length} Celulares Encontrados no BOE</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body p-4 bg-light">
+                                <div class="alert alert-info border-0 shadow-sm d-flex align-items-center mb-3">
+                                    <i class="bi bi-info-circle-fill fs-4 me-3 text-info"></i>
+                                    <div>O sistema de inspeção encontrou múltiplos celulares no boletim. Para evitar retrabalho de digitação manual, você pode **revisar** e pular de forma seletiva, salvar de uma só vez apertando o botão [Importar] em apenas cada linha que desejar incluir no registro da apreensão.</div>
+                                </div>
+                                <div class="table-responsive bg-white rounded-3 shadow-sm border">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light text-secondary">
+                                            <tr>
+                                                <th class="text-center">IMEI 1</th>
+                                                <th>Descrição</th>
+                                                <th class="text-center">IMEI 2</th>
+                                                <th class="text-center">Status</th>
+                                                <th>Envolvido/Proprietário</th>
+                                                <th class="text-center">Confirmar Registro</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${gridHtml}
+                                        </tbody>
+                                        <tfoot class="border-top-0">
+                                            <tr><td colspan="6" class="text-center bg-light py-2"><small class="text-muted">Ações são enviadas para o banco de dados imediata e individualmente.</small></td></tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="modal-footer border-0 bg-white justify-content-center">
+                                <button type="button" class="btn btn-primary px-5 rounded-pill shadow-sm fw-bold" data-bs-dismiss="modal" onclick="limparFormularioCelular()">Finalizar e Fechar Tela de Lote</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            $('body').append(modalHtml);
+            const modalEl = document.getElementById('modalRevisaoMultiplosCelulares');
+            const modal = new bootstrap.Modal(modalEl, { backdrop: 'static', keyboard: false, focus: true });
+            modal.show();
+
+            // Ativar jQuery UI Draggable no modal dialog usando o cabeçalho como alça
+            if (typeof $.ui !== 'undefined' && $.isFunction($.fn.draggable)) {
+                try {
+                    $(modalEl).find('.modal-dialog').draggable({
+                        handle: ".modal-header",
+                        cursor: "move"
+                    });
+                } catch(e) {
+                    console.log("Draggable ignorado. JQueryUI não detectado corretamente no form.");
                 }
             }
         }
 
+        // Função Disparada por CADA Linha da Tabela do Novo Modal de Lotes
+        window.salvarCelularEmLote = function(btnElement, indexLinha, objJsonStr) {
+            const obj = JSON.parse(objJsonStr);
+            console.log('📦 Solicitado salvar LOTE:', obj);
+
+            // Resgata o BOE global
+            const boeIA = obj.boe || (window.pendenteIA_Geral ? window.pendenteIA_Geral.boe : '');
+            const dataIA = obj.data || (window.pendenteIA_Geral ? window.pendenteIA_Geral.data : '');
+            const ipIA = obj.ip || (window.pendenteIA_Geral ? window.pendenteIA_Geral.ip : '');
+
+            let dataFormatada = dataIA;
+            if (dataFormatada && dataFormatada.includes(' ')) dataFormatada = dataFormatada.split(' ')[0];
+
+            const formAutoData = new FormData();
+            formAutoData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+            // Usar data default se a IA errar ou se o Python não trouxe Data
+            formAutoData.append('data', dataFormatada || $('#inputDataCelular').val() || ''); 
+            formAutoData.append('ip', ipIA || '');
+            formAutoData.append('boe', boeIA || '');
+            formAutoData.append('pessoa', obj.proprietario || '');
+            
+            const specAtual = obj.marca_modelo || '';
+            const descCor = obj.cor ? ' - COR: ' + obj.cor.toUpperCase() : '';
+            formAutoData.append('telefone', specAtual + descCor);
+            
+            formAutoData.append('imei1', obj.imei1 || '');
+            formAutoData.append('imei2', obj.imei2 || '');
+            formAutoData.append('processo', '');
+            formAutoData.append('status', 'APREENDIDO');
+
+            const $btn = $(btnElement);
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Acessando BD...');
+
+            $.ajax({
+                url: rotasCelular.salvar,
+                method: "POST",
+                data: formAutoData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        // Linha Sucesso Visual
+                        $btn.addClass('d-none');
+                        $btn.siblings('.lote-status').removeClass('d-none');
+                        $('#linhaCelular_' + indexLinha).addClass('table-success');
+                        
+                        setTimeout(function() {
+                            if (boeIA) {
+                                $('#filtroCelular').val('boe');
+                                $('#termoPesquisaCelular').val(boeIA);
+                                $('#btnPesquisarCelular').click();
+                            }
+                        }, 500);
+                    } else {
+                        window.mostrarErro(response.message || 'Falha ao salvar linha do Lote.');
+                        $btn.prop('disabled', false).html('<i class="bi bi-cloud-upload me-1"></i> Falhou. Tentar Novamente');
+                    }
+                },
+                error: function(xhr) {
+                    let msg = 'Erro ao processar linha do Lote no Backend.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+                    // Custom fallback para regra única de data/validação
+                    if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                        msg = Object.values(xhr.responseJSON.errors).flat().join('<br>');
+                    }
+                    window.mostrarErro("LOTE FALHOU: " + msg);
+                    $btn.prop('disabled', false).html('<i class="bi bi-cloud-upload me-1"></i> Tentar Novamente');
+                }
+            });
+        };
+
         function preencherComObjetoIA(obj) {
             console.log('📝 Preenchendo formulário com dados da IA:', obj);
-
+            
             // Tenta pegar o BOE e Data do contexto geral se não estiver no objeto
             const boeIA = obj.boe || (window.pendenteIA_Geral ? window.pendenteIA_Geral.boe : '');
             const dataIA = obj.data || (window.pendenteIA_Geral ? window.pendenteIA_Geral.data : '');
             const ipIA = obj.ip || (window.pendenteIA_Geral ? window.pendenteIA_Geral.ip : '');
 
-            // Não resetar tudo, apenas o específico
             if (boeIA) $('#inputBoeCelular').val(boeIA);
-            if (dataIA) $('#inputDataCelular').val(dataIA);
+            
+            if (dataIA) {
+                let dataFormatada = dataIA;
+                if (dataFormatada.includes(' ')) dataFormatada = dataFormatada.split(' ')[0];
+                if (!dataFormatada.includes(':')) {
+                    $('#inputDataCelular').val(dataFormatada);
+                }
+            }
+
             if (ipIA) $('#inputIpCelular').val(ipIA);
 
             if (obj.marca_modelo) $('#inputTelefoneCelular').val(obj.marca_modelo);
             if (obj.imei1) $('#inputImei1Celular').val(obj.imei1);
             if (obj.imei2) $('#inputImei2Celular').val(obj.imei2);
             if (obj.cor) {
-                // Se o campo for um select com cores, tenta selecionar
                 $('#inputCorCelular').val(obj.cor.toUpperCase());
-                // Se for input texto normal
-                if ($('#inputCorCelular').val() === "") {
-                    // Caso precise criar a opção ou se for texto
-                }
             }
             if (obj.proprietario) $('#inputPessoaCelular').val(obj.proprietario);
-            // O campo Processo/SEI deve ficar em branco conforme pedido do usuário
             $('#inputProcessoCelular').val('');
-            // if (obj.observacao) $('#inputObservacaoCelular').val(obj.observacao);
-
+            
             $('#inputStatusCelular').val('APREENDIDO');
-            $('#inputTelefoneCelular, #inputImei1Celular, #inputImei2Celular, #inputPessoaCelular').addClass('border-success shadow-sm');
-            setTimeout(() => {
-                $('#inputTelefoneCelular, #inputImei1Celular, #inputImei2Celular, #inputPessoaCelular').removeClass('border-success shadow-sm');
-            }, 3000);
         }
-
-        function mostrarAvisoIA() {
-            // Cria um badge flutuante ou aviso no topo do formulário
-            if ($('#avisoIA_Celular').length === 0) {
-                const html = `
-                    <div id="avisoIA_Celular" class="alert alert-info d-flex justify-content-between align-items-center mb-3 shadow-sm" style="border-left: 5px solid #0dcaf0;">
-                        <div>
-                            <i class="bi bi-robot me-2"></i>
-                            <span id="textoAvisoIA_Celular">O sistema encontrou ${celularesPendentesIA.length} aparelhos. Exibindo ${indiceIAPendente + 1} de ${celularesPendentesIA.length}.</span>
-                        </div>
-                        <div>
-                            <button type="button" class="btn btn-sm btn-outline-primary me-2" id="btnAnteriorIA_Celular" disabled><i class="bi bi-chevron-left"></i></button>
-                            <button type="button" class="btn btn-sm btn-outline-primary me-2" id="btnProximoIA_Celular"><i class="bi bi-chevron-right"></i></button>
-                            <button type="button" class="btn btn-sm btn-outline-danger me-2" id="btnDispensarIA_Celular" title="Remover estas sugestões para este BOE"><i class="bi bi-trash"></i> Dispensar</button>
-                            <button type="button" class="btn btn-close" onclick="$('#avisoIA_Celular').fadeOut()"></button>
-                        </div>
-                    </div>
-                `;
-                $('#formCelular').prepend(html);
-                
-                $('#btnProximoIA_Celular').click(function() {
-                    if (indiceIAPendente < celularesPendentesIA.length - 1) {
-                        indiceIAPendente++;
-                        preencherComObjetoIA(celularesPendentesIA[indiceIAPendente]);
-                        atualizarControlesIA();
-                    }
-                });
-                
-                $('#btnAnteriorIA_Celular').click(function() {
-                    if (indiceIAPendente > 0) {
-                        indiceIAPendente--;
-                        preencherComObjetoIA(celularesPendentesIA[indiceIAPendente]);
-                        atualizarControlesIA();
-                    }
-                });
-
-                $('#btnDispensarIA_Celular').click(function() {
-                    const boe = $('#inputBoeCelular').val();
-                    if (boe && confirm('Deseja remover permanentemente as sugestões extras deste BOE?')) {
-                        localStorage.removeItem('pendentesSistema_Celulares_' + boe);
-                        $('#avisoIA_Celular').fadeOut();
-                        celularesPendentesIA = [];
-                        console.log('🤖 Sugestões dispensadas para o BOE:', boe);
-                    }
-                });
-            } else {
-                $('#avisoIA_Celular').show();
-                indiceIAPendente = 0;
-                atualizarControlesIA();
-            }
-        }
-
-        function atualizarControlesIA() {
-            $('#textoAvisoIA_Celular').html(`O sistema encontrou ${celularesPendentesIA.length} aparelhos. Exibindo <b>${indiceIAPendente + 1} de ${celularesPendentesIA.length}</b>.`);
-            $('#btnAnteriorIA_Celular').prop('disabled', indiceIAPendente === 0);
-            $('#btnProximoIA_Celular').prop('disabled', indiceIAPendente === celularesPendentesIA.length - 1);
-        }
-
-        // ✅ NOVO: Reabrir assistente ao digitar/mudar o BOE
-        $('#inputBoeCelular').on('blur change', function() {
-            const boe = $(this).val();
-            if (boe) {
-                const dadosSalvosC = localStorage.getItem('pendentesSistema_Celulares_' + boe);
-                if (dadosSalvosC) {
-                    const listaC = JSON.parse(dadosSalvosC);
-                    if (listaC.length > 0) {
-                        console.log('🤖 Módulo Celular reabrindo assistente para o BOE:', boe);
-                        celularesPendentesIA = listaC;
-                        const dadosGeraisC = localStorage.getItem('pendentesSistema_Geral_' + boe);
-                        if (dadosGeraisC) window.pendenteIA_Geral = JSON.parse(dadosGeraisC);
-                        indiceIAPendente = 0;
-                        preencherComObjetoIA(celularesPendentesIA[0]);
-                        if ($('#avisoIA_Celular').length > 0) {
-                            $('#avisoIA_Celular').fadeIn();
-                            atualizarControlesIA();
-                        } else {
-                            mostrarAvisoIA();
-                        }
-                    }
-                }
-            }
-        });
 
         console.log('✅ CelularApp inicializada com sucesso!');
-        console.log('✅ Sistema de preenchimento automático ativado!');
     }
 
     // Inicializar quando documento estiver pronto
