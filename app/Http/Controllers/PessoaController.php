@@ -28,22 +28,30 @@ class PessoaController extends Controller
         // Usa Query Builder com nome de tabela compatível com HostGator (case-sensitive)
         $query = DB::table('cadpessoa');
 
-        // Se o termo limpo tiver números, tenta buscar por CPF primeiro
+        // Se o termo limpo tiver números, tenta buscar por CPF ou RG primeiro
         if (!empty($cleanTerm) && strlen($cleanTerm) >= 3) {
             $query->where(function ($q) use ($term, $cleanTerm) {
                 // Busca por CPF com formatação (ex: usuário digitou "111.111")
                 $q->where('CPF', 'LIKE', '%' . $term . '%')
                   // Busca por CPF sem formatação: normaliza ambos os lados para comparar só dígitos
                   ->orWhereRaw("REGEXP_REPLACE(CPF, '[^0-9]', '') LIKE ?", ['%' . $cleanTerm . '%'])
+                  // Busca por RG
+                  ->orWhere('RG', 'LIKE', '%' . $term . '%')
+                  ->orWhereRaw("REGEXP_REPLACE(RG, '[^0-9]', '') LIKE ?", ['%' . $cleanTerm . '%'])
                   // Busca por Nome
-                  ->orWhere('Nome', 'LIKE', '%' . $term . '%');
+                  ->orWhere('Nome', 'LIKE', '%' . $term . '%')
+                  // Busca por Alcunha (Apelido)
+                  ->orWhere('Alcunha', 'LIKE', '%' . $term . '%');
             });
         } else {
-            // Busca apenas por Nome
-            $query->where('Nome', 'LIKE', '%' . $term . '%');
+            // Busca por Nome ou Alcunha (sem números)
+            $query->where(function ($q) use ($term) {
+                $q->where('Nome', 'LIKE', '%' . $term . '%')
+                  ->orWhere('Alcunha', 'LIKE', '%' . $term . '%');
+            });
         }
 
-        $pessoas = $query->select('IdCad as id', 'Nome as nome', 'CPF as cpf', 'Mae as mae', 'Nascimento as nascimento')
+        $pessoas = $query->select('IdCad as id', 'Nome as nome', 'CPF as cpf', 'Mae as mae', 'Nascimento as nascimento', 'RG as rg', 'Alcunha as alcunha')
             ->limit(10)
             ->get();
 

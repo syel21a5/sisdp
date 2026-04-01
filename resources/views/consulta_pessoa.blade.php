@@ -362,7 +362,7 @@
     
     <!-- Hero Search -->
     <div class="search-hero">
-        <h1 class="search-title">Consulta de Antecedentes</h1>
+        <h1 class="search-title">Consulta de Envolvidos</h1>
         <p class="search-subtitle">Busca unificada em todo o banco de dados policial</p>
         
         <div class="search-input-wrapper">
@@ -460,7 +460,7 @@
     <div id="empty_state" class="empty-state">
         <i class="bi bi-shield-check"></i>
         <h3>Sistema de Inteligência Policial</h3>
-        <p class="text-muted">Utilize o campo de busca acima para carregar o histórico completo de um indivíduo.</p>
+        <p style="color: #cbd5e1; font-size: 1.1rem; opacity: 0.9;">Utilize o campo de busca acima para carregar o histórico completo de um indivíduo.</p>
     </div>
 
 </div>
@@ -476,9 +476,10 @@ $(document).ready(function() {
             let html = `
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <div class="fw-bold text-white mb-1"><i class="bi bi-person me-2 text-primary"></i> ${item.dados.nome}</div>
+                        <div class="fw-bold text-white mb-1"><i class="bi bi-person me-2 text-primary"></i> ${item.dados.nome} ${item.dados.alcunha ? ` <span class="badge bg-secondary ms-2" style="font-size: 0.7rem;">Apelido: ${item.dados.alcunha}</span>` : ''}</div>
                         <div class="small text-muted" style="margin-left: 24px;">
-                            ${item.dados.cpf ? `<span class="me-3"><i class="bi bi-credit-card me-1"></i> ${item.dados.cpf}</span>` : ''}
+                            ${item.dados.cpf ? `<span class="me-3"><i class="bi bi-credit-card me-1"></i> CPF: ${item.dados.cpf}</span>` : ''}
+                            ${item.dados.rg ? `<span class="me-3"><i class="bi bi-upc-scan me-1"></i> RG: ${item.dados.rg}</span>` : ''}
                             ${item.dados.mae ? `<span><i class="bi bi-people me-1"></i> Mãe: ${item.dados.mae}</span>` : ''}
                         </div>
                     </div>
