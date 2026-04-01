@@ -39,42 +39,51 @@
 
     .table-container {
         padding: 0;
+        background: #111827; /* Dark background to match */
     }
 
     .table {
         margin-bottom: 0;
-        color: #e2e8f0;
+        color: #e2e8f0 !important;
+        background-color: transparent !important;
     }
 
     .table thead th {
-        background: rgba(51, 65, 85, 0.8);
+        background: #1f2937 !important;
         text-transform: uppercase;
         font-size: 0.75rem;
         letter-spacing: 0.05em;
         font-weight: 700;
-        padding: 1rem;
-        border-bottom: 2px solid var(--glass-border);
-        color: #94a3b8;
+        padding: 1.25rem 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        color: #94a3b8 !important;
+    }
+
+    .table tbody tr {
+        background-color: transparent !important;
+        transition: background-color 0.2s ease;
     }
 
     .table tbody td {
-        padding: 1rem;
+        padding: 1.25rem 1rem;
         vertical-align: middle;
         border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        color: #cbd5e1 !important;
     }
 
     .table-hover tbody tr:hover {
-        background-color: rgba(255, 255, 255, 0.03);
+        background-color: rgba(255, 255, 255, 0.05) !important;
     }
 
     .badge-boe {
-        background: rgba(245, 158, 11, 0.1);
-        color: var(--accent-color);
-        border: 1px solid rgba(245, 158, 11, 0.2);
+        background: rgba(245, 158, 11, 0.15);
+        color: #fbbf24;
+        border: 1px solid rgba(245, 158, 11, 0.3);
         padding: 0.5rem 0.75rem;
         font-family: 'Monaco', 'Consolas', monospace;
         font-weight: 600;
         border-radius: 6px;
+        display: inline-block;
     }
 
     .btn-resolve {
@@ -200,7 +209,7 @@
 
     <div class="table-container">
         <div class="table-responsive">
-            <table class="table">
+            <table class="table table-hover mb-0">
                 <thead>
                     <tr>
                         <th>DATA SISDP</th>
