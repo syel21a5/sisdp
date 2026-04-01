@@ -26,6 +26,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/wf-administrativo', [AdministrativoController::class, 'index'])->name('administrativo.index');
     Route::get('/administrativo', [AdministrativoController::class, 'index'])->name('administrativo');
     Route::get('/administrativo/auditoria', [\App\Http\Controllers\Administrativo\AuditController::class, 'index'])->name('administrativo.auditoria');
+    Route::get('/administrativo/auditoria-chips', [App\Http\Controllers\AdministrativoController::class, 'relatorioSemChips'])->name('administrativo.auditoria_chips');
 
     // ✅ ROTA DO VEÍCULO (ADICIONADA)
     Route::get('/wf-veiculo', [VeiculoController::class, 'index'])->name('veiculo');

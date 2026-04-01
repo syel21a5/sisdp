@@ -1091,4 +1091,53 @@ class AdministrativoController extends Controller
         $html .= '</tbody></table></body></html>';
         return $html;
     }
+
+    // ✅ RELATÓRIO DE AUDITORIA DE CHIPS (LEGADO)
+    public function relatorioSemChips(Request $request)
+    {
+        $userId = \Illuminate\Support\Facades\Auth::id();
+        if (!$userId) {
+            return redirect('/login');
+        }
+
+        // Recupera todos os usuários para o filtro
+        $usuarios = \Illuminate\Support\Facades\DB::table('usuario')
+            ->select('id', 'nome')
+            ->where('status', 'A') // Apenas ativos
+            ->orderBy('nome')
+            ->get();
+
+        $query = \Illuminate\Support\Facades\DB::table('cadprincipal')
+            ->leftJoin('usuario', 'cadprincipal.usuario_id', '=', 'usuario.id')
+            ->where(function ($q) {
+                $q->whereNotNull('cadprincipal.BOE')->where('cadprincipal.BOE', '!=', '');
+            })
+            // A mágica: Garantir que não existe na tabela de vínculos
+            ->whereNotExists(function ($q) {
+                $q->select(\Illuminate\Support\Facades\DB::raw(1))
+                  ->from('boe_pessoas_vinculos')
+                  ->whereRaw('boe_pessoas_vinculos.boe = cadprincipal.BOE');
+            });
+
+        // Filtrar por usuário, se solicitado
+        if ($request->filled('usuario_id')) {
+            $query->where('cadprincipal.usuario_id', $request->usuario_id);
+        }
+
+        $registros = $query->select(
+                'cadprincipal.id',
+                'cadprincipal.data_cadastro',
+                'cadprincipal.data',
+                'cadprincipal.BOE as boe',
+                'cadprincipal.IP as ip',
+                'cadprincipal.incidencia_penal',
+                'usuario.nome as responsavel',
+                'cadprincipal.created_at'
+            )
+            ->orderBy('cadprincipal.created_at', 'desc')
+            ->limit(300) // Limite de exibições para não travar
+            ->get();
+
+        return view('administrativo.relatorio_sem_chips', compact('registros', 'usuarios'));
+    }
 }
