@@ -503,14 +503,15 @@ window.OcorrenciasApp = {
             const temVinculo = !!(vinculo && (vinculo.pessoa_id || vinculo.vinculo_id));
             
             // ✅ FIX: Se a sugestão foi feita pelo próprio usuário ou se ele é o dono adicionando agora, não é "pendente" para ele
-            let statusAprovacao = vinculo ? (vinculo.status_aprovacao || 'aprovado') : 'aprovado';
+            const statusOriginal = vinculo ? (vinculo.status_aprovacao || 'aprovado') : 'aprovado';
             const criadoPorNome = vinculo ? vinculo.criado_por_nome : null;
+            const isMinhaSugestao = criadoPorNome && currentUserName && this.normalizarNome(criadoPorNome) === this.normalizarNome(currentUserName);
             
-            if (statusAprovacao === 'pendente' && (isOwner || (criadoPorNome && currentUserName && this.normalizarNome(criadoPorNome) === this.normalizarNome(currentUserName)))) {
-                statusAprovacao = 'aprovado';
-            }
+            // Para efeitos de botões e cor orange, ignoramos se for o dono ou se for minha própria sugestão
+            const isPendenteParaMim = statusOriginal === 'pendente' && !isOwner && !isMinhaSugestao;
             
-            const isPendente = statusAprovacao === 'pendente';
+            // Para o label "Sugestão de", mostramos sempre que não for minha própria
+            const mostrarLabelSugestao = statusOriginal === 'pendente' && !isMinhaSugestao;
 
             if (!$('#premium-chip-styles').length) {
                 $('head').append(`
@@ -562,8 +563,8 @@ window.OcorrenciasApp = {
 
             // ✅ Cores baseadas no status
             let classeBadge = 'chip-premium ';
-            if (isPendente) {
-                classeBadge += 'chip-orange'; // Laranja para pendente
+            if (isPendenteParaMim) {
+                classeBadge += 'chip-orange'; // Laranja para pendente (para não-donos)
             } else if (temVinculo) {
                 classeBadge += 'chip-blue'; // Azul para aprovado com vínculo
             } else {
@@ -575,17 +576,17 @@ window.OcorrenciasApp = {
             const btnRefresh = `<button type="button" class="btn btn-sm btn-link text-white ms-1 btn-refresh-chip p-0" data-tipo="${tipo}" data-index="${index}" title="Atualizar do Banco"><i class="bi bi-arrow-repeat"></i></button>`;
             const btnSwitch = `<button type="button" class="btn btn-sm btn-link text-white ms-1 btn-switch-chip p-0" data-tipo="${tipo}" data-index="${index}" title="Trocar Papel"><i class="bi bi-arrow-left-right"></i></button>`;
 
-            // ✅ Botões de aprovação/rejeição (apenas para o dono, em chips pendentes)
+            // ✅ Botões de aprovação/rejeição (apenas para o dono, em chips pendentes reais)
             let btnAprovar = '';
             let btnRejeitar = '';
-            if (isPendente && isOwner && vinculo && vinculo.vinculo_id) {
+            if (statusOriginal === 'pendente' && isOwner && !isMinhaSugestao && vinculo && vinculo.vinculo_id) {
                 btnAprovar = `<button type="button" class="btn btn-sm btn-success ms-2 btn-aprovar-chip px-2" data-vinculo-id="${vinculo.vinculo_id}" title="Aprovar Sugestão"><i class="bi bi-check-lg"></i></button>`;
                 btnRejeitar = `<button type="button" class="btn btn-sm btn-danger ms-1 btn-rejeitar-chip px-2" data-vinculo-id="${vinculo.vinculo_id}" title="Recusar Sugestão"><i class="bi bi-x-lg"></i></button>`;
             }
 
             // ✅ Botão de fechar: não-donos NÃO podem excluir chips aprovados
             let btnClose = '';
-            if (isOwner || isPendente) {
+            if (isOwner || isPendenteParaMim) {
                 btnClose = `<button type="button" class="btn-close btn-close-white ms-2" data-tipo="${tipo}" data-index="${index}" ${vinculo && vinculo.vinculo_id ? `data-vinculo-id="${vinculo.vinculo_id}"` : ''} style="font-size: 0.65rem;"></button>`;
             }
 
@@ -599,7 +600,7 @@ window.OcorrenciasApp = {
 
             // ✅ Layout flexível para acomodar o label embaixo do nome quando for sugestão
             let nomeArea = `<span class="lh-1" style="margin-top:2px;">${nome}</span>`;
-            if (isPendente) {
+            if (mostrarLabelSugestao) {
                 const quem = criadoPorNome || 'Colega';
                 const labelSugestao = `<span class="badge bg-light text-dark fw-normal mt-1" style="font-size: 0.62rem; padding: 2px 5px; width: fit-content; text-transform:none;">Sugestão de: <b>${quem}</b></span>`;
                 nomeArea = `
