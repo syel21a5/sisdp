@@ -2773,7 +2773,7 @@ window.OcorrenciasApp = {
                             : '-'}
                             </td>
                             <td class="text-center">
-                                <span class="badge bg-secondary"><i class="bi bi-person-fill"></i> Você</span>
+                                <span class="badge bg-secondary"><i class="bi bi-person-fill"></i> ${$('.system-user').text().replace('Usuário: ', '').trim().split(' ')[0] || 'Sistema'}</span>
                             </td>
                             <td class="text-center">
                                 <button type="button" class="btn btn-sm btn-success btn-selecionar" data-id="${id}">

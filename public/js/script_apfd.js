@@ -614,8 +614,8 @@ $(document).ready(function () {
                 return;
             }
             formData.append('pdfBOE', fileInput.files[0]);
-            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Lendo PDF...');
-            iniciarProgresso('🤖 O sistema está lendo o documento...');
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Lendo documento...');
+            iniciarProgresso('Lendo o documento...');
         } else {
             var texto = $('#textoBoe').val();
             if (!texto || texto.trim() === '') {
@@ -623,8 +623,8 @@ $(document).ready(function () {
                 return;
             }
             formData.append('textoBOE', texto);
-            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Analisando texto...');
-            iniciarProgresso('🤖 A IA está analisando o texto do BOE...');
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Analisando dados...');
+            iniciarProgresso('Analisando informações do BOE...');
         }
 
         $.ajax({
@@ -639,7 +639,7 @@ $(document).ready(function () {
                 if (response.success) {
                     const dados = response.dados;
                     // Preenche os campos do formulário principal com os dados retornados
-                    if (dados.delegado) $('#inputDelegado').val(dados.delegado);
+                    // if (dados.delegado) $('#inputDelegado').val(dados.delegado); // Removido automático a pedido do usuário
 
                     // Armazena os detalhes importados para uso no modal de edição
                     if (dados.envolvidos_detalhes) {
@@ -647,10 +647,11 @@ $(document).ready(function () {
                     } else {
                         OcorrenciasApp.dadosImportados = {};
                     }
-                    if (dados.escrivao) $('#inputEscrivao').val(dados.escrivao);
+                    // if (dados.escrivao) $('#inputEscrivao').val(dados.escrivao); // Removido automático a pedido do usuário
                     if (dados.boe) $('#inputBOE').val(dados.boe);
                     if (dados.ip) $('#inputIP').val(dados.ip);
-                    if (dados.delegacia) $('#inputDelegacia').val(dados.delegacia);
+                    // if (dados.delegacia) $('#inputDelegacia').val(dados.delegacia); // Removido automático a pedido do usuário
+                    // if (dados.cidade) $('#inputCidade').val(dados.cidade); // Garantir que cidade também não seja preenchida
                     if (dados.data_fato) $('#inputDataFato').val(dados.data_fato);
                     if (dados.hora_fato) $('#inputHoraFato').val(dados.hora_fato);
                     if (dados.end_fato) $('#inputEndFato').val(dados.end_fato);
