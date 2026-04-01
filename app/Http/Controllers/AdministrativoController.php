@@ -1103,7 +1103,6 @@ class AdministrativoController extends Controller
         // Recupera todos os usuários para o filtro
         $usuarios = \Illuminate\Support\Facades\DB::table('usuario')
             ->select('id', 'nome')
-            ->where('status', 'A') // Apenas ativos
             ->orderBy('nome')
             ->get();
 
