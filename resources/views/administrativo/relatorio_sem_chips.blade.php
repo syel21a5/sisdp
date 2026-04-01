@@ -2,174 +2,136 @@
 
 @push('styles')
 <style>
-    :root {
-        --glass-bg: rgba(30, 41, 59, 0.7);
-        --glass-border: rgba(255, 255, 255, 0.1);
-        --accent-color: #f59e0b;
-        --accent-hover: #d97706;
-    }
-
+    /* Padrão de Cores SisDP */
     body {
-        background-color: #0f172a;
+        background-color: #f4f7f6 !important; /* Cinza claro de fundo */
+        color: #333;
     }
 
-    .premium-header {
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-        padding: 2rem;
-        border-radius: 16px;
-        border: 1px solid var(--glass-border);
-        margin-bottom: 2rem;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    .main-container {
+        padding: 20px;
     }
 
-    .premium-card {
-        background: var(--glass-bg);
-        backdrop-filter: blur(12px);
-        border: 1px solid var(--glass-border);
-        border-radius: 12px;
+    /* Cabeçalho do Módulo */
+    .module-header {
+        background-color: #0d6efd; /* Azul Bootstrap Original */
+        color: white;
+        padding: 15px 25px;
+        border-radius: 8px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .module-header h2 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    /* Cards Brancos */
+    .content-card {
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+        padding: 20px;
+    }
+
+    /* Tabela Profissional */
+    .table-responsive {
+        border-radius: 8px;
         overflow: hidden;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    }
-
-    .filter-section {
-        background: rgba(15, 23, 42, 0.5);
-        padding: 1.5rem;
-        border-bottom: 1px solid var(--glass-border);
-    }
-
-    .table-container {
-        padding: 0;
-        background: #111827; /* Dark background to match */
-    }
-
-    .table {
-        margin-bottom: 0;
-        color: #e2e8f0 !important;
-        background-color: transparent !important;
     }
 
     .table thead th {
-        background: #1f2937 !important;
+        background-color: #0d6efd !important;
+        color: white !important;
+        border: none;
+        padding: 12px 15px;
+        font-weight: 500;
         text-transform: uppercase;
-        font-size: 0.75rem;
-        letter-spacing: 0.05em;
-        font-weight: 700;
-        padding: 1.25rem 1rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        color: #94a3b8 !important;
-    }
-
-    .table tbody tr {
-        background-color: transparent !important;
-        transition: background-color 0.2s ease;
+        font-size: 0.85rem;
     }
 
     .table tbody td {
-        padding: 1.25rem 1rem;
+        padding: 12px 15px;
         vertical-align: middle;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        color: #cbd5e1 !important;
+        border-bottom: 1px solid #eee;
+        color: #444;
     }
 
-    .table-hover tbody tr:hover {
-        background-color: rgba(255, 255, 255, 0.05) !important;
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: #fcfcfc;
     }
 
+    /* Badges e Botões Neutros */
     .badge-boe {
-        background: rgba(245, 158, 11, 0.15);
-        color: #fbbf24;
-        border: 1px solid rgba(245, 158, 11, 0.3);
-        padding: 0.5rem 0.75rem;
-        font-family: 'Monaco', 'Consolas', monospace;
-        font-weight: 600;
-        border-radius: 6px;
-        display: inline-block;
+        background-color: #e9ecef;
+        color: #495057;
+        font-family: 'Courier New', monospace;
+        font-weight: 700;
+        padding: 6px 12px;
+        border-radius: 4px;
+        border: 1px solid #ced4da;
     }
 
-    .btn-resolve {
-        background: var(--accent-color);
+    .btn-action {
+        background-color: #0d6efd;
+        color: white;
         border: none;
-        color: #fff;
+        padding: 6px 16px;
+        border-radius: 6px;
+        font-weight: 500;
+        transition: background 0.3s;
+    }
+
+    .btn-action:hover {
+        background-color: #0b5ed7;
+        color: white;
+    }
+
+    /* Filtros */
+    .form-label {
         font-weight: 600;
-        transition: all 0.2s ease;
-        padding: 0.5rem 1rem;
-        border-radius: 8px;
-    }
-
-    .btn-resolve:hover {
-        background: var(--accent-hover);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-        color: #fff;
-    }
-
-    .empty-icon {
-        font-size: 3rem;
-        opacity: 0.3;
-        margin-bottom: 1rem;
+        color: #555;
+        font-size: 0.9rem;
     }
 
     .form-select, .form-control {
-        background-color: rgba(15, 23, 42, 0.8);
-        border: 1px solid var(--glass-border);
-        color: #fff;
+        border: 1px solid #ced4da;
     }
 
     .form-select:focus {
-        background-color: #1e293b;
-        border-color: var(--accent-color);
-        box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
-        color: #fff;
-    }
-
-    .header-icon {
-        background: rgba(245, 158, 11, 0.1);
-        width: 64px;
-        height: 64px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 12px;
-        color: var(--accent-color);
-        font-size: 2rem;
-        margin-right: 1.5rem;
-    }
-
-    @media (max-width: 768px) {
-        .header-section {
-            flex-direction: column;
-            text-align: center;
-        }
-        .header-icon {
-            margin-right: 0;
-            margin-bottom: 1rem;
-        }
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
     }
 </style>
 @endpush
 
 @section('content')
-<div class="premium-header d-flex align-items-center header-section">
-    <div class="header-icon">
-        <i class="bi bi-diagram-3-fill"></i>
-    </div>
-    <div class="flex-grow-1">
-        <h1 class="h3 mb-1 text-white fw-bold">Auditoria de Procedimentos Legado</h1>
-        <p class="text-secondary mb-0">Listagem de registros que possuem BOE mas ainda não foram detalhados com Chips de Envolvidos.</p>
-    </div>
-    <div class="ms-lg-auto mt-3 mt-lg-0">
-        <a href="{{ route('administrativo.auditoria') }}" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-left me-1"></i> Voltar
+<div class="main-container">
+    
+    <!-- Cabeçalho Principal -->
+    <div class="module-header shadow-sm">
+        <div>
+            <i class="bi bi-shield-check fs-4 me-2"></i>
+            <span class="fs-4 fw-bold">SisDP - Auditoria de Procedimentos</span>
+        </div>
+        <a href="{{ route('administrativo.auditoria') }}" class="btn btn-light btn-sm fw-bold">
+            <i class="bi bi-arrow-left"></i> Voltar
         </a>
     </div>
-</div>
 
-<div class="premium-card">
-    <div class="filter-section">
+    <!-- Seção de Filtros -->
+    <div class="content-card shadow-sm">
         <form method="GET" action="{{ route('administrativo.auditoria_chips') }}" class="row g-3 align-items-end">
             <div class="col-md-5">
-                <label class="form-label text-secondary small fw-bold">USUÁRIO RESPONSÁVEL</label>
-                <select name="usuario_id" class="form-select">
+                <label class="form-label">FILTRAR POR USUÁRIO</label>
+                <select name="usuario_id" class="form-select shadow-sm">
                     <option value="">Todos os usuários</option>
                     @foreach($usuarios as $user)
                         <option value="{{ $user->id }}" {{ request('usuario_id') == $user->id ? 'selected' : '' }}>
@@ -179,9 +141,9 @@
                 </select>
             </div>
             <div class="col-md-3">
-                <label class="form-label text-secondary small fw-bold">ANO DO BOE</label>
-                <select name="ano" class="form-select">
-                    <option value="">Qualquer ano</option>
+                <label class="form-label">ANO DO BOE</label>
+                <select name="ano" class="form-select shadow-sm">
+                    <option value="">Selecione o Ano</option>
                     @php
                         $anos = [
                             '26' => '2026',
@@ -189,7 +151,6 @@
                             '24' => '2024',
                             '23' => '2023',
                             '22' => '2022',
-                            '21' => '2021',
                         ];
                     @endphp
                     @foreach($anos as $val => $label)
@@ -200,54 +161,50 @@
                 </select>
             </div>
             <div class="col-md-4">
-                <button type="submit" class="btn btn-resolve w-100 py-2">
-                    <i class="bi bi-search me-2"></i> Atualizar Auditoria
+                <button type="submit" class="btn btn-dark w-100 fw-bold shadow-sm py-2">
+                    <i class="bi bi-funnel"></i> ATUALIZAR LISTA
                 </button>
             </div>
         </form>
     </div>
 
-    <div class="table-container">
+    <!-- Tabela de Resultados -->
+    <div class="content-card shadow-sm p-0">
+        <div class="p-3 border-bottom bg-light">
+            <span class="text-muted fw-bold">PROCEDIMENTOS SEM CHIPS DE ENVOLVIDOS</span>
+        </div>
         <div class="table-responsive">
-            <table class="table table-hover mb-0">
+            <table class="table table-striped table-hover mb-0">
                 <thead>
                     <tr>
-                        <th>DATA SISDP</th>
-                        <th>Nº BOE</th>
-                        <th>Nº IP</th>
-                        <th>INCIDÊNCIA PENAL</th>
-                        <th>RESPONSÁVEL ORIGINAL</th>
-                        <th class="text-end">AÇÃO</th>
+                        <th style="width: 15%">DATA REGISTRO</th>
+                        <th style="width: 20%">BOE</th>
+                        <th style="width: 15%">IP</th>
+                        <th style="width: 25%">INCIDÊNCIA PENAL</th>
+                        <th style="width: 15%">RESPONSÁVEL</th>
+                        <th style="width: 10%" class="text-center">AÇÃO</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($registros as $reg)
                         <tr>
-                            <td>
-                                <div class="fw-bold text-white">{{ \Carbon\Carbon::parse($reg->created_at)->format('d/m/Y') }}</div>
-                                <div class="small text-secondary">{{ \Carbon\Carbon::parse($reg->created_at)->format('H:i') }}</div>
+                            <td class="text-muted small">
+                                {{ \Carbon\Carbon::parse($reg->created_at)->format('d/m/Y H:i') }}
                             </td>
                             <td>
                                 <span class="badge-boe">{{ $reg->boe ?: 'N/A' }}</span>
                             </td>
                             <td>
-                                <div class="text-info small">{{ $reg->ip ?: 'Sem IP' }}</div>
+                                <span class="text-primary fw-bold">{{ $reg->ip ?: '-' }}</span>
                             </td>
-                            <td style="max-width: 250px;">
-                                <div class="text-truncate" title="{{ $reg->incidencia_penal }}">
-                                    {{ $reg->incidencia_penal ?: 'Não informada' }}
-                                </div>
+                            <td class="small">
+                                {{ $reg->incidencia_penal ?: 'Não informada' }}
                             </td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="bg-secondary rounded-circle me-2" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 0.65rem;">
-                                        {{ substr($reg->responsavel, 0, 1) }}
-                                    </div>
-                                    <span class="small">{{ $reg->responsavel ?: 'Desconhecido' }}</span>
-                                </div>
+                            <td class="small">
+                                {{ $reg->responsavel ?: 'Desconhecido' }}
                             </td>
-                            <td class="text-end">
-                                <a href="{{ url('/ip-apfd?boe=') }}{{ $reg->boe }}" target="_blank" class="btn btn-resolve btn-sm">
+                            <td class="text-center">
+                                <a href="{{ url('/ip-apfd?boe=') }}{{ $reg->boe }}" target="_blank" class="btn btn-action btn-sm">
                                     <i class="bi bi-pencil-square"></i> Resolver
                                 </a>
                             </td>
@@ -255,23 +212,21 @@
                     @empty
                         <tr>
                             <td colspan="6" class="text-center py-5">
-                                <div class="empty-icon text-success">
-                                    <i class="bi bi-check2-all"></i>
-                                </div>
-                                <h5 class="text-white">Tudo em ordem!</h5>
-                                <p class="text-secondary mb-0">Nenhum procedimento pendente de chips foi encontrado.</p>
+                                <i class="bi bi-check-circle-fill text-success fs-1 mb-3 d-block"></i>
+                                <h5 class="text-dark">Tudo em ordem!</h5>
+                                <p class="text-muted">Nenhum procedimento pendente encontrado.</p>
                             </td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
-        
         @if(count($registros) >= 300)
-        <div class="p-3 bg-dark text-center border-top border-secondary">
-            <span class="text-secondary small">Limitação de performance: exibindo os primeiros 300 registros.</span>
-        </div>
+            <div class="text-center p-2 bg-light border-top">
+                <small class="text-muted">Mostrando os primeiros 300 registros.</small>
+            </div>
         @endif
     </div>
+
 </div>
 @endsection
