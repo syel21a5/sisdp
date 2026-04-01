@@ -1123,6 +1123,11 @@ class AdministrativoController extends Controller
             $query->where('cadprincipal.usuario_id', $request->usuario_id);
         }
 
+        // NOVO: Filtrar por Ano (baseado nos 2 primeiros dígitos do BOE, ex: 25 para 2025)
+        if ($request->filled('ano')) {
+            $query->where('cadprincipal.BOE', 'LIKE', $request->ano . '%');
+        }
+
         $registros = $query->select(
                 'cadprincipal.id',
                 'cadprincipal.data',
