@@ -16,17 +16,7 @@ Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// Rota de Emergência para Resetar Senha (temporária)
-Route::get('/force-reset-admin', function () {
-    $admin = \App\Models\Usuario::where('username', 'admin')->first();
-    if ($admin) {
-        $admin->password = \Illuminate\Support\Facades\Hash::make('123456');
-        $admin->ativo = 1;
-        $admin->save();
-        return "Senha do admin resetada com sucesso para: 123456!";
-    }
-    return "ERRO: Usuário admin não encontrado no banco de dados!";
-});
+
 // Rotas Protegidas (requerem autenticação)
 Route::middleware(['auth'])->group(function () {
     Route::get('/', [GeralController::class, 'index'])->name('geral');
