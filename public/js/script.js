@@ -387,8 +387,24 @@ window.OcorrenciasApp = {
     },
 
     removerEnvolvido: function (tipo, index) {
+        const nomeRemovido = this.envolvidos[tipo][index];
+        
+        // 1. Remove dos arrays principais
         this.envolvidos[tipo].splice(index, 1);
+        if (this.vinculos[tipo]) {
+            this.vinculos[tipo].splice(index, 1);
+        }
+
+        // 2. Sincroniza com window.envolvidosChips (Persistência)
+        if (window.envolvidosChips && window.envolvidosChips[tipo]) {
+            const idxChip = window.envolvidosChips[tipo].findIndex(c => c.nome === nomeRemovido);
+            if (idxChip > -1) {
+                window.envolvidosChips[tipo].splice(idxChip, 1);
+            }
+        }
+        
         this.atualizarChips(tipo);
+        this.atualizarEstadoBotoes();
     },
 
     abrirModalTrocaPapel: function (tipo, index) {
@@ -479,14 +495,22 @@ window.OcorrenciasApp = {
         const container = $(`#chips${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`);
         container.empty();
 
+        const currentUserName = $('.system-user').text().replace('Usuário: ', '').trim();
         const isOwner = this.isOwner !== undefined ? this.isOwner : true;
 
         this.envolvidos[tipo].forEach((nome, index) => {
             const vinculo = (this.vinculos[tipo] && this.vinculos[tipo][index]) ? this.vinculos[tipo][index] : null;
             const temVinculo = !!(vinculo && (vinculo.pessoa_id || vinculo.vinculo_id));
-            const statusAprovacao = vinculo ? (vinculo.status_aprovacao || 'aprovado') : 'aprovado';
-            const isPendente = statusAprovacao === 'pendente';
+            
+            // ✅ FIX: Se a sugestão foi feita pelo próprio usuário ou se ele é o dono adicionando agora, não é "pendente" para ele
+            let statusAprovacao = vinculo ? (vinculo.status_aprovacao || 'aprovado') : 'aprovado';
             const criadoPorNome = vinculo ? vinculo.criado_por_nome : null;
+            
+            if (statusAprovacao === 'pendente' && (isOwner || (criadoPorNome && currentUserName && this.normalizarNome(criadoPorNome) === this.normalizarNome(currentUserName)))) {
+                statusAprovacao = 'aprovado';
+            }
+            
+            const isPendente = statusAprovacao === 'pendente';
 
             if (!$('#premium-chip-styles').length) {
                 $('head').append(`
