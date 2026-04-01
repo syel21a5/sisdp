@@ -46,11 +46,23 @@ class PessoaController extends Controller
                   ->orWhere('Alcunha', 'LIKE', '%' . $term . '%');
             });
         } else {
-            // Busca por Nome ou Alcunha (sem números)
-            $query->where(function ($q) use ($term) {
-                $q->where('Nome', 'LIKE', '%' . $term . '%')
-                  ->orWhere('Alcunha', 'LIKE', '%' . $term . '%');
-            });
+            // Busca por Nome ou Alcunha usando FULLTEXT do MySQL (Muito mais rápido para grandes volumes)
+            // Prepara a string para o Modo Booleano: "+João* +Silva*"
+            $words = explode(' ', trim($term));
+            $searchString = '';
+            foreach ($words as $word) {
+                if (!empty($word)) {
+                    $searchString .= '+' . $word . '* ';
+                }
+            }
+            $searchString = trim($searchString);
+
+            if (!empty($searchString)) {
+                $query->whereRaw("MATCH(Nome, Alcunha) AGAINST(? IN BOOLEAN MODE)", [$searchString]);
+            } else {
+                // Fallback de segurança vazio
+                $query->where('IdCad', '=', 0);
+            }
         }
 
         $pessoas = $query->select('IdCad as id', 'Nome as nome', 'CPF as cpf', 'Mae as mae', 'Nascimento as nascimento', 'RG as rg', 'Alcunha as alcunha')
