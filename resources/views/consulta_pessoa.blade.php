@@ -460,7 +460,7 @@
     <div id="empty_state" class="empty-state">
         <i class="bi bi-shield-check"></i>
         <h3>Sistema de Inteligência Policial</h3>
-        <p style="color: #cbd5e1; font-size: 1.1rem; opacity: 0.9;">Utilize o campo de busca acima para carregar o histórico completo de um indivíduo.</p>
+        <p style="color: #64748b; font-size: 1.1rem;">Utilize o campo de busca acima para carregar o histórico completo de um indivíduo.</p>
     </div>
 
 </div>
