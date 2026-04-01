@@ -31,15 +31,17 @@ class PessoaController extends Controller
         // Se o termo limpo tiver números, tenta buscar por CPF ou RG primeiro
         if (!empty($cleanTerm) && strlen($cleanTerm) >= 3) {
             $query->where(function ($q) use ($term, $cleanTerm) {
-                // Busca por CPF com formatação (ex: usuário digitou "111.111")
+                // CPF - Busca com a máscara exata que o usuário digitou ou apenas os números
                 $q->where('CPF', 'LIKE', '%' . $term . '%')
-                  // Busca por CPF sem formatação: normaliza ambos os lados para comparar só dígitos
-                  ->orWhereRaw("REGEXP_REPLACE(CPF, '[^0-9]', '') LIKE ?", ['%' . $cleanTerm . '%'])
-                  // Busca por RG
+                  ->orWhere('CPF', 'LIKE', '%' . $cleanTerm . '%')
+                  
+                  // RG - Busca com formatação ou apenas os números
                   ->orWhere('RG', 'LIKE', '%' . $term . '%')
-                  ->orWhereRaw("REGEXP_REPLACE(RG, '[^0-9]', '') LIKE ?", ['%' . $cleanTerm . '%'])
+                  ->orWhere('RG', 'LIKE', '%' . $cleanTerm . '%')
+                  
                   // Busca por Nome
                   ->orWhere('Nome', 'LIKE', '%' . $term . '%')
+                  
                   // Busca por Alcunha (Apelido)
                   ->orWhere('Alcunha', 'LIKE', '%' . $term . '%');
             });
