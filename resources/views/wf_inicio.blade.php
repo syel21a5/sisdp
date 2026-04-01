@@ -120,6 +120,14 @@
                                 <i class="bi bi-person-bounding-box"></i>Antecedentes
                             </a>
                         </li>
+                        
+                        @if(Auth::check() && Auth::user()->nivel_acesso === 'administrador')
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('administrativo.auditoria_chips') }}" style="color: #f59e0b !important;">
+                                <i class="bi bi-diagram-3"></i>Auditoria Chips
+                            </a>
+                        </li>
+                        @endif
                     </ul>
                 </div>
             </li>
