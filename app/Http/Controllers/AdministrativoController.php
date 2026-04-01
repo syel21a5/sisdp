@@ -1125,7 +1125,6 @@ class AdministrativoController extends Controller
 
         $registros = $query->select(
                 'cadprincipal.id',
-                'cadprincipal.data_cadastro',
                 'cadprincipal.data',
                 'cadprincipal.BOE as boe',
                 'cadprincipal.IP as ip',
