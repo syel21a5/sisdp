@@ -105,13 +105,14 @@
                 </a>
             </li>
             @endif
+            @if($hasMenuAccess)
             <li>
                 <div class="sidebar-group-card">
                     <button class="menu-toggle" type="button" onclick="toggleSubmenu('relatorios-submenu')">
                         <span><i class="bi bi-file-earmark-bar-graph-fill"></i>Relatórios</span>
                         <i class="bi bi-chevron-down"></i>
                     </button>
-                    <ul class="sidebar-submenu" id="relatorios-submenu" style="display: none;">
+                    <ul class="sidebar-submenu" id="relatorios-submenu">
                         <li>
                             <a href="{{ url('/relatorios/procedimentos') }}">
                                 <i class="bi bi-list-check"></i>Procedimentos
@@ -122,9 +123,25 @@
                                 <i class="bi bi-person-bounding-box"></i>Antecedentes
                             </a>
                         </li>
+                        
+                        @if(Auth::check() && Auth::user()->nivel_acesso === 'administrador')
+                        <li>
+                            <a href="{{ route('administrativo.auditoria_chips') }}" style="color: #f59e0b !important;">
+                                <i class="bi bi-diagram-3"></i>Auditoria Chips
+                            </a>
+                        </li>
+                        @endif
                     </ul>
                 </div>
             </li>
+
+            <!-- NOVO MENU SINCRONIZAÇÃO SDS -->
+            <li>
+                <a href="{{ route('infopol.index') }}" target="_blank" style="color: #0dcaf0;">
+                    <i class="bi bi-cloud-arrow-down"></i>Sincronização SDS
+                </a>
+            </li>
+            @endif
 
             <!-- BOTÃO DE SAIR - SEMPRE ACESSÍVEL -->
             <li class="sidebar-footer">

@@ -102,6 +102,7 @@
                 </li>
             @endif
             <!-- NOVO MENU RELATÓRIOS (Dropdown) -->
+            @if($hasMenuAccess)
             <li class="nav-item">
                 <a class="nav-link collapsed" href="#submenuRelatorios" data-bs-toggle="collapse" 
                    aria-expanded="false" role="button">
@@ -131,6 +132,14 @@
                     </ul>
                 </div>
             </li>
+
+            <!-- NOVO MENU SINCRONIZAÇÃO SDS -->
+            <li>
+                <a href="{{ route('infopol.index') }}" target="_blank" style="color: #0dcaf0;">
+                    <i class="bi bi-cloud-arrow-down"></i>Sincronização SDS
+                </a>
+            </li>
+            @endif
 
             <!-- BOTÃO DE SAIR - SEMPRE ACESSÍVEL -->
             <li class="sidebar-footer">
@@ -1459,4 +1468,5 @@
         }
     })();
     </script>
-</html>
+</body>
+</html>

@@ -48,7 +48,10 @@ class UsuarioController extends Controller
                 'oitivas' => $request->has('perm_oitivas'),
                 'pericias' => $request->has('perm_pericias'),
                 'pecas' => $request->has('perm_pecas'),
-                'preliminares' => $request->has('perm_preliminares')
+                'preliminares' => $request->has('perm_preliminares'),
+                'infopol' => $request->has('perm_infopol'),
+                'antecedentes' => $request->has('perm_antecedentes'),
+                'boe_sem_chip' => $request->has('perm_boe_sem_chip')
             ]
         ];
 
@@ -92,7 +95,10 @@ class UsuarioController extends Controller
                 'oitivas' => $request->has('perm_oitivas'),
                 'pericias' => $request->has('perm_pericias'),
                 'pecas' => $request->has('perm_pecas'),
-                'preliminares' => $request->has('perm_preliminares')
+                'preliminares' => $request->has('perm_preliminares'),
+                'infopol' => $request->has('perm_infopol'),
+                'antecedentes' => $request->has('perm_antecedentes'),
+                'boe_sem_chip' => $request->has('perm_boe_sem_chip')
             ]
         ];
 

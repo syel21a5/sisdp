@@ -66,8 +66,20 @@ class PessoaController extends Controller
         }
 
         $pessoas = $query->select('IdCad as id', 'Nome as nome', 'CPF as cpf', 'Mae as mae', 'Nascimento as nascimento', 'RG as rg', 'Alcunha as alcunha')
-            ->limit(10)
+            ->limit(15)
             ->get();
+
+        // Se a busca FULLTEXT (ou CPF/RG) não retornar nada, pode ser por causa de stopwords (ex: 'DE', 'DA')
+        // ou palavras pequenas que o MySQL ignora no MATCH AGAINST. 
+        // Vamos tentar um fallback seguro com LIKE simples.
+        if ($pessoas->isEmpty() && !empty($term)) {
+            $fallbackQuery = DB::table('cadpessoa')
+                ->where('Nome', 'LIKE', '%' . $term . '%')
+                ->orWhere('Alcunha', 'LIKE', '%' . $term . '%')
+                ->select('IdCad as id', 'Nome as nome', 'CPF as cpf', 'Mae as mae', 'Nascimento as nascimento', 'RG as rg', 'Alcunha as alcunha')
+                ->limit(15);
+            $pessoas = $fallbackQuery->get();
+        }
 
         return response()->json($pessoas);
     }

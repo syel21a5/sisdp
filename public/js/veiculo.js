@@ -5,6 +5,39 @@ $(document).ready(function () {
 
     console.log('✅ Script Veículo carregado na aba correta');
 
+    var cfgEl = document.getElementById('veiculoPageConfig');
+    if (cfgEl) {
+        var userIdRaw = cfgEl.getAttribute('data-current-user-id');
+        window.currentUserId = userIdRaw ? parseInt(userIdRaw, 10) : null;
+        window.isAdminUser = cfgEl.getAttribute('data-is-admin-user') === '1';
+        window.rotasVeiculo = {
+            importarBoeTexto: cfgEl.getAttribute('data-route-importar-boe-texto'),
+            pesquisar: cfgEl.getAttribute('data-route-pesquisar'),
+            salvar: cfgEl.getAttribute('data-route-salvar'),
+            buscar: cfgEl.getAttribute('data-route-buscar'),
+            atualizar: cfgEl.getAttribute('data-route-atualizar'),
+            excluir: cfgEl.getAttribute('data-route-excluir'),
+            controleStatus: cfgEl.getAttribute('data-route-controle-status'),
+            ultimos: cfgEl.getAttribute('data-route-ultimos'),
+            exportarExcel: cfgEl.getAttribute('data-route-exportar-excel'),
+            exportarPdf: cfgEl.getAttribute('data-route-exportar-pdf'),
+            seiVerificar: cfgEl.getAttribute('data-route-sei-verificar')
+        };
+    }
+
+    var rotasVeiculo = window.rotasVeiculo || {};
+
+    $('#btnAbrirSei').on('click', function () {
+        var sei = ($('#inputSeiVeiculo').val() || '').trim();
+        var baseUrl = (typeof rotasVeiculo !== 'undefined' && rotasVeiculo.seiVerificar) ? rotasVeiculo.seiVerificar : '/sei/verificar';
+        var url = baseUrl;
+        url += (url.indexOf('?') === -1 ? '?' : '&') + 'tipo=veiculo';
+        if (sei) {
+            url += '&sei=' + encodeURIComponent(sei);
+        }
+        window.open(url, '_blank');
+    });
+
     // === Configuração global de CSRF ===
     $.ajaxSetup({
         headers: (function(){
@@ -514,9 +547,12 @@ $(document).ready(function () {
         const ano = dataAtual.getFullYear();
         const dataFormatada = `${dia}/${mes}/${ano}`;
 
+        // Atualiza a visualização e instancia do inputDate
         $('#inputDataVeiculo').val(dataFormatada);
+        if(document.querySelector('#inputDataVeiculo')._flatpickr) {
+            document.querySelector('#inputDataVeiculo')._flatpickr.setDate(dataFormatada);
+        }
 
-        $('#formVeiculo')[0].reset();
         $('#veiculo_id').val('');
         $('#btnSalvarVeiculo').removeData('registro');
         $('#btnSalvarVeiculo').prop('disabled', false);

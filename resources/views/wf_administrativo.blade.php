@@ -151,11 +151,13 @@
                 </a>
             </li>
             @endif
+            @if($hasMenuAccess)
             <li class="{{ !$hasMenuAccess ? 'menu-disabled' : '' }}">
                 <a href="#" class="{{ !$hasMenuAccess ? 'permission-tooltip' : '' }}">
                     <i class="bi bi-file-earmark-text"></i>Relatórios
                 </a>
             </li>
+            @endif
 
             <!-- BOTÃO DE SAIR -->
             <li class="sidebar-footer">

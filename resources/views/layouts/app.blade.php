@@ -118,6 +118,12 @@
 
 
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ route('infopol.index') }}" target="_blank">
+                            <i class="bi bi-cloud-arrow-down"></i> Sincronização SDS
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
 
                         <form action="{{ route('logout') }}" method="POST" class="d-inline">
 
@@ -140,6 +146,8 @@
         </div>
 
     </nav>
+
+
 
 
 

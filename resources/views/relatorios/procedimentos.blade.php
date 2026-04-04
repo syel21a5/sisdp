@@ -98,6 +98,7 @@
             </li>
 
             <!-- MENU RELATÓRIOS -->
+            @if(Auth::user()->permissions['menu_lateral'] ?? true)
             <li>
                 <div class="sidebar-group-card">
                     <button class="menu-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#submenuRelatorios" aria-expanded="true">
@@ -118,6 +119,7 @@
                     </ul>
                 </div>
             </li>
+            @endif
 
             <li class="sidebar-footer mt-auto">
                 <form action="{{ route('logout') }}" method="POST">

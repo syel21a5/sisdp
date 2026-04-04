@@ -93,6 +93,7 @@ REGRAS GERAIS:
 2. Para `boe`: extraia apenas o número limpo do Boletim de Ocorrência (ex: "25E0257000128").
 3. Para `ip`: inquérito policial (se houver).
 4. Em caso de não encontrar dados, use os formatos vazios especificados na estrutura.
+5. **PROIBIÇÃO ABSOLUTA**: JAMAIS extraia o nome do profissional que apenas efetuou o registro (geralmente indicado como "B.O. registrado pelo policial: ..."). Esse nome DEVE SER COMPLETAMENTE IGNORADO e NUNCA pode ser incluído em nenhuma lista de envolvidos (vítimas, autores, condutor, testemunhas, outros).
 """
 
     if ext_type == 'veiculo':
@@ -208,7 +209,7 @@ REGRAS ESPECÍFICAS PARA PESSOAS:
 - 'vitimas': Nomes das Vítimas (VÍTIMA, OFENDIDO, SOCIEDADE).
 - 'autores': Nomes dos Autores (AUTOR, SUSPEITO, INDICIADO, IMPUTADO). Mesmo que o texto diga "estava conduzindo o veículo", ele é o AUTOR, não condutor policial.
 - 'testemunhas': Nomes das Testemunhas.
-- 'condutor': ESTRITAMENTE o Policial 'Condutor da ocorrência' que apresenta a ocorrência na delegacia. Nunca coloque o criminoso/traficante aqui.
+- 'condutor': ESTRITAMENTE a pessoa listada expressamente como "Condutor da ocorrência:" (pode ser PM, PC, Guarda, etc). Nunca coloque o criminoso/traficante aqui NEM O POLICIAL QUE REGISTROU O BO. Se o tópico "Condutor da ocorrência" não existir, deixe a lista vazia.
 - 'outros': Outros envolvidos (COMUNICANTE, NOTICIANTE, etc).
 - REGRA DE OURO 1: DEVE RETORNAR APENAS AS STRINGS (Nomes completos em maiúsculo). Não extraia CPF ou RG aqui.
 - REGRA DE OURO 2: UMA MESMA PESSOA NÃO PODE ESTAR EM DUAS CATEGORIAS SIMULTANEAMENTE. Escolha apenas a categoria MAIS RELEVANTE para cada pessoa. Nunca duplique o mesmo nome.
@@ -244,15 +245,15 @@ MAPEAMENTO DE PESSOAS:
 - 'vitimas' (VÍTIMA/OFENDIDO)
 - 'autores' (IMPUTADO/SUSPEITO/AUTOR) - Mesmo que ele "conduzia" o veículo roubado, a função dele é AUTOR.
 - 'testemunhas'
-- 'condutor' - ISSO É EXCLUSIVO PARA O POLICIAL "Condutor da ocorrência". NÃO confunda com o motorista do veículo.
+- 'condutor' - ISSO É EXCLUSIVO PARA O "Condutor da ocorrência" explícito no documento (pode ser PM, PC, Guarda Municipal ou qualquer pessoa em tal campo). NÃO confunda com motorista de veículo infrator. SE NÃO HOUVER UM CAMPO "Condutor da ocorrência:", DEIXE VAZIO!
 - 'outros' (NOTICIANTE/COMUNICANTE).
 
 REGRAS CRÍTICAS PARA PESSOAS:
 1. UMA MESMA PESSOA NÃO PODE ESTAR EM DUAS CATEGORIAS SIMULTANEAMENTE.
-2. O "IMPUTADO" nunca pode ser o "CONDUTOR". O Policial Condutor nunca pode ser o Imputado/Autor.
-3. Se o texto listar explicitly "Condutor da ocorrência: LUIS CARLOS...", ele entra em 'condutor'.
-4. **REGRA DE CONDUTOR ÚNICO**: Extraia APENAS o Policial Principal que consta como 'Condutor da Ocorrência'. Se houver outros policiais, coloque-os em 'testemunhas'. A lista 'condutor' deve ter no máximo 1 nome.
-5. **FILTRO DE PESSOAS**: Extraia apenas pessoas que aparecem nas seções de qualificação (Envolvidos). IGNORE nomes citados apenas no texto narrativo (Histórico) se eles não estiverem qualificados como partes no BOE.
+2. O "IMPUTADO" nunca pode ser o "CONDUTOR". 
+3. **NUNCA EXTRAIR O POLICIAL QUE REGISTROU O BO.** Quem digitou o BO ("B.O. registrado pelo policial:") não teve envolvimento no caso. NUNCA extraia esse nome para nenhuma array de pessoas!
+4. **REGRA DE CONDUTOR ÚNICO**: Extraia APENAS a pessoa que consta explicitamente sob o rótulo 'Condutor da ocorrência:'. Se houver outros policiais da guarnição, coloque-os em 'testemunhas'. A lista 'condutor' deve ter no máximo 1 nome.
+5. **FILTRO DE PESSOAS**: Extraia apenas pessoas que aparecem nas seções de qualificação (Envolvidos). IGNORE nomes citados apenas no texto narrativo (Histórico) se eles não estiverem qualificados no BOE.
 
 ESTRUTURA ESPERADA:
 {{

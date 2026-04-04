@@ -762,6 +762,16 @@ window.OcorrenciasApp = {
                 if (dataNasc && /^\d{4}-\d{2}-\d{2}$/.test(dataNasc)) {
                     const partes = dataNasc.split('-');
                     dataNasc = `${partes[2]}/${partes[1]}/${partes[0]}`;
+                } else if (dataNasc && dataNasc.includes('/')) {
+                    // Força padding de 2 dígitos na data extraída do chip (se IA jogar 2/5 em vez de 02/05)
+                    const partes = dataNasc.split('/');
+                    if (partes.length === 3) {
+                       let d = partes[0].trim();
+                       let m = partes[1].trim();
+                       if (d.length === 1) d = '0' + d;
+                       if (m.length === 1) m = '0' + m;
+                       dataNasc = `${d}/${m}/${partes[2].trim()}`;
+                    }
                 }
                 $(`#inputDataNascimento${prefixo}`).val(dataNasc);
 
@@ -1582,11 +1592,20 @@ window.OcorrenciasApp = {
                     detImportado = self.dadosImportados[nome];
                 }
 
-                const cpfImportado = detImportado ? detImportado.cpf : null;
+                let cpfImportado = detImportado ? detImportado.cpf : null;
                 const nascImportado = detImportado ? detImportado.nascimento : null;
 
-                // Se tem CPF, busca por ele. Se não, busca por nome.
-                const termoBusca = cpfImportado || nome;
+                // Limpa o CPF para ver se realmente tem números (evita lixo da IA como "NÃO INFORMADO")
+                const cpfNumeros = cpfImportado ? cpfImportado.replace(/[^\d]/g, '') : '';
+                if (cpfNumeros.length < 3) {
+                    cpfImportado = null; // Invalida se for lixo de texto
+                }
+
+                // BUSCA PELO NOME!
+                // Por que não pelo CPF? Porque se a IA extrair um CPF, mas o banco não tiver esse CPF salvo (campo vazio), 
+                // a query do backend vai falhar e retornar 0 pessoas.
+                // Buscando pelo NOME, o backend traz a pessoa (mesmo sem CPF) e os filtros Nível 1/2/3 conferem o resto.
+                const termoBusca = nome;
 
                 tarefas.push(
                     buscar(termoBusca).done((lista) => {
@@ -1643,11 +1662,15 @@ window.OcorrenciasApp = {
                         }
 
                         const id = item ? (item.id || item.IdCad) : null;
+                        
+                        // Preserva os detalhes se o script_apfd.js já os populou enquanto o AJAX rodava
+                        const vincAtual = self.vinculos[tipo][index] || {};
+                        
                         if (id) {
-                            self.vinculos[tipo][index] = { nome, pessoa_id: id };
+                            self.vinculos[tipo][index] = Object.assign({}, vincAtual, { nome: nome, pessoa_id: id });
                         } else {
-                            // Explicitamente marcar como nulo se não achar no banco
-                            self.vinculos[tipo][index] = null;
+                            // Mantém o objeto de detalhes, só crava que pessoa_id é null
+                            self.vinculos[tipo][index] = Object.assign({}, vincAtual, { nome: nome, pessoa_id: null });
                         }
                     })
                 );

@@ -19,7 +19,18 @@ $(document).ready(function () {
 
     // === MÁSCARAS PARA OS CAMPOS ===
     // === MÁSCARAS PARA OS CAMPOS ===
-    // Máscara de telefone removida conforme solicitação
+    // === VERIFICA ROTA SEI ===
+    var rotasCelular = window.rotasCelular || {};
+    $('#btnAbrirSei').on('click', function () {
+        var sei = ($('#inputProcessoCelular').val() || '').trim();
+        var baseUrl = (typeof rotasCelular !== 'undefined' && rotasCelular.seiVerificar) ? rotasCelular.seiVerificar : '/sei/verificar';
+        var url = baseUrl;
+        url += (url.indexOf('?') === -1 ? '?' : '&') + 'tipo=celular';
+        if (sei) {
+            url += '&sei=' + encodeURIComponent(sei);
+        }
+        window.open(url, '_blank');
+    });
 
 
     // === VARIÁVEL GLOBAL ===

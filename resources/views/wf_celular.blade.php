@@ -173,7 +173,12 @@
                                     </div>
                                     <div class="col-md-3">
                                         <label for="inputProcessoCelular" class="form-label">Processo - SEI</label>
-                                        <input type="text" class="form-control" placeholder="0000000000.000000/0000-00" name="processo" id="inputProcessoCelular">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" placeholder="0000000000.000000/0000-00" name="processo" id="inputProcessoCelular">
+                                            <button class="btn btn-success" type="button" id="btnAbrirSei" title="Abrir verificação no SEI">
+                                                <i class="bi bi-shield-check"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -576,7 +581,8 @@
             controleStatus: "{{ route('celular.controle.status') }}",
             ultimos: "{{ route('celular.ultimos') }}",
             exportarExcel: "{{ route('celular.exportar.excel') }}",
-            exportarPdf: "{{ route('celular.exportar.pdf') }}"
+            exportarPdf: "{{ route('celular.exportar.pdf') }}",
+            seiVerificar: "{{ route('sei.index') }}"
         };
 
     </script>

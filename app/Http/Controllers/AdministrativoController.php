@@ -1138,8 +1138,7 @@ class AdministrativoController extends Controller
                 'cadprincipal.created_at'
             )
             ->orderBy('cadprincipal.created_at', 'desc')
-            ->limit(300) // Limite de exibições para não travar
-            ->get();
+            ->paginate(20)->withQueryString();
 
         return view('administrativo.relatorio_sem_chips', compact('registros', 'usuarios'));
     }

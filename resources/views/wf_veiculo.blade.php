@@ -169,7 +169,12 @@
                                     </div>
                                     <div class="col-md-3">
                                         <label for="inputSeiVeiculo" class="form-label">SEI</label>
-                                        <input type="text" class="form-control" placeholder="0000000000.000000/0000-00" name="sei" id="inputSeiVeiculo">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" placeholder="0000000000.000000/0000-00" name="sei" id="inputSeiVeiculo">
+                                            <button class="btn btn-success" type="button" id="btnAbrirSei" title="Abrir verificação no SEI">
+                                                <i class="bi bi-shield-check"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -481,18 +486,22 @@
         </div>
     </div>
 
-    <!-- Bibliotecas principais -->
-    <!-- Dados globais de Auth para o JS -->
-    <script>
-        window.currentUserId = {{ $userId ?? 'null' }};
-        window.isAdminUser = {{ isset($isAdmin) && $isAdmin ? 'true' : 'false' }};
-    </script>
-    <script>
-        var rotasVeiculo = {
-            importarBoeTexto: "{{ route('veiculo.importar_boe_texto') }}"
-        };
-    </script>
-    <!-- / Dados globais de Auth para o JS -->
+    <div
+        id="veiculoPageConfig"
+        data-current-user-id="{{ $userId ?? '' }}"
+        data-is-admin-user="{{ isset($isAdmin) && $isAdmin ? '1' : '0' }}"
+        data-route-importar-boe-texto="{{ route('veiculo.importar_boe_texto') }}"
+        data-route-pesquisar="{{ route('veiculo.pesquisar') }}"
+        data-route-salvar="{{ route('veiculo.salvar') }}"
+        data-route-buscar="{{ url('/veiculo/buscar') }}"
+        data-route-atualizar="{{ url('/veiculo/atualizar') }}"
+        data-route-excluir="{{ url('/veiculo/excluir') }}"
+        data-route-controle-status="{{ route('veiculo.controle.status') }}"
+        data-route-ultimos="{{ route('veiculo.ultimos') }}"
+        data-route-exportar-excel="{{ route('veiculo.exportar.excel') }}"
+        data-route-exportar-pdf="{{ route('veiculo.exportar.pdf') }}"
+        data-route-sei-verificar="{{ route('sei.index') }}"
+    ></div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
@@ -509,9 +518,7 @@
     <!-- JS Central do Sistema -->
     <script src="{{ asset('js/core.js') }}"></script>
 
-    <!-- Rotas do Veículo -->
     <script>
-        // Inicializa o flatpickr
         document.addEventListener('DOMContentLoaded', function() {
             if (window.flatpickr) {
                 var localeCfg = (flatpickr.l10ns && flatpickr.l10ns.pt) ? flatpickr.l10ns.pt : 'default';
@@ -522,20 +529,6 @@
                 });
             }
         });
-
-        // Definir as rotas para o veículo
-        var rotasVeiculo = {
-            pesquisar: "{{ route('veiculo.pesquisar') }}",
-            salvar: "{{ route('veiculo.salvar') }}",
-            buscar: "{{ url('/veiculo/buscar') }}",
-            atualizar: "{{ url('/veiculo/atualizar') }}",
-            excluir: "{{ url('/veiculo/excluir') }}",
-            controleStatus: "{{ route('veiculo.controle.status') }}",
-            ultimos: "{{ route('veiculo.ultimos') }}",
-            exportarExcel: "{{ route('veiculo.exportar.excel') }}",
-            exportarPdf: "{{ route('veiculo.exportar.pdf') }}"
-        };
-
     </script>
 
     <!-- JavaScript específico do veículo -->
