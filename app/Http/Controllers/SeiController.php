@@ -24,9 +24,39 @@ class SeiController extends Controller
         $this->env['PYTHONPATH'] = 'C:\\Users\\VGR\\AppData\\Roaming\\Python\\Python313\\site-packages';
     }
 
-    public function index()
+    public function index(Request $request)
     {
+        $tipo = $request->query('tipo', 'veiculo');
+        $this->verificarPermissao($tipo);
         return \view('sei.index');
+    }
+
+    private function verificarPermissao(string $tipo)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            abort(401, 'Não autenticado.');
+        }
+
+        if ($user->nivel_acesso === 'administrador') {
+            return true;
+        }
+
+        $permissions = $user->permissions ?? [];
+        
+        if (in_array($tipo, ['veiculo', 'veiculos']) && empty($permissions['veiculo'])) {
+            abort(403, 'Acesso restrito. Você não possui permissão para o módulo de Veículos.');
+        }
+
+        if (in_array($tipo, ['celular', 'celulares']) && empty($permissions['celular'])) {
+            abort(403, 'Acesso restrito. Você não possui permissão para o módulo de Celulares.');
+        }
+
+        if (in_array($tipo, ['outros', 'apreensao_outros']) && empty($permissions['apreensao_outros'])) {
+            abort(403, 'Acesso restrito. Você não possui permissão para o módulo de Outros Itens.');
+        }
+
+        return true;
     }
 
     public function conectar(Request $request)
@@ -65,6 +95,8 @@ class SeiController extends Controller
         $limit = (int) ($request->limit ?? 200);
         $status = $request->status;
         $tipo = $request->tipo ?? 'veiculo';
+        
+        $this->verificarPermissao($tipo);
 
         if ($tipo === 'celular') {
             $query = DB::table('cadcelular')
