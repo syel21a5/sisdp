@@ -98,13 +98,19 @@
                                     <i class="bi bi-list-ul"></i> Auditoria
                                 </a>
                             </li>
-                            
+
+                        @endif
+
+                        @php
+                            $appPerms = Auth::user()->permissions ?? [];
+                            $canAuditoriaChipsApp = isset($appPerms['auditoria_chips']) ? $appPerms['auditoria_chips'] : false;
+                        @endphp
+                        @if($canAuditoriaChipsApp || (Auth::user()->nivel_acesso === 'administrador'))
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('administrativo.auditoria_chips') }}" style="color: #f59e0b !important;" title="Relatório de Procedimentos Antigos sem Chips de Envolvidos">
                                     <i class="bi bi-diagram-3"></i> Sem Chips
                                 </a>
                             </li>
-
                         @endif
 
                     @endauth

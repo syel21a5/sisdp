@@ -58,7 +58,7 @@
                         // NOVAS PERMISSÕES RECENTES: Infopol, Antecedentes, Sem Chips
                         $permInfopol = isset($permissions['infopol']) ? $permissions['infopol'] : true;
                         $permAntecedentes = isset($permissions['antecedentes']) ? $permissions['antecedentes'] : true;
-                        $permBoeSemChip = isset($permissions['boe_sem_chip']) ? $permissions['boe_sem_chip'] : true;
+                        $permAuditoriaChips = isset($permissions['auditoria_chips']) ? $permissions['auditoria_chips'] : false;
                     @endphp
 
                     <h5 class="fw-bold mt-5 mb-3 border-bottom border-2 border-primary pb-2 d-flex align-items-center"><i class="bi bi-shield-lock-fill text-primary me-2 fs-4"></i> Controle de Permissões</h5>
@@ -95,8 +95,8 @@
                                         <label class="form-check-label fw-semibold cursor-pointer" for="perm_antecedentes"><i class="bi bi-robot text-danger"></i> Consultor Antecedentes (IA)</label>
                                     </div>
                                     <div class="form-check form-switch mb-2 fs-6">
-                                        <input type="checkbox" class="form-check-input cursor-pointer" id="perm_boe_sem_chip" name="perm_boe_sem_chip" {{ old('perm_boe_sem_chip', $permBoeSemChip) ? 'checked' : '' }}>
-                                        <label class="form-check-label fw-semibold cursor-pointer" for="perm_boe_sem_chip"><i class="bi bi-search text-warning"></i> Monitor de Ocorrências Sem Envolvidos</label>
+                                        <input type="checkbox" class="form-check-input cursor-pointer" id="perm_auditoria_chips" name="perm_auditoria_chips" {{ old('perm_auditoria_chips', $permAuditoriaChips) ? 'checked' : '' }}>
+                                        <label class="form-check-label fw-semibold cursor-pointer" for="perm_auditoria_chips"><i class="bi bi-diagram-3 text-warning"></i> Auditoria Chips (Relatório)</label>
                                     </div>
                                 </div>
                             </div>

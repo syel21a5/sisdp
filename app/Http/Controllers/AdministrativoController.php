@@ -1095,25 +1095,32 @@ class AdministrativoController extends Controller
     // ✅ RELATÓRIO DE AUDITORIA DE CHIPS (LEGADO)
     public function relatorioSemChips(Request $request)
     {
-        $userId = \Illuminate\Support\Facades\Auth::id();
-        if (!$userId) {
+        $user = Auth::user();
+        if (!$user) {
             return redirect('/login');
         }
 
+        // Verificar permissão: admin OU permissão auditoria_chips
+        $permissions = $user->permissions ?? [];
+        $canAccess = $user->nivel_acesso === 'administrador' || (!empty($permissions['auditoria_chips']));
+        if (!$canAccess) {
+            abort(403, 'Acesso não autorizado.');
+        }
+
         // Recupera todos os usuários para o filtro
-        $usuarios = \Illuminate\Support\Facades\DB::table('usuario')
+        $usuarios = DB::table('usuario')
             ->select('id', 'nome')
             ->orderBy('nome')
             ->get();
 
-        $query = \Illuminate\Support\Facades\DB::table('cadprincipal')
+        $query = DB::table('cadprincipal')
             ->leftJoin('usuario', 'cadprincipal.usuario_id', '=', 'usuario.id')
             ->where(function ($q) {
                 $q->whereNotNull('cadprincipal.BOE')->where('cadprincipal.BOE', '!=', '');
             })
             // A mágica: Garantir que não existe na tabela de vínculos
             ->whereNotExists(function ($q) {
-                $q->select(\Illuminate\Support\Facades\DB::raw(1))
+                $q->select(DB::raw(1))
                   ->from('boe_pessoas_vinculos')
                   ->whereRaw('boe_pessoas_vinculos.boe = cadprincipal.BOE');
             });

@@ -84,6 +84,38 @@
                     </div>
                 </div>
             </div>
+
+            {{-- ✅ SEÇÃO DE BACKUP DO BANCO DE DADOS --}}
+            <div class="card mt-4 border-0 shadow-sm">
+                <div class="card-header py-3" style="background: linear-gradient(135deg, #1a1a2e, #16213e); border: none;">
+                    <h5 class="mb-0 text-white fw-bold">
+                        <i class="bi bi-database-down me-2"></i> Backup do Banco de Dados
+                    </h5>
+                </div>
+                <div class="card-body p-4" style="background: #f8f9fa;">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <p class="mb-1 text-muted">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Gera um dump completo do banco de dados MySQL, compacta em <strong>.ZIP</strong> e faz o download direto no seu computador.
+                            </p>
+                            <small class="text-muted">
+                                <i class="bi bi-clock me-1"></i> O processo pode levar alguns segundos dependendo do tamanho do banco.
+                            </small>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="{{ route('backup.download') }}" 
+                               id="btnBackup"
+                               class="btn btn-lg fw-bold px-4 py-2 shadow-sm" 
+                               style="background: linear-gradient(135deg, #0d6efd, #0b5ed7); color: #fff; border: none; border-radius: 10px;"
+                               onclick="var b=this; b.innerHTML='<i class=\'bi bi-hourglass-split me-2\'></i> Gerando backup...'; b.style.opacity='0.7'; b.style.pointerEvents='none'; setTimeout(function(){ b.innerHTML='<i class=\'bi bi-download me-2\'></i> Baixar Backup'; b.style.opacity='1'; b.style.pointerEvents='auto'; }, 15000);">
+                                <i class="bi bi-download me-2"></i> Baixar Backup
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>

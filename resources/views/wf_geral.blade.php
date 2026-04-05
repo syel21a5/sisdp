@@ -45,6 +45,7 @@
                 $canIntimacao = isset($userPermissions['intimacao']) ? $userPermissions['intimacao'] : true;
                 $canApreensaoOutros = isset($userPermissions['apreensao_outros']) ? $userPermissions['apreensao_outros'] : true;
                 $canApfd = isset($userPermissions['apfd']) ? $userPermissions['apfd'] : true;
+                $canAuditoriaChips = isset($userPermissions['auditoria_chips']) ? $userPermissions['auditoria_chips'] : false;
             @endphp
             @if(!$hasMenuAccess)
                 <!-- <span class="access-indicator">Acesso Restrito</span> -->
@@ -124,7 +125,7 @@
                             </a>
                         </li>
                         
-                        @if(Auth::check() && Auth::user()->nivel_acesso === 'administrador')
+                        @if($canAuditoriaChips || (Auth::check() && Auth::user()->nivel_acesso === 'administrador'))
                         <li>
                             <a href="{{ route('administrativo.auditoria_chips') }}" style="color: #f59e0b !important;">
                                 <i class="bi bi-diagram-3"></i>Auditoria Chips

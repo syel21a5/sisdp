@@ -214,7 +214,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/listar/{cadprincipal_id}', [\App\Http\Controllers\ApfdPessoaDetalheController::class, 'listarPorCadprincipal']);
     });
 
-    // ✅ ROTAS DE USUÁRIOS (COMPLETAS)
+    // ✅ ROTAS DE USUÁRIOS E ADMIN (COMPLETAS)
     Route::middleware([\App\Http\Middleware\AdminAccess::class])->group(function () {
         Route::get('/usuarios', [UsuarioController::class, 'index'])->name('usuarios.index');
         Route::get('/usuarios/novo', [UsuarioController::class, 'create'])->name('usuarios.create');
@@ -223,6 +223,9 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/usuarios/{id}', [UsuarioController::class, 'update'])->name('usuarios.update');
         Route::post('/usuarios/{id}/toggle', [UsuarioController::class, 'toggleAtivo'])->name('usuarios.toggle');
         Route::delete('/usuarios/{id}', [UsuarioController::class, 'destroy'])->name('usuarios.destroy');
+
+        // ✅ BACKUP DO BANCO DE DADOS
+        Route::get('/backup/download', [\App\Http\Controllers\BackupController::class, 'download'])->name('backup.download');
     });
 
     // Rota para nova janela
