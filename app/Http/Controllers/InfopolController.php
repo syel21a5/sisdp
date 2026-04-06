@@ -24,6 +24,10 @@ class InfopolController extends Controller
         $this->env = getenv();
         $this->env['PYTHONUNBUFFERED'] = '1';
         $this->env['PYTHONIOENCODING'] = 'UTF-8';
+        $this->env['DEBUG'] = 'pw:browser*';
+        if (!isset($this->env['HOME'])) {
+            $this->env['HOME'] = '/home/www';
+        }
     }
 
     public function index()
