@@ -198,12 +198,13 @@ def goto_login(page, base_url: str):
 
     for url in candidates:
         try:
-            send_msg(True, f"Abrindo login: {url}", "navigating")
-            page.goto(url, timeout=30000, wait_until="domcontentloaded")
+            send_msg(True, f"Abrindo página: {url}", "navigating")
+            page.goto(url, timeout=45000, wait_until="domcontentloaded")
             # Se carregou algo que parece login ou já logado, sucesso
             if is_login_page(page) or is_logged_in(page):
                 return True
-        except Exception:
+        except Exception as e:
+            send_msg(True, f"Falha ao abrir {url}: {e}", "processing")
             continue
     return False
 
@@ -341,12 +342,13 @@ def go_to_search(page, base_url: str):
     for url in candidates:
         try:
             send_msg(True, f"Indo para tela inicial: {url}", "navigating")
-            page.goto(url, timeout=30000, wait_until="domcontentloaded")
-            page.wait_for_timeout(1000)
+            page.goto(url, timeout=45000, wait_until="domcontentloaded")
+            page.wait_for_timeout(1500)
             close_popups(page)
             if is_logged_in(page):
                 return True
-        except Exception:
+        except Exception as e:
+            send_msg(True, f"Erro ao acessar {url}: {e}", "processing")
             continue
     return False
 
@@ -448,8 +450,26 @@ def main():
         sys.exit(1)
 
     with sync_playwright() as p:
+        send_msg(True, "Iniciando Playwright...", "processing")
         # Navegador em segundo plano (headless=True) agora que está tudo validado.
-        browser = p.chromium.launch(headless=True, args=['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu', '--disable-dev-shm-usage'])
+        
+        # Caminho que confirmamos no probe.php
+        chrome_path = "/home/www/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell"
+        launch_args = {
+            "headless": True,
+            "args": [
+                '--no-sandbox', 
+                '--disable-setuid-sandbox', 
+                '--disable-dev-shm-usage', 
+                '--disable-gpu',
+                '--no-zygote'
+            ]
+        }
+        if os.path.exists(chrome_path):
+            launch_args["executable_path"] = chrome_path
+            send_msg(True, "Caminho do Chrome localizado.", "processing")
+
+        browser = p.chromium.launch(**launch_args)
 
         context_args = {
             "viewport": {"width": 1366, "height": 768},

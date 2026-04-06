@@ -129,43 +129,46 @@ class InfopolController extends Controller
     /**
      * Helper para executar o Python e realizar o streaming da saída.
      */
-    private function streamPythonExecution($command, $credentials = null, $jobId = null)
+    private function streamPythonExecution(string $command, ?array $credentials = null, ?string $jobId = null)
     {
         return response()->stream(function () use ($command, $credentials, $jobId) {
             try {
                 $process = Process::fromShellCommandline($command);
-                $process->setTimeout(600);
+                $process->setTimeout(900);
                 $process->setEnv($this->env);
-                
+
                 if ($credentials) {
                     $process->setInput(json_encode($credentials));
                 }
 
                 $process->run(function ($type, $buffer) use ($jobId) {
-                    // Se for JSON de progresso/resultado, repassa
+                    if ($type === Process::ERR) {
+                        $msg = trim((string) $buffer);
+                        if ($msg !== '') {
+                            echo json_encode(['success' => false, 'message' => $msg, 'status' => 'error']) . "\n";
+                        }
+                        if (ob_get_level() > 0) ob_flush();
+                        flush();
+                        return;
+                    }
                     if (strpos($buffer, '{') !== false) {
                         $data = json_decode($buffer, true);
                         if ($data) {
-                            if (($data['status'] ?? '') === 'finished') {
+                            if (($data['status'] ?? '') === 'finished' && $jobId) {
                                 $data['download_url'] = route('infopol.download', ['jobId' => $jobId]);
                             }
                             echo json_encode($data) . "\n";
-                        } else {
-                            echo $buffer;
                         }
                     } else {
-                        // Captura TODA a saída, mesmo que não seja JSON, para vermos erros de sistema no log do site
                         $msg = trim((string) $buffer);
                         if ($msg !== '') {
                             echo json_encode(['success' => false, 'message' => $msg, 'status' => 'debug_output']) . "\n";
                         }
                     }
-                    
                     if (ob_get_level() > 0) ob_flush();
                     flush();
                 });
-
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 echo json_encode(['success' => false, 'message' => $e->getMessage(), 'status' => 'error']) . "\n";
             }
         }, 200, [
