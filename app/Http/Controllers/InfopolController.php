@@ -133,11 +133,11 @@ class InfopolController extends Controller
 
     private function dispatchGithubWorkflow($workflow, $inputs, $jobId)
     {
-        $token = env('GITHUB_TOKEN');
-        $repo = env('GITHUB_REPO');
+        $token = env('GITHUB_TOKEN') ?: config('services.github.token');
+        $repo = env('GITHUB_REPO') ?: config('services.github.repo');
 
         if (!$token || !$repo) {
-            return response()->json(['success' => false, 'message' => 'GITHUB_TOKEN ou GITHUB_REPO não configurado no .env'], 500);
+            return response()->json(['success' => false, 'message' => 'GITHUB_TOKEN ou GITHUB_REPO não configurado no .env', 'status' => 'error'], 500);
         }
 
         // Limpa o log antigo se existir
@@ -152,7 +152,7 @@ class InfopolController extends Controller
             ]);
 
         if ($response->failed()) {
-            return response()->json(['success' => false, 'message' => 'Falha ao disparar GitHub: ' . $response->body()], 500);
+            return response()->json(['success' => false, 'message' => 'Falha ao disparar GitHub: ' . $response->body(), 'status' => 'error'], 500);
         }
 
         return $this->streamPythonExecution('', null, $jobId);

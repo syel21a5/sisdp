@@ -9,59 +9,36 @@ use Illuminate\Support\Facades\File;
 
 class SeiController extends Controller
 {
-    private string $pythonCommand;
-    private string $scriptPath;
-    private array $env;
+    private $scriptPath;
+    private $pythonCommand;
+    private $env;
 
     public function __construct()
     {
-        $this->pythonCommand = PHP_OS_FAMILY === 'Windows' ? 'C:\\Python313\\python.exe' : 'sudo /usr/local/bin/run_playwright.sh';
-        $this->scriptPath = \base_path('scripts/python/verificar_sei.py');
-
-        $this->env = getenv();
-        $this->env['PYTHONUNBUFFERED'] = '1';
-        $this->env['PYTHONIOENCODING'] = 'UTF-8';
-        $this->env['DEBUG'] = 'pw:browser*';
-        $this->env['HOME'] = '/home/www';
-        $this->env['PLAYWRIGHT_BROWSERS_PATH'] = '/home/www/.cache/ms-playwright';
-        if (!isset($this->env['PATH'])) {
-            $this->env['PATH'] = '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin';
-        }
+        $this->scriptPath = base_path('scripts/python/verificar_sei.py');
+        $this->pythonCommand = PHP_OS_FAMILY === 'Windows' ? 'python' : 'python3';
+        
+        $this->env = [
+            'PLAYWRIGHT_BROWSERS_PATH' => '0',
+            'PATH' => getenv('PATH')
+        ];
     }
 
     public function index(Request $request)
     {
         $tipo = $request->query('tipo', 'veiculo');
-        $this->verificarPermissao($tipo);
-        return \view('sei.index');
-    }
-
-    private function verificarPermissao(string $tipo)
-    {
-        $user = auth()->user();
-        if (!$user) {
-            abort(401, 'Não autenticado.');
-        }
-
-        if ($user->nivel_acesso === 'administrador') {
-            return true;
-        }
-
-        $permissions = $user->permissions ?? [];
+        $tipos = ['veiculo', 'celular', 'apreensao_outros'];
         
-        if (in_array($tipo, ['veiculo', 'veiculos']) && empty($permissions['veiculo'])) {
-            abort(403, 'Acesso restrito. Você não possui permissão para o módulo de Veículos.');
+        if (!in_array($tipo, $tipos)) {
+            $tipo = 'veiculo';
         }
 
-        if (in_array($tipo, ['celular', 'celulares']) && empty($permissions['celular'])) {
-            abort(403, 'Acesso restrito. Você não possui permissão para o módulo de Celulares.');
-        }
+        $moduloLabel = '';
+        if ($tipo === 'veiculo') $moduloLabel = 'Veículos';
+        if ($tipo === 'celular') $moduloLabel = 'Celulares';
+        if ($tipo === 'apreensao_outros') $moduloLabel = 'Apreensão de Outros';
 
-        if (in_array($tipo, ['outros', 'apreensao_outros']) && empty($permissions['apreensao_outros'])) {
-            abort(403, 'Acesso restrito. Você não possui permissão para o módulo de Outros Itens.');
-        }
-
-        return true;
+        return view('sei.index', compact('tipo', 'moduloLabel'));
     }
 
     public function conectar(Request $request)
@@ -94,99 +71,82 @@ class SeiController extends Controller
 
     public function listarSeis(Request $request)
     {
-        $request->validate([
-            'status' => 'nullable|string|max:50',
-            'limit' => 'nullable|integer|min:1|max:1000',
-            'tipo' => 'nullable|string|in:veiculo,celular',
-        ]);
+        $tipo = $request->query('tipo');
+        if (!$tipo) abort(400, "Tipo não informado");
 
-        $limit = (int) ($request->limit ?? 200);
-        $status = $request->status;
-        $tipo = $request->tipo ?? 'veiculo';
-        
-        $this->verificarPermissao($tipo);
+        $query = DB::connection('sisdp_syel')
+            ->table('boletins')
+            ->select('numero', 'envolvido', 'objetos_apreendidos', 'placa')
+            ->whereNotNull('sei')
+            ->where('sei', '!=', '')
+            ->where(function ($q) {
+                $q->whereNull('status_verificacao')
+                  ->orWhere('status_verificacao', '!=', 'concluido');
+            });
 
-        if ($tipo === 'celular') {
-            $query = DB::table('cadcelular')
-                ->leftJoin('usuario', 'cadcelular.user_id', '=', 'usuario.id')
-                ->whereNotNull('cadcelular.processo')
-                ->where('cadcelular.processo', '<>', '')
-                ->orderByDesc('cadcelular.id');
-
-            if ($status) {
-                $query->where('cadcelular.status', $status);
-            }
-
-            $items = $query->limit($limit)->get([
-                'cadcelular.id',
-                'cadcelular.data',
-                'cadcelular.boe',
-                'cadcelular.pessoa',
-                'cadcelular.processo as sei',
-                'cadcelular.status',
-                'usuario.nome as responsavel',
-            ]);
-        } else {
-            $query = DB::table('cadveiculo')
-                ->leftJoin('usuario', 'cadveiculo.user_id', '=', 'usuario.id')
-                ->whereNotNull('cadveiculo.sei')
-                ->where('cadveiculo.sei', '<>', '')
-                ->orderByDesc('cadveiculo.id');
-
-            if ($status) {
-                $query->where('cadveiculo.status', $status);
-            }
-
-            $items = $query->limit($limit)->get([
-                'cadveiculo.id',
-                'cadveiculo.data',
-                'cadveiculo.boe',
-                'cadveiculo.pessoa',
-                'cadveiculo.placa as identificador', // Para veículos, usamos a placa
-                'cadveiculo.sei',
-                'cadveiculo.status',
-                'usuario.nome as responsavel',
-            ]);
+        if ($tipo === 'veiculo') {
+            $query->whereNotNull('placa')->where('placa', '!=', '');
+        } elseif ($tipo === 'celular') {
+            $query->where(function ($q) {
+                $q->where('objetos_apreendidos', 'like', '%celular%')
+                  ->orWhere('objetos_apreendidos', 'like', '%smartphone%')
+                  ->orWhere('objetos_apreendidos', 'like', '%iphone%')
+                  ->orWhere('objetos_apreendidos', 'like', '%motorola%')
+                  ->orWhere('objetos_apreendidos', 'like', '%samsung%');
+            });
+        } elseif ($tipo === 'apreensao_outros') {
+            $query->whereNotNull('objetos_apreendidos')
+                  ->where('objetos_apreendidos', '!=', '')
+                  ->where('objetos_apreendidos', 'not like', '%celular%')
+                  ->where('objetos_apreendidos', 'not like', '%smartphone%');
         }
 
-        return \response()->json([
-            'success' => true,
-            'data' => $items,
-        ]);
+        $registros = $query->limit(500)->get();
+
+        $seis = [];
+        foreach ($registros as $reg) {
+            $seis_list = array_map('trim', explode(',', $reg->numero));
+            foreach ($seis_list as $sei) {
+                if ($sei) {
+                    $seis[] = [
+                        'sei' => $sei,
+                        'boe' => preg_replace('/[^0-9]/', '', $reg->numero),
+                        'envolvido' => $reg->envolvido ?? '',
+                        'placa' => $reg->placa ?? ''
+                    ];
+                }
+            }
+        }
+
+        return response()->json($seis);
     }
 
     public function verificar(Request $request)
     {
         $request->validate([
-            'base_url' => 'required|string',
-            'jobId' => 'required|string',
-            'seis' => 'required|array|min:1',
-            'seis.*' => 'required|string',
-            'keywords' => 'nullable|string',
-            'usuario' => 'nullable|string',
-            'senha' => 'nullable|string',
-            'orgao' => 'nullable|string',
+            'jobId' => 'required',
+            'seis' => 'required',
+            'tipo' => 'required'
         ]);
 
         $jobId = $request->jobId;
-        $payload = [
-            'action' => 'check',
-            'base_url' => $request->base_url,
-            'seis' => $request->seis,
-            'keywords' => $request->keywords ?? '',
-            'job_id' => $jobId,
-            'callback_url' => url('/api/github/callback')
+        $sessionFile = storage_path("app/public/sei_sessions/{$jobId}/auth.json");
+        $sessionData = File::exists($sessionFile) ? File::get($sessionFile) : null;
+
+        $credentials = [
+            'session_data' => $sessionData,
+            'job_id' => $jobId
         ];
 
-        if ($request->usuario && $request->senha) {
-            $payload['config_b64'] = base64_encode(json_encode([
-                'usuario' => $request->usuario,
-                'senha' => $request->senha,
-                'orgao' => $request->orgao
-            ]));
-        }
-
-        return $this->dispatchGithubWorkflow('verificar_sei.yml', $payload, $jobId);
+        return $this->dispatchGithubWorkflow('verificar_sei.yml', [
+            'action' => 'check',
+            'base_url' => $request->url_sei ?? 'https://sei.pe.gov.br/sei/',
+            'seis' => is_array($request->seis) ? json_encode($request->seis) : $request->seis,
+            'keywords' => $request->palavras_chave ?? '',
+            'config_b64' => base64_encode(json_encode($credentials)),
+            'job_id' => $jobId,
+            'callback_url' => url('/api/github/callback')
+        ], $jobId);
     }
 
     public function screenshot($jobId, $filename)
@@ -210,13 +170,24 @@ class SeiController extends Controller
             @exec($cmd);
         }
 
-        return response()->json(['success' => true, 'message' => 'Comando de parada enviado']);
+        return response()->json(['success' => true, 'message' => 'Comando de parada enviado (Apenas Local)']);
     }
 
     private function dispatchGithubWorkflow(string $workflow, array $inputs, string $jobId)
     {
-        $response = Http::withToken(config('services.github.token'))
-            ->post("https://api.github.com/repos/" . config('services.github.repo') . "/actions/workflows/{$workflow}/dispatches", [
+        $token = env('GITHUB_TOKEN') ?: config('services.github.token');
+        $repo = env('GITHUB_REPO') ?: config('services.github.repo');
+
+        if (!$token || !$repo) {
+            return response()->json(['success' => false, 'message' => 'GITHUB_TOKEN ou GITHUB_REPO não configurado no .env', 'status' => 'error'], 500);
+        }
+
+        $logFile = storage_path("app/public/jobs/{$jobId}/output.log");
+        if (File::exists($logFile)) File::delete($logFile);
+        File::ensureDirectoryExists(dirname($logFile));
+
+        $response = Http::withToken($token)
+            ->post("https://api.github.com/repos/{$repo}/actions/workflows/{$workflow}/dispatches", [
                 'ref' => 'main',
                 'inputs' => $inputs
             ]);
@@ -224,7 +195,7 @@ class SeiController extends Controller
         if ($response->successful()) {
             return $this->streamPythonExecution($jobId);
         }
-        return response()->json(['success' => false, 'message' => 'Erro ao disparar workflow'], 500);
+        return response()->json(['success' => false, 'message' => 'Erro ao disparar workflow: ' . $response->body(), 'status' => 'error'], 500);
     }
 
     private function streamPythonExecution(string $jobId)
