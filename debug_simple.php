@@ -19,17 +19,39 @@ echo "Token: " . substr($token, 0, 7) . "...\n";
 echo "Repo: " . $repo . "\n\n";
 
 function github_api($url, $token) {
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Authorization: Bearer ' . $token,
-        'User-Agent: PHP-Diagnostic-Script'
-    ]);
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-    return ['code' => $httpCode, 'body' => $response];
+    if (function_exists('curl_init')) {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer ' . $token,
+            'User-Agent: PHP-Diagnostic-Script'
+        ]);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        return ['code' => $httpCode, 'body' => $response];
+    } else {
+        // Fallback para file_get_contents if curl is missing
+        $opts = [
+            "http" => [
+                "method" => "GET",
+                "header" => "Authorization: Bearer " . $token . "\r\n" .
+                            "User-Agent: PHP-Diagnostic-Script\r\n",
+                "ignore_errors" => true
+            ]
+        ];
+        $context = stream_context_create($opts);
+        $response = file_get_contents($url, false, $context);
+        
+        $httpCode = 0;
+        if (isset($http_response_header)) {
+            preg_match('{HTTP\/\S*\s(\d{3})}', $http_response_header[0], $m);
+            $httpCode = $m[1];
+        }
+        
+        return ['code' => $httpCode, 'body' => $response];
+    }
 }
 
 echo "1. Testando conexão com Repo...\n";
