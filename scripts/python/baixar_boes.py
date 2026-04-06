@@ -118,9 +118,11 @@ def main():
         pasta_destino = Path.home() / "Desktop" / f"BOEs - {nome_pesquisa.upper()}"
 
     try:
+        send_msg(True, "Iniciando Playwright...", "processing")
         with sync_playwright() as p:
+            send_msg(True, "Lançando navegador Chrome...", "processing")
             # Configuração do Navegador
-            browser = p.chromium.launch(headless=True, slow_mo=50, args=['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu'])
+            browser = p.chromium.launch(headless=True, slow_mo=50, args=['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--no-zygote'])
             
             # Tenta carregar sessão existente
             context_args = {
@@ -137,15 +139,20 @@ def main():
             # AÇÃO: LOGIN
             # ============================================================
             if args.action == 'login':
-                send_msg(True, "Acessando portal para login...", "logging_in")
-                page.goto("https://security.sds.pe.gov.br/pernambuco/", timeout=90000, wait_until="domcontentloaded")
+                send_msg(True, "Navegando para o INFOPOL...", "processing")
+                page.goto("https://infopol.sds.pe.gov.br/", timeout=90000, wait_until="domcontentloaded")
                 
-                page.locator("input[type='text'], input[name='j_username'], input[name*='Login']").first.fill(config["usuario"])
-                page.locator("input[type='password'], input[name='j_password']").first.fill(config["senha"])
+                send_msg(True, "Aguardando campos de login...", "processing")
+                page.wait_for_selector('input[name="txtLogin"]', timeout=30000)
                 
-                # Clica e aguarda a navegação ser triggada (domcontentloaded) em vez de esperar 30s por networkidle
-                with page.expect_navigation(wait_until="domcontentloaded", timeout=60000):
-                    page.locator("input[type='submit'], button:has-text('Entrar'), #btnEntrar").first.click()
+                send_msg(True, "Preenchendo credenciais e entrando...", "processing")
+                page.fill('input[name="txtLogin"]', config["usuario"])
+                page.fill('input[name="txtSenha"]', config["senha"])
+                
+                page.click('input[name="btnEntrar"]')
+                
+                send_msg(True, "Aguardando resposta do servidor SDS...", "processing")
+                page.wait_for_load_state('networkidle', timeout=30000)
 
                 if "j_security_check" in page.url or page.get_by_text(re.compile("usuário ou senha inválidos", re.IGNORECASE)).is_visible():
                     send_msg(False, "Falha no login: Usuário ou senha incorretos.", "error")
