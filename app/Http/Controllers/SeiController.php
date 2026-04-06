@@ -69,56 +69,72 @@ class SeiController extends Controller
         ], $jobId);
     }
 
+    private function verificarPermissao($tipo)
+    {
+        // Método placeholder para manter compatibilidade se for chamado
+        return true;
+    }
+
     public function listarSeis(Request $request)
     {
-        $tipo = $request->query('tipo');
-        if (!$tipo) abort(400, "Tipo não informado");
+        $request->validate([
+            'status' => 'nullable|string|max:50',
+            'limit' => 'nullable|integer|min:1|max:1000',
+            'tipo' => 'nullable|string|in:veiculo,celular,apreensao_outros',
+        ]);
 
-        $query = DB::connection('sisdp_syel')
-            ->table('boletins')
-            ->select('numero', 'envolvido', 'objetos_apreendidos', 'placa')
-            ->whereNotNull('sei')
-            ->where('sei', '!=', '')
-            ->where(function ($q) {
-                $q->whereNull('status_verificacao')
-                  ->orWhere('status_verificacao', '!=', 'concluido');
-            });
+        $limit = (int) ($request->limit ?? 500);
+        $status = $request->status;
+        $tipo = $request->tipo ?? 'veiculo';
 
-        if ($tipo === 'veiculo') {
-            $query->whereNotNull('placa')->where('placa', '!=', '');
-        } elseif ($tipo === 'celular') {
-            $query->where(function ($q) {
-                $q->where('objetos_apreendidos', 'like', '%celular%')
-                  ->orWhere('objetos_apreendidos', 'like', '%smartphone%')
-                  ->orWhere('objetos_apreendidos', 'like', '%iphone%')
-                  ->orWhere('objetos_apreendidos', 'like', '%motorola%')
-                  ->orWhere('objetos_apreendidos', 'like', '%samsung%');
-            });
-        } elseif ($tipo === 'apreensao_outros') {
-            $query->whereNotNull('objetos_apreendidos')
-                  ->where('objetos_apreendidos', '!=', '')
-                  ->where('objetos_apreendidos', 'not like', '%celular%')
-                  ->where('objetos_apreendidos', 'not like', '%smartphone%');
-        }
+        if ($tipo === 'celular') {
+            $query = DB::table('cadcelular')
+                ->leftJoin('usuario', 'cadcelular.user_id', '=', 'usuario.id')
+                ->whereNotNull('cadcelular.processo')
+                ->where('cadcelular.processo', '<>', '')
+                ->orderByDesc('cadcelular.id');
 
-        $registros = $query->limit(500)->get();
-
-        $seis = [];
-        foreach ($registros as $reg) {
-            $seis_list = array_map('trim', explode(',', $reg->numero));
-            foreach ($seis_list as $sei) {
-                if ($sei) {
-                    $seis[] = [
-                        'sei' => $sei,
-                        'boe' => preg_replace('/[^0-9]/', '', $reg->numero),
-                        'envolvido' => $reg->envolvido ?? '',
-                        'placa' => $reg->placa ?? ''
-                    ];
-                }
+            if ($status) {
+                $query->where('cadcelular.status', $status);
             }
+
+            $items = $query->limit($limit)->get([
+                'cadcelular.id',
+                'cadcelular.data',
+                'cadcelular.boe',
+                'cadcelular.pessoa',
+                'cadcelular.processo as sei',
+                'cadcelular.status',
+                'usuario.nome as responsavel',
+            ]);
+        } else {
+            // Veículo é o padrão
+            $query = DB::table('cadveiculo')
+                ->leftJoin('usuario', 'cadveiculo.user_id', '=', 'usuario.id')
+                ->whereNotNull('cadveiculo.sei')
+                ->where('cadveiculo.sei', '<>', '')
+                ->orderByDesc('cadveiculo.id');
+
+            if ($status) {
+                $query->where('cadveiculo.status', $status);
+            }
+
+            $items = $query->limit($limit)->get([
+                'cadveiculo.id',
+                'cadveiculo.data',
+                'cadveiculo.boe',
+                'cadveiculo.pessoa',
+                'cadveiculo.placa as identificador',
+                'cadveiculo.sei',
+                'cadveiculo.status',
+                'usuario.nome as responsavel',
+            ]);
         }
 
-        return response()->json($seis);
+        return response()->json([
+            'success' => true,
+            'data' => $items,
+        ]);
     }
 
     public function verificar(Request $request)
@@ -151,8 +167,8 @@ class SeiController extends Controller
 
     public function screenshot($jobId, $filename)
     {
-        $path = \storage_path("app/public/sei_temp/{$jobId}/{$filename}");
-        return File::exists($path) ? \response()->file($path) : \abort(404);
+        $path = storage_path("app/public/sei_temp/{$jobId}/{$filename}");
+        return File::exists($path) ? response()->file($path) : abort(404);
     }
 
     public function parar(Request $request)
