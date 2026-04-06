@@ -24,7 +24,6 @@ class InfopolController extends Controller
         $this->env = getenv();
         $this->env['PYTHONUNBUFFERED'] = '1';
         $this->env['PYTHONIOENCODING'] = 'UTF-8';
-        $this->env['PYTHONPATH'] = 'C:\\Users\\VGR\\AppData\\Roaming\\Python\\Python313\\site-packages';
     }
 
     public function index()
