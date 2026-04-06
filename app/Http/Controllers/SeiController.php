@@ -21,7 +21,13 @@ class SeiController extends Controller
         $this->env = getenv();
         $this->env['PYTHONUNBUFFERED'] = '1';
         $this->env['PYTHONIOENCODING'] = 'UTF-8';
-        $this->env['PYTHONPATH'] = 'C:\\Users\\VGR\\AppData\\Roaming\\Python\\Python313\\site-packages';
+        $this->env['DEBUG'] = 'pw:browser*';
+        if (!isset($this->env['HOME'])) {
+            $this->env['HOME'] = '/home/www';
+        }
+        if (!isset($this->env['PATH'])) {
+            $this->env['PATH'] = '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin';
+        }
     }
 
     public function index(Request $request)

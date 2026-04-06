@@ -419,7 +419,7 @@ def main():
 
     with sync_playwright() as p:
         # Navegador em segundo plano (headless=True) agora que está tudo validado.
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=True, args=['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu', '--disable-dev-shm-usage'])
 
         context_args = {
             "viewport": {"width": 1366, "height": 768},
