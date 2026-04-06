@@ -6,8 +6,12 @@ import json
 import argparse
 import platform
 from pathlib import Path
+import urllib.request
+import urllib.error
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
+CALLBACK_URL = None
+JOB_ID = None
 
 def unlock_memory_limits():
     """Remove os limites de memória virtual impostos pelo LiteSpeed no Linux."""
@@ -26,14 +30,26 @@ def unlock_memory_limits():
 
 
 def send_msg(success, message, status="processing", data=None):
-    """Envia uma mensagem JSON para o PHP capturar via STDOUT."""
-    print(json.dumps({
+    """Envia uma mensagem JSON para o PHP capturar via STDOUT e opcionalmente via Callback."""
+    payload = {
         "success": success,
         "message": message,
         "status": status,
         "data": data,
         "timestamp": time.strftime("%H:%M:%S")
-    }, ensure_ascii=False), flush=True)
+    }
+    if JOB_ID:
+        payload["job_id"] = JOB_ID
+        
+    json_str = json.dumps(payload, ensure_ascii=False)
+    print(json_str, flush=True)
+    
+    if CALLBACK_URL:
+        try:
+            req = urllib.request.Request(CALLBACK_URL, data=json_str.encode('utf-8'), headers={'Content-Type': 'application/json'})
+            urllib.request.urlopen(req, timeout=5)
+        except Exception as e:
+            print(f"Warning: Failed to call webhook: {e}", file=sys.stderr)
 
 
 def load_config(config_path=None):
@@ -50,6 +66,7 @@ def load_config(config_path=None):
 
 
 def main():
+    global CALLBACK_URL, JOB_ID
     unlock_memory_limits()
     # Log imediato
     send_msg(True, "COMANDO RECEBIDO PELO PYTHON", "started")
@@ -64,12 +81,28 @@ def main():
     parser.add_argument('--session_file', default='')
     parser.add_argument('--config', default='')
     parser.add_argument('--indices', default='')
+    parser.add_argument('--callback_url', default='')
+    parser.add_argument('--job_id', default='')
     args = parser.parse_args()
+
+    if args.callback_url:
+        CALLBACK_URL = args.callback_url
+    if args.job_id:
+        JOB_ID = args.job_id
 
     config = load_config(args.config)
     if not config and args.action == 'login':
         send_msg(False, "Credenciais não configuradas para login.", "error")
         return
+
+    # Se recebemos os dados da sessão (cookies) do banco/server, restauramos o arquivo local
+    if config and config.get("session_data") and args.session_file:
+        try:
+            os.makedirs(os.path.dirname(args.session_file), exist_ok=True)
+            with open(args.session_file, 'w', encoding='utf-8') as f:
+                f.write(config["session_data"])
+        except Exception as e:
+            send_msg(False, f"Warning: Failed to restore session json: {e}", "processing")
 
     nome_pesquisa = args.nome or (config.get("nome") if config else "Desconhecido")
     
@@ -137,7 +170,16 @@ def main():
                     if args.session_file:
                         os.makedirs(os.path.dirname(args.session_file), exist_ok=True)
                         context.storage_state(path=args.session_file)
-                        send_msg(True, "Conectado com sucesso!", "finished")
+                        
+                        # Lê o arquivo para enviar de volta no webhook
+                        session_content = ""
+                        try:
+                            with open(args.session_file, 'r', encoding='utf-8') as f:
+                                session_content = f.read()
+                        except:
+                            pass
+                            
+                        send_msg(True, "Conectado com sucesso!", "finished", data={"session_data": session_content})
                     else:
                         send_msg(True, "Conectado com sucesso (sem persistência)!", "finished")
                 
@@ -200,10 +242,23 @@ def main():
                                 rows[idx].query_selector('a[title*="Imprimir"], a[title*="Visualizar"]').click()
                             
                             download = download_info.value
-                            filepath = pasta_destino / f"BOE_{idx}_{int(time.time())}.pdf"
+                            filename = f"BOE_{idx}_{int(time.time())}.pdf"
+                            filepath = pasta_destino / filename
                             download.save_as(filepath)
+                            
                             downloads_sucesso += 1
-                            send_msg(True, f"Progresso: {downloads_sucesso}/{len(indices)}...", "processing")
+                            
+                            # Se tiver Webhook, manda o arquivo em base64 dentro do data
+                            payload_data = {"filename": filename}
+                            if CALLBACK_URL:
+                                try:
+                                    import base64
+                                    with open(filepath, "rb") as pdf_f:
+                                        payload_data["file_base64"] = base64.b64encode(pdf_f.read()).decode('utf-8')
+                                except Exception as e:
+                                    payload_data["error"] = f"Failed to encode pdf: {str(e)}"
+                                    
+                            send_msg(True, f"Progresso: {downloads_sucesso}/{len(indices)}...", "processing", data=payload_data)
                         except Exception as e:
                             send_msg(True, f"Erro no índice {idx}: {str(e)}", "processing")
                 

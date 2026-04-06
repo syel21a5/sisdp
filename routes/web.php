@@ -16,6 +16,8 @@ Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+// Webhook para retorno do GitHub Actions (deve ser público)
+Route::post('/api/github/callback', [App\Http\Controllers\GithubCallbackController::class, 'handle'])->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 
 // Rotas Protegidas (requerem autenticação)
 Route::middleware(['auth'])->group(function () {

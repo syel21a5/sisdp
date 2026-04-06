@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\File;
-use Symfony\Component\Process\Process;
 
 class SeiController extends Controller
 {
@@ -67,34 +67,29 @@ class SeiController extends Controller
     public function conectar(Request $request)
     {
         $request->validate([
-            'base_url' => 'required|string',
-            'usuario' => 'required|string',
-            'senha' => 'required|string',
-            'orgao' => 'nullable|string',
+            'usuario' => 'required',
+            'senha' => 'required',
+            'orgao' => 'required'
         ]);
 
-        $jobId = $request->jobId ?? 'sess_' . uniqid();
-        $sessionDir = \storage_path("app/public/sei_sessions/{$jobId}");
-        $sessionFile = "{$sessionDir}/auth.json";
-        $configFile = "{$sessionDir}/config.json";
-        
+        $jobId = $request->jobId ?? 'sei_' . uniqid();
+        $sessionDir = storage_path("app/public/sei_sessions/{$jobId}");
         File::ensureDirectoryExists($sessionDir);
-        
-        $baseUrl = escapeshellarg($request->base_url);
-        $orgao = $request->orgao ? ' --orgao ' . escapeshellarg($request->orgao) : '';
-        
+
         $credentials = [
             'usuario' => $request->usuario,
             'senha' => $request->senha,
+            'orgao' => $request->orgao,
+            'job_id' => $jobId
         ];
         
-        // Salva credenciais (Python lê via --config)
-        File::put($configFile, json_encode($credentials));
-
-        // Corrigido: Sem aspas em pythonCommand
-        $command = "{$this->pythonCommand} \"{$this->scriptPath}\" --action login --base_url {$baseUrl} --session_file " . escapeshellarg($sessionFile) . " --config " . escapeshellarg($configFile) . $orgao;
-
-        return $this->streamPythonExecution($command, null, $jobId);
+        return $this->dispatchGithubWorkflow('verificar_sei.yml', [
+            'action' => 'login',
+            'base_url' => $request->url_sei ?? 'https://sei.pe.gov.br/sei/',
+            'config_b64' => base64_encode(json_encode($credentials)),
+            'job_id' => $jobId,
+            'callback_url' => url('/api/github/callback')
+        ], $jobId);
     }
 
     public function listarSeis(Request $request)
@@ -174,42 +169,24 @@ class SeiController extends Controller
         ]);
 
         $jobId = $request->jobId;
-        $baseUrl = $request->base_url;
-        $keywords = (string) ($request->keywords ?? '');
+        $payload = [
+            'action' => 'check',
+            'base_url' => $request->base_url,
+            'seis' => $request->seis,
+            'keywords' => $request->keywords ?? '',
+            'job_id' => $jobId,
+            'callback_url' => url('/api/github/callback')
+        ];
 
-        $sessionDir = \storage_path("app/public/sei_sessions/{$jobId}");
-        $sessionFile = "{$sessionDir}/auth.json";
-        File::ensureDirectoryExists(dirname($sessionFile));
-
-        $outputDir = \storage_path("app/public/sei_temp/{$jobId}");
-        File::ensureDirectoryExists($outputDir);
-
-        $seisFile = \storage_path("app/public/sei_temp/{$jobId}/seis.json");
-        File::put($seisFile, json_encode(array_values($request->seis), JSON_UNESCAPED_UNICODE));
-
-        $orgao = $request->orgao ? ' --orgao ' . escapeshellarg($request->orgao) : '';
-        
-        $credentials = null;
-        $configArg = '';
         if ($request->usuario && $request->senha) {
-            $credentials = [
+            $payload['config_b64'] = base64_encode(json_encode([
                 'usuario' => $request->usuario,
                 'senha' => $request->senha,
-            ];
-            $configFile = "{$sessionDir}/config.json";
-            File::put($configFile, json_encode($credentials));
-            $configArg = " --config " . escapeshellarg($configFile);
+                'orgao' => $request->orgao
+            ]));
         }
 
-        // Corrigido: Sem aspas em pythonCommand
-        $command = "{$this->pythonCommand} \"{$this->scriptPath}\" --action check --base_url " . escapeshellarg($baseUrl) .
-            ' --session_file ' . escapeshellarg($sessionFile) .
-            ' --seis_file ' . escapeshellarg($seisFile) .
-            ' --output_dir ' . escapeshellarg($outputDir) .
-            ' --keywords ' . escapeshellarg($keywords) . 
-            ' --job_id ' . escapeshellarg($jobId) . $configArg . $orgao;
-
-        return $this->streamPythonExecution($command, null, $jobId);
+        return $this->dispatchGithubWorkflow('verificar_sei.yml', $payload, $jobId);
     }
 
     public function screenshot($jobId, $filename)
@@ -226,12 +203,9 @@ class SeiController extends Controller
         }
 
         if (PHP_OS_FAMILY === 'Windows') {
-            // Em Windows, usamos o wmic para localizar o processo pela linha de comando e terminá-lo
-            // Filtrando especificamente pelo --job_id único da sessão
             $cmd = "wmic process where \"CommandLine like '%--job_id {$jobId}%'\" call terminate";
             @exec($cmd);
         } else {
-            // Em Linux/Mac
             $cmd = "pkill -f \"--job_id {$jobId}\"";
             @exec($cmd);
         }
@@ -239,53 +213,61 @@ class SeiController extends Controller
         return response()->json(['success' => true, 'message' => 'Comando de parada enviado']);
     }
 
-    private function streamPythonExecution(string $command, ?array $credentials = null, ?string $jobId = null)
+    private function dispatchGithubWorkflow(string $workflow, array $inputs, string $jobId)
     {
-        return \response()->stream(function () use ($command, $credentials, $jobId) {
-            try {
-                $process = Process::fromShellCommandline($command);
-                $process->setTimeout(900);
-                $process->setEnv($this->env);
+        $response = Http::withToken(config('services.github.token'))
+            ->post("https://api.github.com/repos/" . config('services.github.repo') . "/actions/workflows/{$workflow}/dispatches", [
+                'ref' => 'main',
+                'inputs' => $inputs
+            ]);
 
-                if ($credentials) {
-                    $process->setInput(json_encode($credentials));
-                }
+        if ($response->successful()) {
+            return $this->streamPythonExecution($jobId);
+        }
+        return response()->json(['success' => false, 'message' => 'Erro ao disparar workflow'], 500);
+    }
 
-                $process->run(function ($type, $buffer) use ($jobId) {
-                    if ($type === Process::ERR) {
-                        $msg = trim((string) $buffer);
-                        if ($msg !== '') {
-                            echo json_encode(['success' => false, 'message' => $msg, 'status' => 'error']) . "\n";
-                        }
-                        if (ob_get_level() > 0) {
-                            ob_flush();
-                        }
-                        flush();
-                        return;
-                    }
-                    if (strpos($buffer, '{') !== false) {
-                        $data = json_decode($buffer, true);
+    private function streamPythonExecution(string $jobId)
+    {
+        return response()->stream(function () use ($jobId) {
+            $logFile = storage_path("app/public/jobs/{$jobId}/output.log");
+            $lastPos = 0;
+            $maxWait = 180;
+            $startTime = time();
+            $finished = false;
+
+            echo json_encode(['success' => true, 'message' => 'Aguardando runner do GitHub iniciar...', 'status' => 'processing']) . "\n";
+            if (ob_get_level() > 0) ob_flush();
+            flush();
+
+            while (time() - $startTime < $maxWait && !$finished) {
+                if (File::exists($logFile)) {
+                    $content = file_get_contents($logFile);
+                    $lines = explode("\n", substr($content, $lastPos));
+                    $lastPos = strlen($content);
+
+                    foreach ($lines as $line) {
+                        $line = trim($line);
+                        if (!$line) continue;
+
+                        $data = json_decode($line, true);
                         if ($data) {
-                            if (($data['status'] ?? '') === 'screenshot' && isset($data['data']['filename']) && $jobId) {
-                                $data['data']['url'] = \route('sei.screenshot', ['jobId' => $jobId, 'filename' => $data['data']['filename']]);
+                            if (($data['status'] ?? '') === 'finished' || ($data['status'] ?? '') === 'error') {
+                                $finished = true;
                             }
-                            echo json_encode($data) . "\n";
-                        }
-                    } else {
-                        // Captura TODA a saída, mesmo que não seja JSON, para vermos erros de sistema no log do site
-                        $msg = trim((string) $buffer);
-                        if ($msg !== '') {
-                            echo json_encode(['success' => false, 'message' => $msg, 'status' => 'debug_output']) . "\n";
+                            echo $line . "\n";
                         }
                     }
+                }
+                
+                if (ob_get_level() > 0) ob_flush();
+                flush();
+                
+                if (!$finished) sleep(2);
+            }
 
-                    if (ob_get_level() > 0) {
-                        ob_flush();
-                    }
-                    flush();
-                });
-            } catch (\Throwable $e) {
-                echo json_encode(['success' => false, 'message' => $e->getMessage(), 'status' => 'error']) . "\n";
+            if (!$finished && time() - $startTime >= $maxWait) {
+                echo json_encode(['success' => false, 'message' => 'Tempo de espera do GitHub Actions esgotado.', 'status' => 'error']) . "\n";
             }
         }, 200, [
             'Content-Type' => 'text/event-stream',
@@ -294,4 +276,3 @@ class SeiController extends Controller
         ]);
     }
 }
-

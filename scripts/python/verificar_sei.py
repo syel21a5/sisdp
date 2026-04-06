@@ -6,8 +6,13 @@ import sys
 import time
 from pathlib import Path
 from urllib.parse import urlparse
+import urllib.request
+import urllib.error
 
 from playwright.sync_api import sync_playwright
+
+CALLBACK_URL = None
+JOB_ID = None
 
 
 def unlock_memory_limits():
@@ -28,18 +33,25 @@ def unlock_memory_limits():
 
 
 def send_msg(success, message, status="processing", data=None):
-    print(
-        json.dumps(
-            {
-                "success": success,
-                "message": message,
-                "status": status,
-                "data": data,
-            },
-            ensure_ascii=False,
-        ),
-        flush=True,
-    )
+    payload = {
+        "success": success,
+        "message": message,
+        "status": status,
+        "data": data,
+        "timestamp": time.strftime("%H:%M:%S")
+    }
+    if JOB_ID:
+        payload["job_id"] = JOB_ID
+    
+    json_str = json.dumps(payload, ensure_ascii=False)
+    print(json_str, flush=True)
+
+    if CALLBACK_URL:
+        try:
+            req = urllib.request.Request(CALLBACK_URL, data=json_str.encode('utf-8'), headers={'Content-Type': 'application/json'})
+            urllib.request.urlopen(req, timeout=5)
+        except Exception as e:
+            print(f"Warning: Failed to call webhook: {e}", file=sys.stderr)
 
 
 def load_credentials(config_path=None):
@@ -417,6 +429,7 @@ def check_keywords_in_page(page, keywords):
 
 
 def main():
+    global CALLBACK_URL, JOB_ID
     unlock_memory_limits()
     parser = argparse.ArgumentParser()
     parser.add_argument("--action", choices=["login", "check"], required=True)
@@ -428,7 +441,14 @@ def main():
     parser.add_argument("--orgao", default="")
     parser.add_argument("--config", default="") # Novo
     parser.add_argument("--job_id", default="") # Aceita o job_id para evitar erro de argumentos
+    parser.add_argument("--callback_url", default="")
     args = parser.parse_args()
+
+    if args.callback_url:
+        CALLBACK_URL = args.callback_url
+    if args.job_id:
+        JOB_ID = args.job_id
+
 
     base_url = normalize_base_url(args.base_url)
     if not base_url:
@@ -448,6 +468,15 @@ def main():
     if args.action == "login" and not credentials:
         send_msg(False, "Credenciais não informadas para login.", "error")
         sys.exit(1)
+
+    # Restaura sessão se veio no config
+    if credentials and credentials.get("session_data") and session_file:
+        try:
+            os.makedirs(os.path.dirname(session_file), exist_ok=True)
+            with open(session_file, 'w', encoding='utf-8') as f:
+                f.write(credentials["session_data"])
+        except Exception as e:
+            send_msg(False, f"Falha ao restaurar sessão: {e}", "processing")
 
     with sync_playwright() as p:
         send_msg(True, "Iniciando Playwright...", "processing")
@@ -537,11 +566,18 @@ def main():
                     send_msg(True, "Sessão expirada. Reconectando automaticamente...", "logging_in")
                     orgao_cred = orgao or (credentials.get("orgao", "") if credentials else "")
                     ok = do_login(page, base_url, credentials["usuario"], credentials["senha"], orgao_cred, output_dir)
-                    if ok and session_file:
-                        Path(session_file).parent.mkdir(parents=True, exist_ok=True)
+                    if session_file:
                         context.storage_state(path=session_file)
-                    if not ok:
-                        send_msg(False, "Falha ao reconectar ao SEI.", "expired")
+                        # Lê para enviar de volta
+                        session_content = ""
+                        try:
+                            with open(session_file, 'r', encoding='utf-8') as f:
+                                session_content = f.read()
+                        except:
+                            pass
+                        send_msg(True, "Login realizado com sucesso!", "finished", data={"session_data": session_content})
+                    else:
+                        send_msg(True, "Login realizado com sucesso!", "finished")
                         page.wait_for_timeout(5000)
                         browser.close()
                         return
