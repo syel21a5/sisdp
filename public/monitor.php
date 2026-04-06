@@ -1,7 +1,8 @@
 <?php
 // Script para monitorar se o GitHub está conseguindo enviar dados de volta
 $jobId = $_GET['jobId'] ?? '';
-$logDir = __DIR__ . '/storage/app/public/jobs';
+$baseDir = dirname(__DIR__); 
+$logDir = $baseDir . '/storage/app/public/jobs';
 
 echo "<h3>Monitor de Conexão GitHub -> Servidor</h3>";
 echo "Diretório de Logs: $logDir <br>";
@@ -23,7 +24,7 @@ if (!is_dir($logDir)) {
 }
 
 echo "<h4>Últimos erros do Laravel (storage/logs/laravel.log):</h4>";
-$logFile = __DIR__ . '/storage/logs/laravel.log';
+$logFile = $baseDir . '/storage/logs/laravel.log';
 if (file_exists($logFile)) {
     $lines = explode("\n", file_get_contents($logFile));
     $lastLines = array_slice($lines, -15);
