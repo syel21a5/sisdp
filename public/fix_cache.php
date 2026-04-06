@@ -19,6 +19,11 @@ try {
     
     $kernel->call('route:clear');
     echo "✅ Cache de Rotas: Limpo!<br>";
+    
+    if (function_exists('opcache_reset')) {
+        opcache_reset();
+        echo "✅ Memória Opcache: Limpa! (Código novo carregado)<br>";
+    }
 
     echo "<br><b style='color:green'>TUDO PRONTO!</b> Agora o site deve ler o seu GITHUB_TOKEN corretamente.";
     echo "<br><br><a href='/infopol/sincronizar'>Ir para o Infopol</a>";
