@@ -23,8 +23,7 @@ class SeiController extends Controller
         $this->env['PYTHONIOENCODING'] = 'UTF-8';
         $this->env['DEBUG'] = 'pw:browser*';
         $this->env['HOME'] = '/home/www';
-        $this->env['XDG_CONFIG_HOME'] = '/tmp/.sei_config';
-        $this->env['XDG_CACHE_HOME'] = '/tmp/.sei_cache';
+        $this->env['PLAYWRIGHT_BROWSERS_PATH'] = '/home/www/.cache/ms-playwright';
         if (!isset($this->env['PATH'])) {
             $this->env['PATH'] = '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin';
         }
