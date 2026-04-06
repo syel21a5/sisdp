@@ -145,11 +145,18 @@ class InfopolController extends Controller
         if (File::exists($logFile)) File::delete($logFile);
         File::ensureDirectoryExists(dirname($logFile));
 
+        \Illuminate\Support\Facades\Log::info("Tentando disparar GitHub...", ['workflow' => $workflow, 'repo' => $repo]);
+
         $response = Http::withToken($token)
             ->post("https://api.github.com/repos/{$repo}/actions/workflows/{$workflow}/dispatches", [
                 'ref' => 'main',
                 'inputs' => $inputs
             ]);
+
+        \Illuminate\Support\Facades\Log::info("Resposta do GitHub Actions", [
+            'status' => $response->status(),
+            'body' => $response->body()
+        ]);
 
         if ($response->failed()) {
             return response()->json(['success' => false, 'message' => 'Falha ao disparar GitHub: ' . $response->body(), 'status' => 'error'], 500);
