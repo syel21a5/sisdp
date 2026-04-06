@@ -18,7 +18,7 @@ class InfopolController extends Controller
 
     public function __construct()
     {
-        $this->pythonCommand = PHP_OS_FAMILY === 'Windows' ? "C:\\Python313\\python.exe" : "python3";
+        $this->pythonCommand = PHP_OS_FAMILY === 'Windows' ? "C:\\Python313\\python.exe" : "sudo /usr/local/bin/run_playwright.sh";
         $this->scriptPath = base_path('scripts/python/baixar_boes.py');
         
         $this->env = getenv();
