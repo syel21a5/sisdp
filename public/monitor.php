@@ -31,6 +31,14 @@ if (!is_dir($logDir)) {
     echo "</ul>";
 }
 
+echo "<h4>Rastreador de Emergência (public/emergency_debug.txt):</h4>";
+$emergencyFile = $baseDir . '/public/emergency_debug.txt';
+if (file_exists($emergencyFile)) {
+    echo "<pre style='background:#f0f0f0; color:#c00; padding:10px;'>" . htmlspecialchars(file_get_contents($emergencyFile)) . "</pre>";
+} else {
+    echo "Rastreador ainda não registrou nada.";
+}
+
 echo "<h4>Últimos erros do Laravel (storage/logs/laravel.log):</h4>";
 $logFile = $baseDir . '/storage/logs/laravel.log';
 if (file_exists($logFile)) {
