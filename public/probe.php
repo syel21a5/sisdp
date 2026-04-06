@@ -35,7 +35,14 @@ echo "Python: " . $python['out'] . " " . $python['err'] . "\n";
 $playwright = run("python3 -m playwright --version");
 echo "Playwright: " . $playwright['out'] . " " . $playwright['err'] . "\n";
 
-$chrome_path = "/home/www/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell";
+$pw_info = run("python3 -m playwright install --dry-run");
+echo "\n=== LOCALIZAÇÃO DO PLAYWRIGHT ===\n";
+echo $pw_info['out'] . "\n";
+
+// Tenta extrair o caminho do binário da saída do dry-run
+preg_match('/Executable: (.*)/', $pw_info['out'], $matches);
+$chrome_path = $matches[1] ?? "/home/www/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell";
+
 echo "\n=== CHECANDO BINÁRIO DO CHROME ===\n";
 if (file_exists($chrome_path)) {
     echo "Binário localizado em: $chrome_path\n";
@@ -43,14 +50,15 @@ if (file_exists($chrome_path)) {
     
     echo "\n=== TESTANDO DEPENDÊNCIAS (ldd) ===\n";
     $ldd = run("ldd $chrome_path");
+    echo $ldd['out'] . "\n";
     if (strpos($ldd['out'], "not found") !== false) {
-        echo "ERRO: Faltam bibliotecas no sistema!\n";
-        echo $ldd['out'] . "\n";
-    } else {
-        echo "Todas as bibliotecas do sistema parecem OK.\n";
+        echo "\n⚠️ ERRO: Faltam bibliotecas acima!\n";
     }
 } else {
-    echo "ERRO: O binário NÃO EXISTE no caminho especificado.\n";
+    echo "ERRO: O binário NÃO EXISTE em '$chrome_path'.\n";
+    echo "Tentando instalar agora...\n";
+    $install = run("python3 -m playwright install chromium");
+    echo $install['out'] . $install['err'] . "\n";
 }
 
 echo "\n=== TESTE DE LANÇAMENTO REAL (Playwright) ===\n";
