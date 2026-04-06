@@ -4,8 +4,36 @@ import time
 import re
 import json
 import argparse
+import platform
 from pathlib import Path
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
+
+
+def unlock_memory_limits():
+    """Remove limites de memória virtual impostos pelo LiteSpeed/servidor web.
+    Sem isso, o Chrome é morto com SIGTRAP ao tentar alocar memória."""
+    if platform.system() != 'Linux':
+        return
+    try:
+        import resource
+        # Remove o limite de memória virtual (RLIMIT_AS = Address Space)
+        soft, hard = resource.getrlimit(resource.RLIMIT_AS)
+        if soft != resource.RLIM_INFINITY:
+            resource.setrlimit(resource.RLIMIT_AS, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
+            print(json.dumps({
+                "success": True, 
+                "message": f"Memory limit removido (era {soft} bytes)", 
+                "status": "debug_output"
+            }), flush=True)
+    except (ImportError, ValueError, OSError) as e:
+        # Se não conseguir alterar (ex: hard limit imposto pelo root), tenta pelo menos aumentar soft para hard
+        try:
+            import resource
+            soft, hard = resource.getrlimit(resource.RLIMIT_AS)
+            if soft < hard:
+                resource.setrlimit(resource.RLIMIT_AS, (hard, hard))
+        except Exception:
+            pass
 
 
 def send_msg(success, message, status="processing", data=None):
@@ -47,6 +75,7 @@ def load_config():
 
 
 def main():
+    unlock_memory_limits()
     parser = argparse.ArgumentParser()
     parser.add_argument('--action', choices=['login', 'search', 'download'], default='download')
     parser.add_argument('--nome', default='')
