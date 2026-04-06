@@ -38,6 +38,14 @@ echo "Playwright: " . $playwright['out'] . " " . $playwright['err'] . "\n";
 $chrome_dir = "/home/www/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64";
 $chrome_path = "$chrome_dir/chrome-headless-shell";
 
+echo "=== DIAGNÓSTICO DE LIMITES DO LITESPEED ===\n";
+$ulimit_v = run("ulimit -v");
+$ulimit_m = run("ulimit -m");
+$ulimit_u = run("ulimit -u");
+echo "Virtual Memory Limit (-v): " . $ulimit_v['out'] . "\n";
+echo "Physical Memory Limit (-m): " . $ulimit_m['out'] . "\n";
+echo "User Process Limit (-u): " . $ulimit_u['out'] . "\n";
+
 echo "\n=== CHECANDO BINÁRIO DO CHROME ===\n";
 echo "Binário alvo: $chrome_path\n";
 
