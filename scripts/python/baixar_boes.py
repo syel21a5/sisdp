@@ -62,6 +62,9 @@ def load_config(config_path=None):
 
 def main():
     unlock_memory_limits()
+    # Log imediato para o Laravel saber que o script começou
+    send_msg(True, "COMANDO RECEBIDO PELO PYTHON", "started")
+    
     parser = argparse.ArgumentParser()
     parser.add_argument('--action', choices=['login', 'search', 'download'], default='download')
     parser.add_argument('--nome', default='')
@@ -70,12 +73,11 @@ def main():
     parser.add_argument('--delegacia', default='')
     parser.add_argument('--output_dir', default='')
     parser.add_argument('--session_file', default='')
-    parser.add_argument('--config', default='') # Novo: arquivo temporário de credenciais
-    parser.add_argument('--indices', default='') # Lista de índices separados por vírgula para download
+    parser.add_argument('--config', default='')
+    parser.add_argument('--indices', default='')
     args = parser.parse_args()
 
     config = load_config(args.config)
-    # No modo search/download, as credenciais podem vir da sessão salva
     if not config and args.action == 'login':
         send_msg(False, "Credenciais não configuradas para login.", "error")
         return
@@ -85,26 +87,33 @@ def main():
     if args.output_dir:
         pasta_destino = Path(args.output_dir)
     else:
-        # Padrão: Pasta no Desktop
         pasta_destino = Path.home() / "Desktop" / f"BOEs - {nome_pesquisa.upper()}"
 
     try:
         send_msg(True, "Iniciando Playwright...", "processing")
         with sync_playwright() as p:
             send_msg(True, "Lançando navegador Chrome...", "processing")
-            # Configuração do Navegador
-            browser = p.chromium.launch(
-                headless=True, 
-                args=[
+            
+            # Caminho que confirmamos no probe.php
+            chrome_path = "/home/www/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell"
+            
+            launch_args = {
+                "headless": True,
+                "args": [
                     '--no-sandbox', 
                     '--disable-setuid-sandbox', 
                     '--disable-dev-shm-usage', 
                     '--disable-gpu',
                     '--no-zygote'
                 ]
-            )
+            }
             
-            # Tenta carregar sessão existente
+            if os.path.exists(chrome_path):
+                launch_args["executable_path"] = chrome_path
+                send_msg(True, "Usando executável customizado do Chrome...", "processing")
+
+            browser = p.chromium.launch(**launch_args)
+            
             context_args = {}
             if args.session_file and os.path.exists(args.session_file):
                 context_args["storage_state"] = args.session_file
@@ -112,19 +121,16 @@ def main():
             context = browser.new_context(**context_args)
             page = context.new_page()
 
-            # ============================================================
-            # AÇÃO: LOGIN
-            # ============================================================
+            # --- LOGIN ---
             if args.action == 'login':
                 try:
                     send_msg(True, "Navegando para o INFOPOL...", "processing")
                     page.goto("https://infopol.sds.pe.gov.br/", timeout=90000, wait_until="domcontentloaded")
                     
                     send_msg(True, "Aguardando campos de login...", "processing")
-                    # Aumentamos o tempo de espera e tentamos capturar erro com print
                     page.wait_for_selector('input[name="txtLogin"]', timeout=30000)
                     
-                    send_msg(True, "Preenchendo credenciais e entrando...", "processing")
+                    send_msg(True, "Preenchendo credenciais...", "processing")
                     page.fill('input[name="txtLogin"]', config["usuario"])
                     page.fill('input[name="txtSenha"]', config["senha"])
                     
@@ -137,7 +143,6 @@ def main():
                         send_msg(False, "Falha no login: Usuário ou senha incorretos.", "error")
                         return
 
-                    # Salva a sessão para usos futuros
                     if args.session_file:
                         os.makedirs(os.path.dirname(args.session_file), exist_ok=True)
                         context.storage_state(path=args.session_file)
@@ -146,27 +151,20 @@ def main():
                         send_msg(True, "Conectado com sucesso (sessão não salva)!", "finished")
                 
                 except Exception as e:
-                    # Tira um print do erro para sabermos o que o servidor está vendo
                     ts = int(time.time())
                     error_img = f"/tmp/erro_infopol_{ts}.png"
                     try:
                         page.screenshot(path=error_img)
-                        # No Linux do servidor, vamos tentar mover para a pasta pública se possível
-                        public_img = f"public/erro_login.png"
                         send_msg(False, f"Erro no login: {str(e)}. Screenshot salva em {error_img}", "error")
                     except Exception as sce:
                         send_msg(False, f"Erro no login: {str(e)} (Falha screenshot: {str(sce)})", "error")
                     return
 
-            # ============================================================
-            # AÇÃO: SEARCH (Busca boletins)
-            # ============================================================
+            # --- SEARCH ---
             elif args.action == 'search':
                 send_msg(True, f"Buscando boletins para: {args.nome}", "searching")
-                # URL de busca do Infopol
                 page.goto("https://infopol.sds.pe.gov.br/consultarBoletim.do?acao=prepararConsulta", wait_until="networkidle")
                 
-                # Preenche filtros
                 if args.nome:
                     page.fill('input[name="txtNomeEnvolvido"]', args.nome)
                 if args.inicio:
@@ -179,7 +177,6 @@ def main():
                 page.click('input[name="btnConsultar"]')
                 page.wait_for_load_state('networkidle')
                 
-                # Extrai resultados da tabela
                 rows = page.query_selector_all('table.tabela_dados tr.linha_impar, table.tabela_dados tr.linha_par')
                 resultados = []
                 for i, row in enumerate(rows):
@@ -195,17 +192,12 @@ def main():
                 
                 send_msg(True, f"Busca concluída: {len(resultados)} boletins encontrados.", "finished", data=resultados)
 
-            # ============================================================
-            # AÇÃO: DOWNLOAD (Baixa PDFs)
-            # ============================================================
+            # --- DOWNLOAD ---
             elif args.action == 'download':
                 indices = [int(i) for i in args.indices.split(',')] if args.indices else []
                 os.makedirs(pasta_destino, exist_ok=True)
                 
                 send_msg(True, f"Iniciando download de {len(indices)} boletins...", "downloading")
-                
-                # Volta para a tela de resultados se necessário ou assume que já está lá
-                # (Para simplificar, assumimos que o download é chamado após o search na mesma sessão)
                 
                 rows = page.query_selector_all('table.tabela_dados tr.linha_impar, table.tabela_dados tr.linha_par')
                 downloads_sucesso = 0
@@ -213,7 +205,6 @@ def main():
                 for idx in indices:
                     if idx < len(rows):
                         try:
-                            # Clica no link de impressão/visualização
                             with page.expect_download() as download_info:
                                 rows[idx].query_selector('a[title*="Imprimir"], a[title*="Visualizar"]').click()
                             
