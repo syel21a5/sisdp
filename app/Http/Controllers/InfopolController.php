@@ -165,62 +165,42 @@ class InfopolController extends Controller
             return response()->json(['success' => false, 'message' => 'Falha ao disparar GitHub: ' . $response->body(), 'status' => 'error'], 500);
         }
 
-        return $this->streamPythonExecution('', null, $jobId);
+        return response()->json(['success' => true, 'jobId' => $jobId, 'status' => 'dispatched']);
     }
 
-    /**
-     * Helper para executar o Python e realizar o streaming da saída.
-     */
-    private function streamPythonExecution(string $command, ?array $credentials = null, ?string $jobId = null)
+    public function status(Request $request, $jobId)
     {
-        return response()->stream(function () use ($jobId) {
-            $logFile = storage_path("app/public/jobs/{$jobId}/output.log");
-            $lastPos = 0;
-            $maxWait = 180; // 3 minutos
-            $startTime = time();
-            $finished = false;
+        $logFile = storage_path("app/public/jobs/{$jobId}/output.log");
+        $lastPos = (int) $request->input('lastPos', 0);
 
-            echo json_encode(['success' => true, 'message' => 'Aguardando runner do GitHub iniciar...', 'status' => 'processing']) . "\n";
-            if (ob_get_level() > 0) ob_flush();
-            flush();
+        if (!File::exists($logFile)) {
+            // Arquivo ainda não existe (GitHub ainda vai começar)
+            return response()->json(['success' => true, 'lines' => [], 'lastPos' => $lastPos]);
+        }
 
-            while (time() - $startTime < $maxWait && !$finished) {
-                if (File::exists($logFile)) {
-                    $content = file_get_contents($logFile);
-                    $lines = explode("\n", substr($content, $lastPos));
-                    $lastPos = strlen($content);
+        $content = file_get_contents($logFile);
+        $newContent = substr($content, $lastPos);
+        $newPos = strlen($content);
 
-                    foreach ($lines as $line) {
-                        $line = trim($line);
-                        if (!$line) continue;
+        $lines = array_filter(explode("\n", $newContent), 'trim');
+        
+        $parsedLines = [];
+        foreach($lines as $line) {
+            $data = json_decode($line, true);
+            if ($data) $parsedLines[] = $data;
+        }
 
-                        $data = json_decode($line, true);
-                        if ($data) {
-                            if (($data['status'] ?? '') === 'finished' && $jobId) {
-                                $data['download_url'] = route('infopol.download', ['jobId' => $jobId]);
-                                $finished = true;
-                            }
-                            if (($data['status'] ?? '') === 'error' ) {
-                                $finished = true;
-                            }
-                            echo $line . "\n";
-                        }
-                    }
-                }
-                
-                if (ob_get_level() > 0) ob_flush();
-                flush();
-                
-                if (!$finished) sleep(2);
-            }
+        // Adiciona a URL de download se estiver finalizado
+        foreach ($parsedLines as &$data) {
+             if (($data['status'] ?? '') === 'finished') {
+                  $data['download_url'] = route('infopol.download', ['jobId' => $jobId]);
+             }
+        }
 
-            if (!$finished && time() - $startTime >= $maxWait) {
-                echo json_encode(['success' => false, 'message' => 'Tempo de espera do GitHub Actions esgotado.', 'status' => 'error']) . "\n";
-            }
-        }, 200, [
-            'Content-Type' => 'text/event-stream',
-            'Cache-Control' => 'no-cache',
-            'X-Accel-Buffering' => 'no',
+        return response()->json([
+            'success' => true,
+            'lines' => $parsedLines,
+            'lastPos' => $newPos
         ]);
     }
 

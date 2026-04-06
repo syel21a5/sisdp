@@ -573,31 +573,29 @@
 
             let abortController = null;
 
-            const processStream = async (response, onData) => {
-                if (!response.ok) {
-                    let body = '';
-                    try { body = await response.text(); } catch (e) { }
-                    throw new Error(`HTTP ${response.status} ${response.statusText}${body ? ' - ' + body.slice(0, 180) : ''}`);
-                }
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                let buffer = '';
+            const pollStatus = async (jobIdStr, onData) => {
+                let lastPos = 0;
+                let finished = false;
+                
+                onData({status: 'processing', message: 'Aguardando runner do GitHub iniciar...'});
 
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-
-                    buffer += decoder.decode(value, { stream: true });
-                    const lines = buffer.split('\n');
-                    buffer = lines.pop();
-
-                    for (const line of lines) {
-                        if (!line.trim()) continue;
-                        try {
-                            const data = JSON.parse(line);
-                            onData(data);
-                        } catch (e) { }
-                    }
+                while (!finished && !abortController?.signal?.aborted) {
+                    try {
+                        const res = await fetch(`/sei/status/${jobIdStr}?lastPos=${lastPos}`);
+                        if(!res.ok) throw new Error('Polling error');
+                        const data = await res.json();
+                        
+                        if (data.success) {
+                            lastPos = data.lastPos;
+                            for (let line of data.lines) {
+                                onData(line);
+                                if (line.status === 'finished' || line.status === 'error' || line.status === 'expired') {
+                                    finished = true;
+                                }
+                            }
+                        }
+                    } catch(e) { }
+                    if (!finished && !abortController?.signal?.aborted) await new Promise(r => setTimeout(r, 2000));
                 }
             };
 
@@ -617,15 +615,20 @@
                         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                         body: JSON.stringify({ ...auth.value, jobId: jobId.value })
                     });
-
-                    await processStream(response, (data) => {
-                        if (data.message) statusText.value = data.message;
-                        if (data.status === 'connected') isConnected.value = true;
-                        if (data.status === 'error') alert(data.message || 'Falha ao conectar.');
-                        if (data.status === 'screenshot' && data.data && data.data.url) {
-                            lastLoginScreenshotUrl.value = data.data.url;
-                        }
-                    });
+                    
+                    const result = await response.json();
+                    if(result.success) {
+                        await pollStatus(result.jobId || jobId.value, (data) => {
+                            if (data.message) statusText.value = data.message;
+                            if (data.status === 'connected') isConnected.value = true;
+                            if (data.status === 'error') alert(data.message || 'Falha ao conectar.');
+                            if (data.status === 'screenshot' && data.data && data.data.url) {
+                                lastLoginScreenshotUrl.value = data.data.url;
+                            }
+                        });
+                    } else {
+                        alert(result.message);
+                    }
                 } catch (e) {
                     alert(`Falha ao conectar: ${e.message || e}`);
                 } finally {
@@ -731,32 +734,37 @@
                         return;
                     }
 
-                    await processStream(response, (data) => {
-                        if (data.message) statusText.value = data.message;
-                        if (data.status === 'progress' && data.data) {
-                            progress.value = { current: data.data.current || 0, total: data.data.total || progress.value.total };
-                        }
-                        if (data.status === 'partial_result' && data.data && data.data.item) {
-                            upsertResult({
-                                ...data.data.item,
-                                screenshot_url: data.data.item.screenshot_url
-                            });
-                        }
-                        if (data.status === 'screenshot' && data.data && data.data.url && data.data.sei) {
-                            upsertResult({ sei: data.data.sei, screenshot_url: data.data.url });
-                        }
-                        if (data.status === 'connected') {
-                            isConnected.value = true;
-                        }
-                        if (data.status === 'finished') {
-                            isConnected.value = true;
-                            summary.value = data.data || {};
-                            showSummary();
-                        }
-                        if (data.status === 'expired') {
-                            isConnected.value = false;
-                        }
-                    });
+                    const result = await response.json();
+                    if(result.success) {
+                        await pollStatus(result.jobId || jobId.value, (data) => {
+                            if (data.message) statusText.value = data.message;
+                            if (data.status === 'progress' && data.data) {
+                                progress.value = { current: data.data.current || 0, total: data.data.total || progress.value.total };
+                            }
+                            if (data.status === 'partial_result' && data.data && data.data.item) {
+                                upsertResult({
+                                    ...data.data.item,
+                                    screenshot_url: data.data.item.screenshot_url
+                                });
+                            }
+                            if (data.status === 'screenshot' && data.data && data.data.url && data.data.sei) {
+                                upsertResult({ sei: data.data.sei, screenshot_url: data.data.url });
+                            }
+                            if (data.status === 'connected') {
+                                isConnected.value = true;
+                            }
+                            if (data.status === 'finished') {
+                                isConnected.value = true;
+                                summary.value = data.data || {};
+                                showSummary();
+                            }
+                            if (data.status === 'expired') {
+                                isConnected.value = false;
+                            }
+                        });
+                    } else {
+                        alert(result.message);
+                    }
                 } catch (e) {
                     if (e.name === 'AbortError') {
                         showToast('Operação interrompida pelo usuário', 'bi-stop-circle', 'text-warning');

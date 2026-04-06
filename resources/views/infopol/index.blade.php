@@ -567,10 +567,17 @@
                         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                         body: JSON.stringify({ ...auth.value, jobId: jobId.value })
                     });
-                    await processStream(response, (data) => {
-                        if (data.status === 'connected') isConnected.value = true;
-                        if (data.status === 'error') alert(data.message);
-                    });
+                    const result = await response.json();
+                    if(result.success) {
+                        await pollStatus(result.jobId || jobId.value, (data) => {
+                            if (data.status === 'connected') isConnected.value = true;
+                            if (data.status === 'error') alert(data.message);
+                        });
+                    } else {
+                        alert(result.message);
+                    }
+                } catch(e) {
+                    alert('Erro na conexão: ' + e.message);
                 } finally {
                     isConnecting.value = false;
                 }
@@ -596,21 +603,26 @@
                         return;
                     }
 
-                    await processStream(response, (data) => {
-                        if (data.message) currentStatus.value = data.message;
-                        
-                        // Atualiza a grid imediatamente
-                        if (data.status === 'partial_result' && data.data.item) {
-                            results.value.push(data.data.item);
-                        }
-                        
-                        // Fallback pra método de resposta total antigo, se existir
-                        if (data.status === 'results' && data.data.results) {
-                            results.value = data.data.results;
-                        }
+                    const result = await response.json();
+                    if(result.success) {
+                        await pollStatus(result.jobId || jobId.value, (data) => {
+                            if (data.message) currentStatus.value = data.message;
+                            
+                            // Atualiza a grid imediatamente
+                            if (data.status === 'partial_result' && data.data.item) {
+                                results.value.push(data.data.item);
+                            }
+                            
+                            // Fallback pra método de resposta total antigo, se existir
+                            if (data.status === 'results' && data.data.results) {
+                                results.value = data.data.results;
+                            }
 
-                        if (data.status === 'no_results') alert('Nenhum BO encontrado.');
-                    });
+                            if (data.status === 'no_results') alert('Nenhum BO encontrado.');
+                        });
+                    } else {
+                        alert(result.message);
+                    }
                 } finally {
                     isSearching.value = false;
                 }
@@ -629,41 +641,49 @@
                         body: JSON.stringify({ ...filters.value, jobId: jobId.value, indices: indicesStr })
                     });
 
-                    await processStream(response, (data) => {
-                        if (data.message) downloadStatus.value = data.message;
-                        if (data.status === 'downloading' && data.data) {
-                            downloadPercent.value = Math.floor((data.data.current / data.data.total) * 100);
-                        }
-                        if (data.status === 'finished' && data.download_url) {
-                            window.location.href = data.download_url;
-                            downloadStatus.value = 'Concluído!';
-                        }
-                    });
+                    const result = await response.json();
+                    if(result.success) {
+                        await pollStatus(result.jobId || jobId.value, (data) => {
+                            if (data.message) downloadStatus.value = data.message;
+                            if (data.status === 'downloading' && data.data) {
+                                downloadPercent.value = Math.floor((data.data.current / data.data.total) * 100);
+                            }
+                            if (data.status === 'finished' && data.download_url) {
+                                window.location.href = data.download_url;
+                                downloadStatus.value = 'Concluído!';
+                            }
+                        });
+                    } else {
+                        downloadStatus.value = 'Erro: ' + result.message;
+                    }
                 } finally {
                     isDownloading.value = false;
                 }
             };
 
-            const processStream = async (response, onData) => {
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                let buffer = '';
+            const pollStatus = async (jobIdStr, onData) => {
+                let lastPos = 0;
+                let finished = false;
+                
+                onData({status: 'processing', message: 'Aguardando runner do GitHub iniciar...'});
 
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-
-                    buffer += decoder.decode(value, { stream: true });
-                    const lines = buffer.split('\n');
-                    buffer = lines.pop();
-
-                    for (const line of lines) {
-                        if (!line.trim()) continue;
-                        try {
-                            const data = JSON.parse(line);
-                            onData(data);
-                        } catch (e) { }
-                    }
+                while (!finished) {
+                    try {
+                        const res = await fetch(`/infopol/status/${jobIdStr}?lastPos=${lastPos}`);
+                        if(!res.ok) throw new Error('Polling error');
+                        const data = await res.json();
+                        
+                        if (data.success) {
+                            lastPos = data.lastPos;
+                            for (let line of data.lines) {
+                                onData(line);
+                                if (line.status === 'finished' || line.status === 'error' || line.status === 'expired') {
+                                    finished = true;
+                                }
+                            }
+                        }
+                    } catch(e) { }
+                    if (!finished) await new Promise(r => setTimeout(r, 2000));
                 }
             };
 
