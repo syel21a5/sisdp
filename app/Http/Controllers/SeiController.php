@@ -22,9 +22,9 @@ class SeiController extends Controller
         $this->env['PYTHONUNBUFFERED'] = '1';
         $this->env['PYTHONIOENCODING'] = 'UTF-8';
         $this->env['DEBUG'] = 'pw:browser*';
-        if (!isset($this->env['HOME'])) {
-            $this->env['HOME'] = '/home/www';
-        }
+        $this->env['HOME'] = '/home/www';
+        $this->env['XDG_CONFIG_HOME'] = '/tmp/.sei_config';
+        $this->env['XDG_CACHE_HOME'] = '/tmp/.sei_cache';
         if (!isset($this->env['PATH'])) {
             $this->env['PATH'] = '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin';
         }
@@ -256,6 +256,12 @@ class SeiController extends Controller
                                 $data['data']['url'] = \route('sei.screenshot', ['jobId' => $jobId, 'filename' => $data['data']['filename']]);
                             }
                             echo json_encode($data) . "\n";
+                        }
+                    } else {
+                        // Captura TODA a saída, mesmo que não seja JSON, para vermos erros de sistema no log do site
+                        $msg = trim((string) $buffer);
+                        if ($msg !== '') {
+                            echo json_encode(['success' => false, 'message' => $msg, 'status' => 'debug_output']) . "\n";
                         }
                     }
 

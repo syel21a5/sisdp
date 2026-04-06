@@ -80,7 +80,7 @@ def main():
     try:
         with sync_playwright() as p:
             # Configuração do Navegador
-            browser = p.chromium.launch(headless=True, slow_mo=50, args=['--no-sandbox', '--disable-setuid-sandbox'])
+            browser = p.chromium.launch(headless=True, slow_mo=50, args=['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu'])
             
             # Tenta carregar sessão existente
             context_args = {
