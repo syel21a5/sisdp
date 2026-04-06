@@ -128,7 +128,7 @@ def main():
                     page.click('input[name="btnEntrar"]')
                     
                     send_msg(True, "Verificando sucesso do acesso...", "processing")
-                    page.wait_for_load_state('networkidle', timeout=30000)
+                    page.wait_for_load_state('networkidle', timeout=40000)
 
                     if "j_security_check" in page.url or page.get_by_text(re.compile("usuário ou senha inválidos", re.IGNORECASE)).is_visible():
                         send_msg(False, "Usuário ou senha incorretos no INFOPOL.", "error")
@@ -146,15 +146,15 @@ def main():
                     error_img = f"/tmp/erro_infopol_{ts}.png"
                     try:
                         page.screenshot(path=error_img)
-                        send_msg(False, f"Erro no login: {str(e)}. Veja {error_img}", "error")
-                    except:
-                        send_msg(False, f"Erro no login: {str(e)}", "error")
+                        send_msg(False, f"Erro no login (Infopol): {str(e)}. Foto salva em {error_img}", "error")
+                    except Exception as global_loop_e:
+                        send_msg(False, f"Erro no login (Infopol): {str(global_loop_e)}", "error")
                     return
 
             # --- SEARCH ---
             elif args.action == 'search':
                 send_msg(True, f"Buscando boletins para: {args.nome}", "searching")
-                page.goto("https://infopol.sds.pe.gov.br/consultarBoletim.do?acao=prepararConsulta", wait_until="networkidle")
+                page.goto("https://infopol.sds.pe.gov.br/consultarBoletim.do?acao=prepararConsulta", wait_until="networkidle", timeout=90000)
                 
                 if args.nome:
                     page.fill('input[name="txtNomeEnvolvido"]', args.nome)
