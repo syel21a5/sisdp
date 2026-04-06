@@ -28,6 +28,9 @@ class InfopolController extends Controller
         if (!isset($this->env['HOME'])) {
             $this->env['HOME'] = '/home/www';
         }
+        if (!isset($this->env['PATH'])) {
+            $this->env['PATH'] = '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin';
+        }
     }
 
     public function index()
