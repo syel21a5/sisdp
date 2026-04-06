@@ -85,14 +85,14 @@ Route::middleware(['auth'])->group(function () {
 
     // ✅ ROTAS PARA O SINCRONIZADOR SDS (INFOPOL)
     Route::get('/infopol/sincronizar', [App\Http\Controllers\InfopolController::class, 'index'])->name('infopol.index');
-    Route::post('/infopol/conectar', [App\Http\Controllers\InfopolController::class, 'conectar'])->name('infopol.conectar');
+    Route::post('/infopol/conectar', [App\Http\Controllers\InfopolController::class, 'conectar'])->name('infopol.conectar')->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
     Route::post('/infopol/buscar', [App\Http\Controllers\InfopolController::class, 'buscar'])->name('infopol.buscar');
     Route::post('/infopol/baixar-selecionados', [App\Http\Controllers\InfopolController::class, 'baixarSelecionados'])->name('infopol.baixarSelecionados');
     Route::get('/infopol/download/{jobId}', [App\Http\Controllers\InfopolController::class, 'download'])->name('infopol.download');
     Route::get('/infopol/screenshot/{jobId}/{filename}', [App\Http\Controllers\InfopolController::class, 'screenshot'])->name('infopol.screenshot');
 
     Route::get('/sei/verificar', [App\Http\Controllers\SeiController::class, 'index'])->name('sei.index');
-    Route::post('/sei/conectar', [App\Http\Controllers\SeiController::class, 'conectar'])->name('sei.conectar');
+    Route::post('/sei/conectar', [App\Http\Controllers\SeiController::class, 'conectar'])->name('sei.conectar')->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
     Route::get('/sei/listar-seis', [App\Http\Controllers\SeiController::class, 'listarSeis'])->name('sei.listarSeis');
     Route::post('/sei/verificar', [App\Http\Controllers\SeiController::class, 'verificar'])->name('sei.verificar');
     Route::post('/sei/parar', [App\Http\Controllers\SeiController::class, 'parar'])->name('sei.parar');
