@@ -191,6 +191,9 @@ class SeiController extends Controller
 
     private function dispatchGithubWorkflow(string $workflow, array $inputs, string $jobId)
     {
+        // Debug de emergência ignorando o sistema do Laravel
+        @file_put_contents(public_path('emergency_debug.txt'), date('H:i:s') . " - Tentando disparar GitHub SEI: $workflow \n", FILE_APPEND);
+
         $token = env('GITHUB_TOKEN') ?: config('services.github.token');
         $repo = env('GITHUB_REPO') ?: config('services.github.repo');
 
