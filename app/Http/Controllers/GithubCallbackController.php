@@ -9,6 +9,7 @@ class GithubCallbackController extends Controller
 {
     public function handle(Request $request)
     {
+        \Illuminate\Support\Facades\Log::info("GitHub Webhook Recebido!", $request->all());
         $payload = $request->all();
         $jobId = $payload['job_id'] ?? null;
         
