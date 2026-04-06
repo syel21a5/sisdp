@@ -38,7 +38,6 @@ def send_msg(success, message, status="processing", data=None):
 
 def load_config(config_path=None):
     """Lê credenciais de um arquivo JSON (preferencial) ou do STDIN."""
-    # Prioridade 1: Arquivo enviado por argumento --config (mais seguro com sudo)
     if config_path and os.path.exists(config_path):
         try:
             with open(config_path, 'r', encoding='utf-8') as f:
@@ -47,22 +46,12 @@ def load_config(config_path=None):
                     return data
         except Exception:
             pass
-
-    # Prioridade 2: STDIN (fallback)
-    if not sys.stdin.isatty():
-        try:
-            line = sys.stdin.readline()
-            if line:
-                return json.loads(line)
-        except Exception:
-            pass
-    
     return None
 
 
 def main():
     unlock_memory_limits()
-    # Log imediato para o Laravel saber que o script começou
+    # Log imediato
     send_msg(True, "COMANDO RECEBIDO PELO PYTHON", "started")
     
     parser = argparse.ArgumentParser()
@@ -84,17 +73,19 @@ def main():
 
     nome_pesquisa = args.nome or (config.get("nome") if config else "Desconhecido")
     
+    # CORREÇÃO: Usar pasta temporária do sistema se output_dir não for passado
     if args.output_dir:
         pasta_destino = Path(args.output_dir)
     else:
-        pasta_destino = Path.home() / "Desktop" / f"BOEs - {nome_pesquisa.upper()}"
+        # No Linux, Path.home() / Desktop falha se não existir
+        pasta_destino = Path("/tmp") / f"BOEs_{int(time.time())}"
 
     try:
         send_msg(True, "Iniciando Playwright...", "processing")
         with sync_playwright() as p:
             send_msg(True, "Lançando navegador Chrome...", "processing")
             
-            # Caminho que confirmamos no probe.php
+            # Caminho oficial do Playwright no seu servidor
             chrome_path = "/home/www/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell"
             
             launch_args = {
@@ -110,7 +101,7 @@ def main():
             
             if os.path.exists(chrome_path):
                 launch_args["executable_path"] = chrome_path
-                send_msg(True, "Usando executável customizado do Chrome...", "processing")
+                send_msg(True, "Executável Chrome localizado.", "processing")
 
             browser = p.chromium.launch(**launch_args)
             
@@ -125,22 +116,22 @@ def main():
             if args.action == 'login':
                 try:
                     send_msg(True, "Navegando para o INFOPOL...", "processing")
-                    page.goto("https://infopol.sds.pe.gov.br/", timeout=90000, wait_until="domcontentloaded")
+                    page.goto("https://infopol.sds.pe.gov.br/", timeout=60000, wait_until="domcontentloaded")
                     
-                    send_msg(True, "Aguardando campos de login...", "processing")
+                    send_msg(True, "Aguardando tela de login...", "processing")
                     page.wait_for_selector('input[name="txtLogin"]', timeout=30000)
                     
-                    send_msg(True, "Preenchendo credenciais...", "processing")
+                    send_msg(True, "Enviando usuário e senha...", "processing")
                     page.fill('input[name="txtLogin"]', config["usuario"])
                     page.fill('input[name="txtSenha"]', config["senha"])
                     
                     page.click('input[name="btnEntrar"]')
                     
-                    send_msg(True, "Aguardando resposta do servidor SDS...", "processing")
+                    send_msg(True, "Verificando sucesso do acesso...", "processing")
                     page.wait_for_load_state('networkidle', timeout=30000)
 
                     if "j_security_check" in page.url or page.get_by_text(re.compile("usuário ou senha inválidos", re.IGNORECASE)).is_visible():
-                        send_msg(False, "Falha no login: Usuário ou senha incorretos.", "error")
+                        send_msg(False, "Usuário ou senha incorretos no INFOPOL.", "error")
                         return
 
                     if args.session_file:
@@ -148,16 +139,16 @@ def main():
                         context.storage_state(path=args.session_file)
                         send_msg(True, "Conectado com sucesso!", "finished")
                     else:
-                        send_msg(True, "Conectado com sucesso (sessão não salva)!", "finished")
+                        send_msg(True, "Conectado com sucesso (sem persistência)!", "finished")
                 
                 except Exception as e:
                     ts = int(time.time())
                     error_img = f"/tmp/erro_infopol_{ts}.png"
                     try:
                         page.screenshot(path=error_img)
-                        send_msg(False, f"Erro no login: {str(e)}. Screenshot salva em {error_img}", "error")
-                    except Exception as sce:
-                        send_msg(False, f"Erro no login: {str(e)} (Falha screenshot: {str(sce)})", "error")
+                        send_msg(False, f"Erro no login: {str(e)}. Veja {error_img}", "error")
+                    except:
+                        send_msg(False, f"Erro no login: {str(e)}", "error")
                     return
 
             # --- SEARCH ---
@@ -190,14 +181,14 @@ def main():
                             "unidade": cols[4].inner_text().strip()
                         })
                 
-                send_msg(True, f"Busca concluída: {len(resultados)} boletins encontrados.", "finished", data=resultados)
+                send_msg(True, f"Busca concluída: {len(resultados)} boletins.", "finished", data=resultados)
 
             # --- DOWNLOAD ---
             elif args.action == 'download':
                 indices = [int(i) for i in args.indices.split(',')] if args.indices else []
                 os.makedirs(pasta_destino, exist_ok=True)
                 
-                send_msg(True, f"Iniciando download de {len(indices)} boletins...", "downloading")
+                send_msg(True, f"Baixando {len(indices)} arquivos...", "downloading")
                 
                 rows = page.query_selector_all('table.tabela_dados tr.linha_impar, table.tabela_dados tr.linha_par')
                 downloads_sucesso = 0
@@ -212,17 +203,21 @@ def main():
                             filepath = pasta_destino / f"BOE_{idx}_{int(time.time())}.pdf"
                             download.save_as(filepath)
                             downloads_sucesso += 1
-                            send_msg(True, f"Baixado {downloads_sucesso}/{len(indices)}...", "processing")
+                            send_msg(True, f"Progresso: {downloads_sucesso}/{len(indices)}...", "processing")
                         except Exception as e:
-                            send_msg(True, f"Falha ao baixar índice {idx}: {str(e)}", "processing")
+                            send_msg(True, f"Erro no índice {idx}: {str(e)}", "processing")
                 
-                send_msg(True, f"Download finalizado: {downloads_sucesso} arquivos salvos.", "finished")
+                send_msg(True, f"Download finalizado. {downloads_sucesso} PDFs salvos.", "finished")
 
             browser.close()
 
     except Exception as e:
-        send_msg(False, f"Erro crítico: {str(e)}", "error")
+        send_msg(False, f"Erro de execução: {str(e)}", "error")
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        # Captura erros que acontecem fora do try/except do main
+        print(json.dumps({"success": False, "message": f"FALHA GLOBAL: {str(e)}", "status": "error"}), flush=True)
