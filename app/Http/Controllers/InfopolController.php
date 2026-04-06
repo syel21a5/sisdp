@@ -63,7 +63,8 @@ class InfopolController extends Controller
         // Salva credenciais em arquivo temporário (Python vai ler via --config)
         File::put($configFile, json_encode($credentials));
 
-        $command = "\"{$this->pythonCommand}\" \"{$this->scriptPath}\" --action login --session_file ".escapeshellarg($sessionFile)." --config ".escapeshellarg($configFile);
+        // Corrigido: Sem aspas em pythonCommand
+        $command = "{$this->pythonCommand} \"{$this->scriptPath}\" --action login --session_file ".escapeshellarg($sessionFile)." --config ".escapeshellarg($configFile);
 
         return $this->streamPythonExecution($command, null, $jobId);
     }
@@ -90,7 +91,8 @@ class InfopolController extends Controller
         $fim = escapeshellarg($request->fim ?? '');
         $delegacia = escapeshellarg($request->delegacia ?? '');
 
-        $command = "\"{$this->pythonCommand}\" \"{$this->scriptPath}\" --action search --nome {$nome} --inicio {$inicio} --fim {$fim} --delegacia {$delegacia} --session_file ".escapeshellarg($sessionFile);
+        // Corrigido: Sem aspas em pythonCommand
+        $command = "{$this->pythonCommand} \"{$this->scriptPath}\" --action search --nome {$nome} --inicio {$inicio} --fim {$fim} --delegacia {$delegacia} --session_file ".escapeshellarg($sessionFile);
 
         return $this->streamPythonExecution($command, null, $jobId);
     }
@@ -118,7 +120,8 @@ class InfopolController extends Controller
         $indices = escapeshellarg($request->indices);
         $outputDirEscaped = escapeshellarg($outputDir);
 
-        $command = "\"{$this->pythonCommand}\" \"{$this->scriptPath}\" --action download --nome {$nome} --inicio {$inicio} --fim {$fim} --indices {$indices} --session_file ".escapeshellarg($sessionFile)." --output_dir {$outputDirEscaped}";
+        // Corrigido: Sem aspas em pythonCommand
+        $command = "{$this->pythonCommand} \"{$this->scriptPath}\" --action download --nome {$nome} --inicio {$inicio} --fim {$fim} --indices {$indices} --session_file ".escapeshellarg($sessionFile)." --output_dir {$outputDirEscaped}";
 
         return $this->streamPythonExecution($command, null, $jobId);
     }
