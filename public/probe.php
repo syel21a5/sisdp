@@ -35,38 +35,34 @@ echo "Python: " . $python['out'] . " " . $python['err'] . "\n";
 $playwright = run("python3 -m playwright --version");
 echo "Playwright: " . $playwright['out'] . " " . $playwright['err'] . "\n";
 
-$pw_info = run("python3 -m playwright install --dry-run");
-echo "\n=== LOCALIZAÇÃO DO PLAYWRIGHT ===\n";
-echo $pw_info['out'] . "\n";
-
-// Busca recursiva pelo binário 'chrome-headless-shell' para não errar o caminho
-$find_chrome = run("find /home/www/.cache/ms-playwright -name chrome-headless-shell -type f | head -n 1");
-$chrome_path = $find_chrome['out'];
+$chrome_dir = "/home/www/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64";
+$chrome_path = "$chrome_dir/chrome-headless-shell";
 
 echo "\n=== CHECANDO BINÁRIO DO CHROME ===\n";
-if ($chrome_path && file_exists($chrome_path)) {
+if (file_exists($chrome_path)) {
     echo "Binário localizado em: $chrome_path\n";
     echo "Permissões: " . substr(sprintf('%o', fileperms($chrome_path)), -4) . "\n";
     
+    echo "\n=== TESTANDO CHROME DIRETO ===\n";
+    $test_chrome = run("$chrome_path --headless --disable-gpu --no-sandbox --dump-dom https://example.com");
+    echo "Saída do Chrome Direto:\n";
+    echo "STDOUT: " . substr($test_chrome['out'], 0, 500) . "...\n";
+    echo "STDERR: " . $test_chrome['err'] . "\n";
+
     echo "\n=== TESTANDO DEPENDÊNCIAS (ldd) ===\n";
     $ldd = run("ldd $chrome_path");
-    echo $ldd['out'] . "\n";
     
     $missing = [];
     if (preg_match_all('/([a-z0-9_\-\.]+) => not found/i', $ldd['out'], $m)) {
         $missing = array_unique($m[1]);
         echo "\n⚠️ ERRO: Faltam " . count($missing) . " bibliotecas: " . implode(", ", $missing) . "\n";
-        echo "\nCOMANDO PARA FIXAR (rode no SSH do root):\n";
-        echo "apt-get update && apt-get install -y " . implode(" ", $missing) . "\n";
     } else {
-        echo "\n✅ Todas as libs do sistema parecem OK via ldd.\n";
+        echo "\n✅ Nenhuma biblioteca dada como 'not found' pelo ldd.\n";
     }
 } else {
-    echo "ERRO: O binário NÃO FOI ENCONTRADO em /home/www/.cache/ms-playwright\n";
-    echo "Tentando listar a pasta para ver o que tem: \n";
-    $ls = run("ls -R /home/www/.cache/ms-playwright | head -n 20");
-    echo $ls['out'] . "\n";
+    echo "ERRO: Binário não encontrado em $chrome_path\n";
 }
+
 
 echo "\n=== TESTE DE LANÇAMENTO REAL (Playwright) ===\n";
 $py_code = "from playwright.sync_api import sync_playwright;
