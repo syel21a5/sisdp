@@ -15,7 +15,7 @@ class SeiController extends Controller
 
     public function __construct()
     {
-        $this->pythonCommand = PHP_OS_FAMILY === 'Windows' ? 'C:\\Python313\\python.exe' : 'python3';
+        $this->pythonCommand = PHP_OS_FAMILY === 'Windows' ? 'C:\\Python313\\python.exe' : 'sudo /usr/local/bin/run_playwright.sh';
         $this->scriptPath = \base_path('scripts/python/verificar_sei.py');
 
         $this->env = getenv();
@@ -74,19 +74,27 @@ class SeiController extends Controller
         ]);
 
         $jobId = $request->jobId ?? 'sess_' . uniqid();
-        $sessionFile = \storage_path("app/public/sei_sessions/{$jobId}/auth.json");
-        File::ensureDirectoryExists(dirname($sessionFile));
-
+        $sessionDir = \storage_path("app/public/sei_sessions/{$jobId}");
+        $sessionFile = "{$sessionDir}/auth.json";
+        $configFile = "{$sessionDir}/config.json";
+        
+        File::ensureDirectoryExists($sessionDir);
+        
         $baseUrl = escapeshellarg($request->base_url);
         $orgao = $request->orgao ? ' --orgao ' . escapeshellarg($request->orgao) : '';
-        $command = "\"{$this->pythonCommand}\" \"{$this->scriptPath}\" --action login --base_url {$baseUrl} --session_file " . escapeshellarg($sessionFile) . $orgao;
-
+        
         $credentials = [
             'usuario' => $request->usuario,
             'senha' => $request->senha,
         ];
+        
+        // Salva credenciais (Python lê via --config)
+        File::put($configFile, json_encode($credentials));
 
-        return $this->streamPythonExecution($command, $credentials, $jobId);
+        // Corrigido: Sem aspas em pythonCommand
+        $command = "{$this->pythonCommand} \"{$this->scriptPath}\" --action login --base_url {$baseUrl} --session_file " . escapeshellarg($sessionFile) . " --config " . escapeshellarg($configFile) . $orgao;
+
+        return $this->streamPythonExecution($command, null, $jobId);
     }
 
     public function listarSeis(Request $request)
@@ -169,7 +177,8 @@ class SeiController extends Controller
         $baseUrl = $request->base_url;
         $keywords = (string) ($request->keywords ?? '');
 
-        $sessionFile = \storage_path("app/public/sei_sessions/{$jobId}/auth.json");
+        $sessionDir = \storage_path("app/public/sei_sessions/{$jobId}");
+        $sessionFile = "{$sessionDir}/auth.json";
         File::ensureDirectoryExists(dirname($sessionFile));
 
         $outputDir = \storage_path("app/public/sei_temp/{$jobId}");
@@ -179,22 +188,28 @@ class SeiController extends Controller
         File::put($seisFile, json_encode(array_values($request->seis), JSON_UNESCAPED_UNICODE));
 
         $orgao = $request->orgao ? ' --orgao ' . escapeshellarg($request->orgao) : '';
-        $command = "\"{$this->pythonCommand}\" \"{$this->scriptPath}\" --action check --base_url " . escapeshellarg($baseUrl) .
-            ' --session_file ' . escapeshellarg($sessionFile) .
-            ' --seis_file ' . escapeshellarg($seisFile) .
-            ' --output_dir ' . escapeshellarg($outputDir) .
-            ' --keywords ' . escapeshellarg($keywords) . 
-            ' --job_id ' . escapeshellarg($jobId) . $orgao;
-
+        
         $credentials = null;
+        $configArg = '';
         if ($request->usuario && $request->senha) {
             $credentials = [
                 'usuario' => $request->usuario,
                 'senha' => $request->senha,
             ];
+            $configFile = "{$sessionDir}/config.json";
+            File::put($configFile, json_encode($credentials));
+            $configArg = " --config " . escapeshellarg($configFile);
         }
 
-        return $this->streamPythonExecution($command, $credentials, $jobId);
+        // Corrigido: Sem aspas em pythonCommand
+        $command = "{$this->pythonCommand} \"{$this->scriptPath}\" --action check --base_url " . escapeshellarg($baseUrl) .
+            ' --session_file ' . escapeshellarg($sessionFile) .
+            ' --seis_file ' . escapeshellarg($seisFile) .
+            ' --output_dir ' . escapeshellarg($outputDir) .
+            ' --keywords ' . escapeshellarg($keywords) . 
+            ' --job_id ' . escapeshellarg($jobId) . $configArg . $orgao;
+
+        return $this->streamPythonExecution($command, null, $jobId);
     }
 
     public function screenshot($jobId, $filename)

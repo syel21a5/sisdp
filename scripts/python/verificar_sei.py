@@ -10,6 +10,23 @@ from urllib.parse import urlparse
 from playwright.sync_api import sync_playwright
 
 
+def unlock_memory_limits():
+    """Remove os limites de memória virtual impostos pelo LiteSpeed no Linux."""
+    import platform
+    if platform.system() == "Linux":
+        try:
+            import resource
+            # Tenta elevar o limite de memória virtual (Address Space) para ilimitado
+            resource.setrlimit(resource.RLIMIT_AS, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
+        except Exception:
+            # Se falhar (ex: hard limit baixo), tenta igualar soft ao hard
+            try:
+                soft, hard = resource.getrlimit(resource.RLIMIT_AS)
+                resource.setrlimit(resource.RLIMIT_AS, (hard, hard))
+            except:
+                pass
+
+
 def send_msg(success, message, status="processing", data=None):
     print(
         json.dumps(
@@ -25,7 +42,18 @@ def send_msg(success, message, status="processing", data=None):
     )
 
 
-def load_credentials():
+def load_credentials(config_path=None):
+    # Prioridade 1: Arquivo enviado por argumento --config (mais seguro com sudo)
+    if config_path and os.path.exists(config_path):
+        try:
+            with open(config_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                if data.get("usuario") and data.get("senha"):
+                    return data
+        except Exception:
+            pass
+
+    # Prioridade 2: STDIN
     if not sys.stdin.isatty():
         try:
             line = sys.stdin.readline()
@@ -387,6 +415,7 @@ def check_keywords_in_page(page, keywords):
 
 
 def main():
+    unlock_memory_limits()
     parser = argparse.ArgumentParser()
     parser.add_argument("--action", choices=["login", "check"], required=True)
     parser.add_argument("--base_url", default="")
@@ -395,6 +424,7 @@ def main():
     parser.add_argument("--output_dir", default="")
     parser.add_argument("--keywords", default="")
     parser.add_argument("--orgao", default="")
+    parser.add_argument("--config", default="") # Novo
     parser.add_argument("--job_id", default="") # Aceita o job_id para evitar erro de argumentos
     args = parser.parse_args()
 
@@ -412,7 +442,7 @@ def main():
     else:
         keywords = ["LAUDO PERICIAL", "LAUDO", "PERÍCIA", "PERICIA"]
 
-    credentials = load_credentials()
+    credentials = load_credentials(args.config)
     if args.action == "login" and not credentials:
         send_msg(False, "Credenciais não informadas para login.", "error")
         sys.exit(1)
