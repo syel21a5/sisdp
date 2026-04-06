@@ -5,7 +5,15 @@ $baseDir = dirname(__DIR__);
 $logDir = $baseDir . '/storage/app/public/jobs';
 
 echo "<h3>Monitor de Conexão GitHub -> Servidor</h3>";
+echo "Horário do Servidor: " . date("H:i:s") . "<br>";
 echo "Diretório de Logs: $logDir <br>";
+
+$testFile = $baseDir . '/storage/logs/write_test.txt';
+if (@file_put_contents($testFile, "teste " . date("H:i:s"))) {
+    echo "✅ Escrita em storage/logs: OK!<br>";
+} else {
+    echo "❌ <b style='color:red'>ERRO DE PERMISSÃO:</b> Não consigo escrever em storage/logs. Peça ao suporte para dar permissão de escrita (775) na pasta storage, ou use o Gerenciador de Arquivos do cPanel/Painel para dar permissão 775 na pasta 'storage' e todas as subpastas.<br>";
+}
 
 if (!is_dir($logDir)) {
     echo "❌ Diretório de logs ainda não foi criado (Nenhum job rodou ainda).<br>";
