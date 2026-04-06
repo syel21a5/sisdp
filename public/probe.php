@@ -39,26 +39,33 @@ $pw_info = run("python3 -m playwright install --dry-run");
 echo "\n=== LOCALIZAÇÃO DO PLAYWRIGHT ===\n";
 echo $pw_info['out'] . "\n";
 
-// Tenta extrair o caminho do binário da saída do dry-run
-preg_match('/Executable: (.*)/', $pw_info['out'], $matches);
-$chrome_path = $matches[1] ?? "/home/www/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell";
+// Busca recursiva pelo binário 'chrome-headless-shell' para não errar o caminho
+$find_chrome = run("find /home/www/.cache/ms-playwright -name chrome-headless-shell -type f | head -n 1");
+$chrome_path = $find_chrome['out'];
 
 echo "\n=== CHECANDO BINÁRIO DO CHROME ===\n";
-if (file_exists($chrome_path)) {
+if ($chrome_path && file_exists($chrome_path)) {
     echo "Binário localizado em: $chrome_path\n";
     echo "Permissões: " . substr(sprintf('%o', fileperms($chrome_path)), -4) . "\n";
     
     echo "\n=== TESTANDO DEPENDÊNCIAS (ldd) ===\n";
     $ldd = run("ldd $chrome_path");
     echo $ldd['out'] . "\n";
-    if (strpos($ldd['out'], "not found") !== false) {
-        echo "\n⚠️ ERRO: Faltam bibliotecas acima!\n";
+    
+    $missing = [];
+    if (preg_match_all('/([a-z0-9_\-\.]+) => not found/i', $ldd['out'], $m)) {
+        $missing = array_unique($m[1]);
+        echo "\n⚠️ ERRO: Faltam " . count($missing) . " bibliotecas: " . implode(", ", $missing) . "\n";
+        echo "\nCOMANDO PARA FIXAR (rode no SSH do root):\n";
+        echo "apt-get update && apt-get install -y " . implode(" ", $missing) . "\n";
+    } else {
+        echo "\n✅ Todas as libs do sistema parecem OK via ldd.\n";
     }
 } else {
-    echo "ERRO: O binário NÃO EXISTE em '$chrome_path'.\n";
-    echo "Tentando instalar agora...\n";
-    $install = run("python3 -m playwright install chromium");
-    echo $install['out'] . $install['err'] . "\n";
+    echo "ERRO: O binário NÃO FOI ENCONTRADO em /home/www/.cache/ms-playwright\n";
+    echo "Tentando listar a pasta para ver o que tem: \n";
+    $ls = run("ls -R /home/www/.cache/ms-playwright | head -n 20");
+    echo $ls['out'] . "\n";
 }
 
 echo "\n=== TESTE DE LANÇAMENTO REAL (Playwright) ===\n";
