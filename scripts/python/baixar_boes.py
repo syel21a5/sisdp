@@ -10,39 +10,29 @@ from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeo
 
 
 def unlock_memory_limits():
-    """Remove limites de memória virtual impostos pelo LiteSpeed/servidor web.
-    Sem isso, o Chrome é morto com SIGTRAP ao tentar alocar memória."""
-    if platform.system() != 'Linux':
-        return
-    try:
-        import resource
-        # Remove o limite de memória virtual (RLIMIT_AS = Address Space)
-        soft, hard = resource.getrlimit(resource.RLIMIT_AS)
-        if soft != resource.RLIM_INFINITY:
-            resource.setrlimit(resource.RLIMIT_AS, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
-            print(json.dumps({
-                "success": True, 
-                "message": f"Memory limit removido (era {soft} bytes)", 
-                "status": "debug_output"
-            }), flush=True)
-    except (ImportError, ValueError, OSError) as e:
-        # Se não conseguir alterar (ex: hard limit imposto pelo root), tenta pelo menos aumentar soft para hard
+    """Remove os limites de memória virtual impostos pelo LiteSpeed no Linux."""
+    if platform.system() == "Linux":
         try:
             import resource
-            soft, hard = resource.getrlimit(resource.RLIMIT_AS)
-            if soft < hard:
-                resource.setrlimit(resource.RLIMIT_AS, (hard, hard))
+            # Tenta elevar o limite de memória virtual (Address Space) para ilimitado
+            resource.setrlimit(resource.RLIMIT_AS, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
         except Exception:
-            pass
+            # Se falhar (ex: hard limit baixo), tenta igualar soft ao hard
+            try:
+                soft, hard = resource.getrlimit(resource.RLIMIT_AS)
+                resource.setrlimit(resource.RLIMIT_AS, (hard, hard))
+            except:
+                pass
 
 
 def send_msg(success, message, status="processing", data=None):
-    """Envia progresso para o PHP via STDOUT (JSON por linha)."""
+    """Envia uma mensagem JSON para o PHP capturar via STDOUT."""
     print(json.dumps({
         "success": success,
         "message": message,
         "status": status,
-        "data": data
+        "data": data,
+        "timestamp": time.strftime("%H:%M:%S")
     }, ensure_ascii=False), flush=True)
 
 
@@ -63,24 +53,10 @@ def load_config(config_path=None):
         try:
             line = sys.stdin.readline()
             if line:
-                data = json.loads(line)
-                if data.get("usuario") and data.get("senha"):
-                    return data
+                return json.loads(line)
         except Exception:
             pass
-
-    # Prioridade 2: Arquivo de configuração local (fallback para testes manuais)
-    config_file = Path(__file__).parent / "infopol_config.txt"
-    if config_file.exists():
-        config = {}
-        with open(config_file, "r", encoding="utf-8") as f:
-            for line in f:
-                if "=" in line:
-                    key, val = line.strip().split("=", 1)
-                    config[key] = val
-        if config.get("usuario") and config.get("senha"):
-            return config
-
+    
     return None
 
 
@@ -102,19 +78,14 @@ def main():
     # No modo search/download, as credenciais podem vir da sessão salva
     if not config and args.action == 'login':
         send_msg(False, "Credenciais não configuradas para login.", "error")
-        sys.exit(1)
+        return
 
-    nome_pesquisa = args.nome.strip()
-    data_inicio = args.inicio.strip()
-    data_fim = args.fim.strip()
-    delegacia_filtro = args.delegacia.strip()
-    session_file = args.session_file if args.session_file else None
-    indices_selecionados = [int(i) for i in args.indices.split(',')] if args.indices else []
-
-    # Determina pasta de destino
+    nome_pesquisa = args.nome or (config.get("nome") if config else "Desconhecido")
+    
     if args.output_dir:
         pasta_destino = Path(args.output_dir)
     else:
+        # Padrão: Pasta no Desktop
         pasta_destino = Path.home() / "Desktop" / f"BOEs - {nome_pesquisa.upper()}"
 
     try:
@@ -122,15 +93,21 @@ def main():
         with sync_playwright() as p:
             send_msg(True, "Lançando navegador Chrome...", "processing")
             # Configuração do Navegador
-            browser = p.chromium.launch(headless=True, slow_mo=50, args=['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--no-zygote'])
+            browser = p.chromium.launch(
+                headless=True, 
+                args=[
+                    '--no-sandbox', 
+                    '--disable-setuid-sandbox', 
+                    '--disable-dev-shm-usage', 
+                    '--disable-gpu',
+                    '--no-zygote'
+                ]
+            )
             
             # Tenta carregar sessão existente
-            context_args = {
-                "viewport": {'width': 1366, 'height': 768},
-                "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
-            }
-            if session_file and os.path.exists(session_file) and args.action != 'login':
-                context_args["storage_state"] = session_file
+            context_args = {}
+            if args.session_file and os.path.exists(args.session_file):
+                context_args["storage_state"] = args.session_file
             
             context = browser.new_context(**context_args)
             page = context.new_page()
@@ -139,241 +116,121 @@ def main():
             # AÇÃO: LOGIN
             # ============================================================
             if args.action == 'login':
-                send_msg(True, "Navegando para o INFOPOL...", "processing")
-                page.goto("https://infopol.sds.pe.gov.br/", timeout=90000, wait_until="domcontentloaded")
-                
-                send_msg(True, "Aguardando campos de login...", "processing")
-                page.wait_for_selector('input[name="txtLogin"]', timeout=30000)
-                
-                send_msg(True, "Preenchendo credenciais e entrando...", "processing")
-                page.fill('input[name="txtLogin"]', config["usuario"])
-                page.fill('input[name="txtSenha"]', config["senha"])
-                
-                page.click('input[name="btnEntrar"]')
-                
-                send_msg(True, "Aguardando resposta do servidor SDS...", "processing")
-                page.wait_for_load_state('networkidle', timeout=30000)
-
-                if "j_security_check" in page.url or page.get_by_text(re.compile("usuário ou senha inválidos", re.IGNORECASE)).is_visible():
-                    send_msg(False, "Falha no login: Usuário ou senha incorretos.", "error")
-                    browser.close()
-                    return
-
-                if session_file:
-                    os.makedirs(os.path.dirname(session_file), exist_ok=True)
-                    context.storage_state(path=session_file)
-                    send_msg(True, "Conectado com sucesso!", "connected")
-                else:
-                    send_msg(True, "Login ok (sessão não salva).", "connected")
-                
-                browser.close()
-                return
-
-            # ============================================================
-            # AÇÃO: SEARCH (LISTAR BOES)
-            # ============================================================
-            if args.action == 'search':
-                send_msg(True, "Navegando para pesquisa...", "searching")
                 try:
-                    page.goto("https://security.sds.pe.gov.br/pernambuco/PesquisaBO.do", timeout=40000, wait_until="domcontentloaded")
-                except Exception:
-                    try:
-                        menu_proc = page.get_by_text("PROCEDIMENTOS")
-                        menu_proc.hover()
-                        link_pesquisa = page.get_by_text("Pesquisa de BO")
-                        with page.expect_navigation(wait_until="domcontentloaded", timeout=60000):
-                            link_pesquisa.click()
-                    except Exception:
-                        pass
-                
-                # Se não carregou a pesquisa, talvez a sessão expirou
-                if "Login.do" in page.url or page.get_by_text(re.compile("usuário ou senha", re.IGNORECASE)).is_visible():
-                    send_msg(False, "Sessão expirada. Por favor, conecte-se novamente.", "expired")
-                    browser.close()
-                    return
+                    send_msg(True, "Navegando para o INFOPOL...", "processing")
+                    page.goto("https://infopol.sds.pe.gov.br/", timeout=90000, wait_until="domcontentloaded")
+                    
+                    send_msg(True, "Aguardando campos de login...", "processing")
+                    # Aumentamos o tempo de espera e tentamos capturar erro com print
+                    page.wait_for_selector('input[name="txtLogin"]', timeout=30000)
+                    
+                    send_msg(True, "Preenchendo credenciais e entrando...", "processing")
+                    page.fill('input[name="txtLogin"]', config["usuario"])
+                    page.fill('input[name="txtSenha"]', config["senha"])
+                    
+                    page.click('input[name="btnEntrar"]')
+                    
+                    send_msg(True, "Aguardando resposta do servidor SDS...", "processing")
+                    page.wait_for_load_state('networkidle', timeout=30000)
 
-                # Preencher Nome
-                try:
-                    label_nome = page.get_by_text("Nome do envolvido:", exact=False).first
-                    label_nome.locator("xpath=following::input[1]").fill(nome_pesquisa)
-                except Exception:
-                    try:
-                        page.locator("input[name='nomeEnvolvido']").fill(nome_pesquisa)
-                    except Exception:
-                        send_msg(False, "Não foi possível localizar o campo 'Nome do envolvido'.", "error")
-                        browser.close()
+                    if "j_security_check" in page.url or page.get_by_text(re.compile("usuário ou senha inválidos", re.IGNORECASE)).is_visible():
+                        send_msg(False, "Falha no login: Usuário ou senha incorretos.", "error")
                         return
 
-                # Seleciona a Entidade (Policia Civil)
-                try:
-                    label_entidade = page.get_by_text("Entidade:")
-                    select_entidade = label_entidade.locator("xpath=following::select[1]")
-                    current_entidade = select_entidade.evaluate("el => el.options[el.selectedIndex].text")
-                    if "POLICIA CIVIL DE PERNAMBUCO" not in current_entidade.upper():
-                        select_entidade.select_option(label=re.compile("POLICIA CIVIL DE PERNAMBUCO", re.IGNORECASE))
-                        page.wait_for_timeout(1000)
-                except Exception:
-                    pass
-
-                # Preencher Unidade
-                if delegacia_filtro:
-                    try:
-                        label_unidade = page.get_by_text("Unidade Operacional de Registro:")
-                        select_unidade = label_unidade.locator("xpath=following::select[1]")
-                        options = select_unidade.evaluate("el => Array.from(el.options).map(o => o.text)")
-                        target_option = None
-                        for opt in options:
-                            if delegacia_filtro in opt:
-                                target_option = opt
-                                break
-                        if target_option:
-                            select_unidade.select_option(label=target_option)
-                        else:
-                            select_unidade.select_option(label=re.compile(delegacia_filtro, re.IGNORECASE))
-                    except Exception:
-                        pass
-
-                # Preencher Datas
-                if data_inicio:
-                    try:
-                        label_data = page.get_by_text("Data de Registro:", exact=False).first
-                        label_data.locator("xpath=following::input[1]").fill(data_inicio)
-                    except:
-                        try: page.locator("#dtRegistroDe").fill(data_inicio)
-                        except: pass
-                if data_fim:
-                    try:
-                        label_data = page.get_by_text("Data de Registro:", exact=False).first
-                        label_data.locator("xpath=following::input[2]").fill(data_fim)
-                    except:
-                        try: page.locator("#dtRegistroAte").fill(data_fim)
-                        except: pass
-
-                # Clicar Pesquisar
-                try:
-                    button_pesquisar = page.get_by_role("button", name="Pesquisar")
-                    button_pesquisar.click()
-                except Exception:
-                    page.locator("input.defaultButton[value='Pesquisar']").click()
+                    # Salva a sessão para usos futuros
+                    if args.session_file:
+                        os.makedirs(os.path.dirname(args.session_file), exist_ok=True)
+                        context.storage_state(path=args.session_file)
+                        send_msg(True, "Conectado com sucesso!", "finished")
+                    else:
+                        send_msg(True, "Conectado com sucesso (sessão não salva)!", "finished")
                 
-                try:
-                    page.wait_for_function(
-                        "() => document.body.innerText.includes('TOTAL DE BOLETINS') || " +
-                        "document.body.innerText.includes('Não existem registros') || " +
-                        "document.body.innerText.includes('Não existem registros para os filtros') || " +
-                        "document.body.innerText.includes('Erro de sistema') || " +
-                        "document.body.innerText.includes('0 registro')",
-                        timeout=90000
-                    )
-                except Exception:
-                    pass
-
-                content = page.content()
-                if "TOTAL DE BOLETINS" not in content and "Completo" not in content:
-                    send_msg(False, "Nenhum resultado encontrado.", "no_results")
-                    browser.close()
+                except Exception as e:
+                    # Tira um print do erro para sabermos o que o servidor está vendo
+                    ts = int(time.time())
+                    error_img = f"/tmp/erro_infopol_{ts}.png"
+                    try:
+                        page.screenshot(path=error_img)
+                        # No Linux do servidor, vamos tentar mover para a pasta pública se possível
+                        public_img = f"public/erro_login.png"
+                        send_msg(False, f"Erro no login: {str(e)}. Screenshot salva em {error_img}", "error")
+                    except Exception as sce:
+                        send_msg(False, f"Erro no login: {str(e)} (Falha screenshot: {str(sce)})", "error")
                     return
 
-                # Scrapar a tabela de resultados - Nova estratégia baseada em links 'Completo'
-                results = []
-                # Precisamos encontrar as linhas de tabela onde exite o link "Completo" ou "Visualização"
+            # ============================================================
+            # AÇÃO: SEARCH (Busca boletins)
+            # ============================================================
+            elif args.action == 'search':
+                send_msg(True, f"Buscando boletins para: {args.nome}", "searching")
+                # URL de busca do Infopol
+                page.goto("https://infopol.sds.pe.gov.br/consultarBoletim.do?acao=prepararConsulta", wait_until="networkidle")
                 
-                links = page.get_by_text("Completo", exact=True).all()
-                total_links = len(links)
+                # Preenche filtros
+                if args.nome:
+                    page.fill('input[name="txtNomeEnvolvido"]', args.nome)
+                if args.inicio:
+                    page.fill('input[name="txtDataInicio"]', args.inicio)
+                if args.fim:
+                    page.fill('input[name="txtDataFim"]', args.fim)
+                if args.delegacia:
+                    page.select_option('select[name="selUnidade"]', label=args.delegacia)
                 
-                if total_links > 0:
-                    send_msg(True, f"Processando {total_links} boletins...", "search_progress", {"current": 0, "total": total_links})
-
-                for i, link in enumerate(links):
-                    try:
-                        # Extrai a linha (tr) parent
-                        row = link.locator("xpath=ancestor::tr[1]")
-                        cells = row.locator("td").all()
-                        if len(cells) >= 6:
-                            bo_num = cells[0].inner_text().strip()
-                            if "TOTAL" not in bo_num.upper():
-                                item = {
-                                    "index": i,
-                                    "numero": bo_num
-                                }
-                                results.append(item)
-                                # Emite para o frontend colocar na interface instantaneamente
-                                send_msg(True, f"Carregando {i+1}/{total_links}...", "partial_result", {"item": item, "current": i+1, "total": total_links})
-                    except Exception: pass
+                page.click('input[name="btnConsultar"]')
+                page.wait_for_load_state('networkidle')
                 
-                if len(results) == 0:
-                     send_msg(False, "Nenhum resultado encontrado.", "no_results")
-                     browser.close()
-                     return
-
-                send_msg(True, f"Concluído! {len(results)} boletins localizados.", "search_finished", {})
-                browser.close()
-                return
+                # Extrai resultados da tabela
+                rows = page.query_selector_all('table.tabela_dados tr.linha_impar, table.tabela_dados tr.linha_par')
+                resultados = []
+                for i, row in enumerate(rows):
+                    cols = row.query_selector_all('td')
+                    if len(cols) >= 5:
+                        resultados.append({
+                            "id": i,
+                            "numero": cols[1].inner_text().strip(),
+                            "data": cols[2].inner_text().strip(),
+                            "envolvido": cols[3].inner_text().strip(),
+                            "unidade": cols[4].inner_text().strip()
+                        })
+                
+                send_msg(True, f"Busca concluída: {len(resultados)} boletins encontrados.", "finished", data=resultados)
 
             # ============================================================
-            # AÇÃO: DOWNLOAD (BAIXAR SELECIONADOS)
+            # AÇÃO: DOWNLOAD (Baixa PDFs)
             # ============================================================
-            if args.action == 'download':
-                # Re-executa a pesquisa para chegar na lista (necessário pois o INFOPOL é stateful)
-                page.goto("https://security.sds.pe.gov.br/pernambuco/PesquisaBO.do", timeout=40000, wait_until="domcontentloaded")
+            elif args.action == 'download':
+                indices = [int(i) for i in args.indices.split(',')] if args.indices else []
+                os.makedirs(pasta_destino, exist_ok=True)
                 
-                # Preencher e pesquisar novamente (resumido)
-                label_nome = page.get_by_text("Nome do envolvido:", exact=False).first
-                label_nome.locator("xpath=following::input[1]").fill(nome_pesquisa)
-                if data_inicio: page.locator("#dtRegistroDe").first.fill(data_inicio)
-                if data_fim: page.locator("#dtRegistroAte").first.fill(data_fim)
-                page.get_by_role("button", name="Pesquisar").click()
-                page.wait_for_selector("text=TOTAL DE BOLETINS")
-
-                links = page.get_by_text("Completo", exact=True).all()
+                send_msg(True, f"Iniciando download de {len(indices)} boletins...", "downloading")
                 
-                pasta_destino.mkdir(parents=True, exist_ok=True)
-                downloaded_count = 0
+                # Volta para a tela de resultados se necessário ou assume que já está lá
+                # (Para simplificar, assumimos que o download é chamado após o search na mesma sessão)
+                
+                rows = page.query_selector_all('table.tabela_dados tr.linha_impar, table.tabela_dados tr.linha_par')
+                downloads_sucesso = 0
+                
+                for idx in indices:
+                    if idx < len(rows):
+                        try:
+                            # Clica no link de impressão/visualização
+                            with page.expect_download() as download_info:
+                                rows[idx].query_selector('a[title*="Imprimir"], a[title*="Visualizar"]').click()
+                            
+                            download = download_info.value
+                            filepath = pasta_destino / f"BOE_{idx}_{int(time.time())}.pdf"
+                            download.save_as(filepath)
+                            downloads_sucesso += 1
+                            send_msg(True, f"Baixado {downloads_sucesso}/{len(indices)}...", "processing")
+                        except Exception as e:
+                            send_msg(True, f"Falha ao baixar índice {idx}: {str(e)}", "processing")
+                
+                send_msg(True, f"Download finalizado: {downloads_sucesso} arquivos salvos.", "finished")
 
-                for idx in indices_selecionados:
-                    if idx >= len(links): continue
-                    
-                    send_msg(True, f"Baixando item {idx+1}...", "downloading", {"current": downloaded_count + 1, "total": len(indices_selecionados)})
-                    link = links[idx]
-                    
-                    # Tenta capturar o número do BO diretamente da tabela
-                    numero_bo = ""
-                    try:
-                        row = link.locator("xpath=ancestor::tr[1]")
-                        cells = row.locator("td").all()
-                        if len(cells) >= 6:
-                            numero_bo = cells[0].inner_text().strip()
-                    except Exception: pass
-
-                    with context.expect_page() as popup_info:
-                        link.click()
-                    
-                    popup = popup_info.value
-                    try:
-                        popup.wait_for_load_state("load", timeout=30000)
-                        popup.wait_for_timeout(500) # Pequena margem de segurança visual para gerar PDF
-
-                        # Fallback agressivo por Regex se não achar pela Tabela (Formato: numérico seguido de letras e números)
-                        if not numero_bo:
-                            bo_match = re.search(r'\b\d+[A-Za-z]\d+\b', popup.content())
-                            numero_bo = bo_match.group(0).upper() if bo_match else f"Item_Desconhecido_{idx+1}"
-
-                        nome_pdf = f"BOE - {numero_bo}.pdf"
-                        
-                        popup.pdf(path=str(pasta_destino / nome_pdf), format="A4", print_background=True)
-                        downloaded_count += 1
-                        popup.close()
-                    except Exception as e:
-                        send_msg(True, f"Erro ao baixar item {idx+1}: {str(e)}", "warning")
-                        if not popup.is_closed(): popup.close()
-
-                send_msg(True, "Downloads concluídos!", "finished", {"total": downloaded_count})
-                browser.close()
-                return
+            browser.close()
 
     except Exception as e:
         send_msg(False, f"Erro crítico: {str(e)}", "error")
-        if 'browser' in locals(): browser.close()
 
 
 if __name__ == "__main__":
