@@ -46,9 +46,19 @@ def send_msg(success, message, status="processing", data=None):
     }, ensure_ascii=False), flush=True)
 
 
-def load_config():
-    """Lê credenciais do STDIN (enviadas pelo PHP) ou do arquivo de fallback."""
-    # Prioridade 1: STDIN (enviado pelo InfopolController via $process->setInput)
+def load_config(config_path=None):
+    """Lê credenciais de um arquivo JSON (preferencial) ou do STDIN."""
+    # Prioridade 1: Arquivo enviado por argumento --config (mais seguro com sudo)
+    if config_path and os.path.exists(config_path):
+        try:
+            with open(config_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                if data.get("usuario") and data.get("senha"):
+                    return data
+        except Exception:
+            pass
+
+    # Prioridade 2: STDIN (fallback)
     if not sys.stdin.isatty():
         try:
             line = sys.stdin.readline()
@@ -84,10 +94,11 @@ def main():
     parser.add_argument('--delegacia', default='')
     parser.add_argument('--output_dir', default='')
     parser.add_argument('--session_file', default='')
+    parser.add_argument('--config', default='') # Novo: arquivo temporário de credenciais
     parser.add_argument('--indices', default='') # Lista de índices separados por vírgula para download
     args = parser.parse_args()
 
-    config = load_config()
+    config = load_config(args.config)
     # No modo search/download, as credenciais podem vir da sessão salva
     if not config and args.action == 'login':
         send_msg(False, "Credenciais não configuradas para login.", "error")

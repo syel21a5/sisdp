@@ -48,19 +48,24 @@ class InfopolController extends Controller
         ]);
 
         $jobId = $request->jobId ?? 'sess_' . uniqid();
-        $sessionFile = storage_path("app/public/infopol_sessions/{$jobId}/auth.json");
+        $sessionDir = storage_path("app/public/infopol_sessions/{$jobId}");
+        $sessionFile = "{$sessionDir}/auth.json";
+        $configFile = "{$sessionDir}/config.json";
         
         // Garante diretório da sessão
-        File::ensureDirectoryExists(dirname($sessionFile));
-
-        $command = "\"{$this->pythonCommand}\" \"{$this->scriptPath}\" --action login --session_file ".escapeshellarg($sessionFile);
+        File::ensureDirectoryExists($sessionDir);
 
         $credentials = [
             'usuario' => $request->usuario,
             'senha' => $request->senha
         ];
+        
+        // Salva credenciais em arquivo temporário (Python vai ler via --config)
+        File::put($configFile, json_encode($credentials));
 
-        return $this->streamPythonExecution($command, $credentials, $jobId);
+        $command = "\"{$this->pythonCommand}\" \"{$this->scriptPath}\" --action login --session_file ".escapeshellarg($sessionFile)." --config ".escapeshellarg($configFile);
+
+        return $this->streamPythonExecution($command, null, $jobId);
     }
 
     /**
