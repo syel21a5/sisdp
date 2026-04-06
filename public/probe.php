@@ -39,28 +39,24 @@ $chrome_dir = "/home/www/.cache/ms-playwright/chromium_headless_shell-1208/chrom
 $chrome_path = "$chrome_dir/chrome-headless-shell";
 
 echo "\n=== CHECANDO BINÁRIO DO CHROME ===\n";
-if (file_exists($chrome_path)) {
-    echo "Binário localizado em: $chrome_path\n";
-    echo "Permissões: " . substr(sprintf('%o', fileperms($chrome_path)), -4) . "\n";
-    
-    echo "\n=== TESTANDO CHROME DIRETO ===\n";
-    $test_chrome = run("$chrome_path --headless --disable-gpu --no-sandbox --dump-dom https://example.com");
-    echo "Saída do Chrome Direto:\n";
-    echo "STDOUT: " . substr($test_chrome['out'], 0, 500) . "...\n";
-    echo "STDERR: " . $test_chrome['err'] . "\n";
+echo "Binário alvo: $chrome_path\n";
 
-    echo "\n=== TESTANDO DEPENDÊNCIAS (ldd) ===\n";
-    $ldd = run("ldd $chrome_path");
-    
-    $missing = [];
-    if (preg_match_all('/([a-z0-9_\-\.]+) => not found/i', $ldd['out'], $m)) {
-        $missing = array_unique($m[1]);
-        echo "\n⚠️ ERRO: Faltam " . count($missing) . " bibliotecas: " . implode(", ", $missing) . "\n";
-    } else {
-        echo "\n✅ Nenhuma biblioteca dada como 'not found' pelo ldd.\n";
-    }
+echo "\n=== TESTANDO CHROME DIRETO ===\n";
+$env = "export HOME=/home/www; ";
+$test_chrome = run("$env $chrome_path --headless --disable-gpu --no-sandbox --dump-dom https://example.com");
+echo "Saída do Chrome Direto:\n";
+echo "STDOUT: " . substr($test_chrome['out'], 0, 500) . "...\n";
+echo "STDERR: " . $test_chrome['err'] . "\n";
+
+echo "\n=== TESTANDO DEPENDÊNCIAS (ldd) ===\n";
+$ldd = run("ldd $chrome_path");
+
+$missing = [];
+if (preg_match_all('/([a-z0-9_\-\.]+) => not found/i', $ldd['out'], $m)) {
+    $missing = array_unique($m[1]);
+    echo "\n⚠️ ERRO: Faltam " . count($missing) . " bibliotecas: " . implode(", ", $missing) . "\n";
 } else {
-    echo "ERRO: Binário não encontrado em $chrome_path\n";
+    echo "\n✅ Nenhuma biblioteca dada como 'not found' pelo ldd. Ou seja, as dependências estão corretas.\n";
 }
 
 
