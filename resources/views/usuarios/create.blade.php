@@ -105,6 +105,14 @@
                                             <label class="form-check-label fw-semibold text-secondary cursor-pointer" for="perm_apreensao_outros"><i class="bi bi-boxes"></i> Outros Itens</label>
                                         </div>
                                     </div>
+
+                                    <hr class="my-3 opacity-25">
+                                    <h6 class="text-muted fw-bold small text-uppercase mb-2">Ferramentas de Verificação</h6>
+                                    
+                                    <div class="form-check form-switch mb-2 fs-6">
+                                        <input type="checkbox" class="form-check-input cursor-pointer" id="perm_verificar_sei" name="perm_verificar_sei" {{ old('perm_verificar_sei', true) ? 'checked' : '' }}>
+                                        <label class="form-check-label fw-semibold cursor-pointer" for="perm_verificar_sei"><i class="bi bi-shield-check text-success"></i> Botão Verificar SEI (Celular/Veículo)</label>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -171,9 +171,11 @@
                                         <label for="inputSeiVeiculo" class="form-label">SEI</label>
                                         <div class="input-group">
                                             <input type="text" class="form-control" placeholder="0000000000.000000/0000-00" name="sei" id="inputSeiVeiculo">
+                                            @if($canVerificarSei ?? true)
                                             <button class="btn btn-success" type="button" id="btnAbrirSei" title="Abrir verificação no SEI">
                                                 <i class="bi bi-shield-check"></i>
                                             </button>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>

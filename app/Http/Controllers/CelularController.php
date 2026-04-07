@@ -27,7 +27,8 @@ class CelularController extends Controller
         }
         return view('wf_celular', [
             'userId' => Auth::id(),
-            'isAdmin' => Auth::id() == 4
+            'isAdmin' => Auth::id() == 4,
+            'canVerificarSei' => isset($perms['verificar_sei']) ? $perms['verificar_sei'] : true
         ]);
     }
 

@@ -59,6 +59,7 @@
                         $permInfopol = isset($permissions['infopol']) ? $permissions['infopol'] : true;
                         $permAntecedentes = isset($permissions['antecedentes']) ? $permissions['antecedentes'] : true;
                         $permAuditoriaChips = isset($permissions['auditoria_chips']) ? $permissions['auditoria_chips'] : false;
+                        $permVerificarSei = isset($permissions['verificar_sei']) ? $permissions['verificar_sei'] : true;
                     @endphp
 
                     <h5 class="fw-bold mt-5 mb-3 border-bottom border-2 border-primary pb-2 d-flex align-items-center"><i class="bi bi-shield-lock-fill text-primary me-2 fs-4"></i> Controle de Permissões</h5>
@@ -127,6 +128,14 @@
                                             <input type="checkbox" class="form-check-input cursor-pointer" id="perm_apreensao_outros" name="perm_apreensao_outros" {{ old('perm_apreensao_outros', $permApreensaoOutros) ? 'checked' : '' }}>
                                             <label class="form-check-label fw-semibold text-secondary cursor-pointer" for="perm_apreensao_outros"><i class="bi bi-boxes"></i> Outros Itens</label>
                                         </div>
+                                    </div>
+
+                                    <hr class="my-3 opacity-25">
+                                    <h6 class="text-muted fw-bold small text-uppercase mb-2">Ferramentas de Verificação</h6>
+                                    
+                                    <div class="form-check form-switch mb-2 fs-6">
+                                        <input type="checkbox" class="form-check-input cursor-pointer" id="perm_verificar_sei" name="perm_verificar_sei" {{ old('perm_verificar_sei', $permVerificarSei) ? 'checked' : '' }}>
+                                        <label class="form-check-label fw-semibold cursor-pointer" for="perm_verificar_sei"><i class="bi bi-shield-check text-success"></i> Botão Verificar SEI (Celular/Veículo)</label>
                                     </div>
                                 </div>
                             </div>
