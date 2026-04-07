@@ -4,75 +4,54 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\File;
+use Symfony\Component\Process\Process;
 
 class SeiController extends Controller
 {
-    private $scriptPath;
-    private $pythonCommand;
-    private $env;
+    private string $pythonCommand;
+    private string $scriptPath;
+    private array $env;
 
     public function __construct()
     {
-        $this->scriptPath = base_path('scripts/python/verificar_sei.py');
-        $this->pythonCommand = PHP_OS_FAMILY === 'Windows' ? 'python' : 'python3';
-        
-        $this->env = [
-            'PLAYWRIGHT_BROWSERS_PATH' => '0',
-            'PATH' => getenv('PATH')
-        ];
+        $this->pythonCommand = PHP_OS_FAMILY === 'Windows' ? 'C:\\Python313\\python.exe' : 'python3';
+        $this->scriptPath = \base_path('scripts/python/verificar_sei.py');
+
+        $this->env = getenv();
+        $this->env['PYTHONUNBUFFERED'] = '1';
+        $this->env['PYTHONIOENCODING'] = 'UTF-8';
+        $this->env['PYTHONPATH'] = 'C:\\Users\\VGR\\AppData\\Roaming\\Python\\Python313\\site-packages';
     }
 
-    public function index(Request $request)
+    public function index()
     {
-        $tipo = $request->query('tipo', 'veiculo');
-        $tipos = ['veiculo', 'celular', 'apreensao_outros'];
-        
-        if (!in_array($tipo, $tipos)) {
-            $tipo = 'veiculo';
-        }
-
-        $moduloLabel = '';
-        if ($tipo === 'veiculo') $moduloLabel = 'Veículos';
-        if ($tipo === 'celular') $moduloLabel = 'Celulares';
-        if ($tipo === 'apreensao_outros') $moduloLabel = 'Apreensão de Outros';
-
-        return view('sei.index', compact('tipo', 'moduloLabel'));
+        return \view('sei.index');
     }
 
     public function conectar(Request $request)
     {
         $request->validate([
-            'usuario' => 'required',
-            'senha' => 'required',
-            'orgao' => 'required'
+            'base_url' => 'required|string',
+            'usuario' => 'required|string',
+            'senha' => 'required|string',
+            'orgao' => 'nullable|string',
         ]);
 
-        $jobId = $request->jobId ?? 'sei_' . uniqid();
-        $sessionDir = storage_path("app/public/sei_sessions/{$jobId}");
-        File::ensureDirectoryExists($sessionDir);
+        $jobId = $request->jobId ?? 'sess_' . uniqid();
+        $sessionFile = \storage_path("app/public/sei_sessions/{$jobId}/auth.json");
+        File::ensureDirectoryExists(dirname($sessionFile));
+
+        $baseUrl = escapeshellarg($request->base_url);
+        $orgao = $request->orgao ? ' --orgao ' . escapeshellarg($request->orgao) : '';
+        $command = "\"{$this->pythonCommand}\" \"{$this->scriptPath}\" --action login --base_url {$baseUrl} --session_file " . escapeshellarg($sessionFile) . $orgao;
 
         $credentials = [
             'usuario' => $request->usuario,
             'senha' => $request->senha,
-            'orgao' => $request->orgao,
-            'job_id' => $jobId
         ];
-        
-        return $this->dispatchGithubWorkflow('verificar_sei.yml', [
-            'action' => 'login',
-            'base_url' => $request->url_sei ?? 'https://sei.pe.gov.br/sei/',
-            'config_b64' => base64_encode(json_encode($credentials)),
-            'job_id' => $jobId,
-            'callback_url' => url('/api/github/callback')
-        ], $jobId);
-    }
 
-    private function verificarPermissao($tipo)
-    {
-        // Método placeholder para manter compatibilidade se for chamado
-        return true;
+        return $this->streamPythonExecution($command, $credentials, $jobId);
     }
 
     public function listarSeis(Request $request)
@@ -80,10 +59,10 @@ class SeiController extends Controller
         $request->validate([
             'status' => 'nullable|string|max:50',
             'limit' => 'nullable|integer|min:1|max:1000',
-            'tipo' => 'nullable|string|in:veiculo,celular,apreensao_outros',
+            'tipo' => 'nullable|string|in:veiculo,celular',
         ]);
 
-        $limit = (int) ($request->limit ?? 500);
+        $limit = (int) ($request->limit ?? 200);
         $status = $request->status;
         $tipo = $request->tipo ?? 'veiculo';
 
@@ -108,7 +87,6 @@ class SeiController extends Controller
                 'usuario.nome as responsavel',
             ]);
         } else {
-            // Veículo é o padrão
             $query = DB::table('cadveiculo')
                 ->leftJoin('usuario', 'cadveiculo.user_id', '=', 'usuario.id')
                 ->whereNotNull('cadveiculo.sei')
@@ -124,14 +102,14 @@ class SeiController extends Controller
                 'cadveiculo.data',
                 'cadveiculo.boe',
                 'cadveiculo.pessoa',
-                'cadveiculo.placa as identificador',
+                'cadveiculo.placa as identificador', // Para veículos, usamos a placa
                 'cadveiculo.sei',
                 'cadveiculo.status',
                 'usuario.nome as responsavel',
             ]);
         }
 
-        return response()->json([
+        return \response()->json([
             'success' => true,
             'data' => $items,
         ]);
@@ -140,35 +118,52 @@ class SeiController extends Controller
     public function verificar(Request $request)
     {
         $request->validate([
-            'jobId' => 'required',
-            'seis' => 'required',
-            'tipo' => 'required'
+            'base_url' => 'required|string',
+            'jobId' => 'required|string',
+            'seis' => 'required|array|min:1',
+            'seis.*' => 'required|string',
+            'keywords' => 'nullable|string',
+            'usuario' => 'nullable|string',
+            'senha' => 'nullable|string',
+            'orgao' => 'nullable|string',
         ]);
 
         $jobId = $request->jobId;
-        $sessionFile = storage_path("app/public/sei_sessions/{$jobId}/auth.json");
-        $sessionData = File::exists($sessionFile) ? File::get($sessionFile) : null;
+        $baseUrl = $request->base_url;
+        $keywords = (string) ($request->keywords ?? '');
 
-        $credentials = [
-            'session_data' => $sessionData,
-            'job_id' => $jobId
-        ];
+        $sessionFile = \storage_path("app/public/sei_sessions/{$jobId}/auth.json");
+        File::ensureDirectoryExists(dirname($sessionFile));
 
-        return $this->dispatchGithubWorkflow('verificar_sei.yml', [
-            'action' => 'check',
-            'base_url' => $request->url_sei ?? 'https://sei.pe.gov.br/sei/',
-            'seis' => is_array($request->seis) ? json_encode($request->seis) : $request->seis,
-            'keywords' => $request->palavras_chave ?? '',
-            'config_b64' => base64_encode(json_encode($credentials)),
-            'job_id' => $jobId,
-            'callback_url' => url('/api/github/callback')
-        ], $jobId);
+        $outputDir = \storage_path("app/public/sei_temp/{$jobId}");
+        File::ensureDirectoryExists($outputDir);
+
+        $seisFile = \storage_path("app/public/sei_temp/{$jobId}/seis.json");
+        File::put($seisFile, json_encode(array_values($request->seis), JSON_UNESCAPED_UNICODE));
+
+        $orgao = $request->orgao ? ' --orgao ' . escapeshellarg($request->orgao) : '';
+        $command = "\"{$this->pythonCommand}\" \"{$this->scriptPath}\" --action check --base_url " . escapeshellarg($baseUrl) .
+            ' --session_file ' . escapeshellarg($sessionFile) .
+            ' --seis_file ' . escapeshellarg($seisFile) .
+            ' --output_dir ' . escapeshellarg($outputDir) .
+            ' --keywords ' . escapeshellarg($keywords) . 
+            ' --job_id ' . escapeshellarg($jobId) . $orgao;
+
+        $credentials = null;
+        if ($request->usuario && $request->senha) {
+            $credentials = [
+                'usuario' => $request->usuario,
+                'senha' => $request->senha,
+            ];
+        }
+
+        return $this->streamPythonExecution($command, $credentials, $jobId);
     }
 
     public function screenshot($jobId, $filename)
     {
-        $path = storage_path("app/public/sei_temp/{$jobId}/{$filename}");
-        return File::exists($path) ? response()->file($path) : abort(404);
+        $path = \storage_path("app/public/sei_temp/{$jobId}/{$filename}");
+        return File::exists($path) ? \response()->file($path) : \abort(404);
     }
 
     public function parar(Request $request)
@@ -179,70 +174,66 @@ class SeiController extends Controller
         }
 
         if (PHP_OS_FAMILY === 'Windows') {
+            // Em Windows, usamos o wmic para localizar o processo pela linha de comando e terminá-lo
+            // Filtrando especificamente pelo --job_id único da sessão
             $cmd = "wmic process where \"CommandLine like '%--job_id {$jobId}%'\" call terminate";
             @exec($cmd);
         } else {
+            // Em Linux/Mac
             $cmd = "pkill -f \"--job_id {$jobId}\"";
             @exec($cmd);
         }
 
-        return response()->json(['success' => true, 'message' => 'Comando de parada enviado (Apenas Local)']);
+        return response()->json(['success' => true, 'message' => 'Comando de parada enviado']);
     }
 
-    private function dispatchGithubWorkflow(string $workflow, array $inputs, string $jobId)
+    private function streamPythonExecution(string $command, ?array $credentials = null, ?string $jobId = null)
     {
-        // Debug de emergência ignorando o sistema do Laravel
-        @file_put_contents(public_path('emergency_debug.txt'), date('H:i:s') . " - Tentando disparar GitHub SEI: $workflow \n", FILE_APPEND);
+        return \response()->stream(function () use ($command, $credentials, $jobId) {
+            try {
+                $process = Process::fromShellCommandline($command);
+                $process->setTimeout(900);
+                $process->setEnv($this->env);
 
-        $token = env('GITHUB_TOKEN') ?: config('services.github.token');
-        $repo = env('GITHUB_REPO') ?: config('services.github.repo');
+                if ($credentials) {
+                    $process->setInput(json_encode($credentials));
+                }
 
-        if (!$token || !$repo) {
-            return response()->json(['success' => false, 'message' => 'GITHUB_TOKEN ou GITHUB_REPO não configurado no .env', 'status' => 'error'], 500);
-        }
+                $process->run(function ($type, $buffer) use ($jobId) {
+                    if ($type === Process::ERR) {
+                        $msg = trim((string) $buffer);
+                        if ($msg !== '') {
+                            echo json_encode(['success' => false, 'message' => $msg, 'status' => 'error']) . "\n";
+                        }
+                        if (ob_get_level() > 0) {
+                            ob_flush();
+                        }
+                        flush();
+                        return;
+                    }
+                    if (strpos($buffer, '{') !== false) {
+                        $data = json_decode($buffer, true);
+                        if ($data) {
+                            if (($data['status'] ?? '') === 'screenshot' && isset($data['data']['filename']) && $jobId) {
+                                $data['data']['url'] = \route('sei.screenshot', ['jobId' => $jobId, 'filename' => $data['data']['filename']]);
+                            }
+                            echo json_encode($data) . "\n";
+                        }
+                    }
 
-        $logFile = storage_path("app/public/jobs/{$jobId}/output.log");
-        if (File::exists($logFile)) File::delete($logFile);
-        File::ensureDirectoryExists(dirname($logFile));
-
-        $response = Http::withToken($token)
-            ->post("https://api.github.com/repos/{$repo}/actions/workflows/{$workflow}/dispatches", [
-                'ref' => 'main',
-                'inputs' => $inputs
-            ]);
-
-        if ($response->successful()) {
-            return response()->json(['success' => true, 'jobId' => $jobId, 'status' => 'dispatched']);
-        }
-        return response()->json(['success' => false, 'message' => 'Erro ao disparar workflow: ' . $response->body(), 'status' => 'error'], 500);
-    }
-
-    public function status(Request $request, $jobId)
-    {
-        $logFile = storage_path("app/public/jobs/{$jobId}/output.log");
-        $lastPos = (int) $request->input('lastPos', 0);
-
-        if (!File::exists($logFile)) {
-            // Arquivo ainda não existe (GitHub ainda vai começar)
-            return response()->json(['success' => true, 'lines' => [], 'lastPos' => $lastPos]);
-        }
-
-        $content = file_get_contents($logFile);
-        $newContent = substr($content, $lastPos);
-        $newPos = strlen($content);
-
-        $lines = array_filter(explode("\n", $newContent), 'trim');
-        
-        $parsedLines = [];
-        foreach($lines as $line) {
-            $data = json_decode($line, true);
-            if ($data) $parsedLines[] = $data;
-        }
-
-        return response()->json([
-            'success' => true,
-            'lines' => $parsedLines,
-            'lastPos' => $newPos
+                    if (ob_get_level() > 0) {
+                        ob_flush();
+                    }
+                    flush();
+                });
+            } catch (\Throwable $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage(), 'status' => 'error']) . "\n";
+            }
+        }, 200, [
+            'Content-Type' => 'text/event-stream',
+            'Cache-Control' => 'no-cache',
+            'X-Accel-Buffering' => 'no',
         ]);
     }
 }
+

@@ -6,66 +6,26 @@ import sys
 import time
 from pathlib import Path
 from urllib.parse import urlparse
-import urllib.request
-import urllib.error
 
 from playwright.sync_api import sync_playwright
 
-CALLBACK_URL = None
-JOB_ID = None
-
-
-def unlock_memory_limits():
-    """Remove os limites de memória virtual impostos pelo LiteSpeed no Linux."""
-    import platform
-    if platform.system() == "Linux":
-        try:
-            import resource
-            # Tenta elevar o limite de memória virtual (Address Space) para ilimitado
-            resource.setrlimit(resource.RLIMIT_AS, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
-        except Exception:
-            # Se falhar (ex: hard limit baixo), tenta igualar soft ao hard
-            try:
-                soft, hard = resource.getrlimit(resource.RLIMIT_AS)
-                resource.setrlimit(resource.RLIMIT_AS, (hard, hard))
-            except:
-                pass
-
 
 def send_msg(success, message, status="processing", data=None):
-    payload = {
-        "success": success,
-        "message": message,
-        "status": status,
-        "data": data,
-        "timestamp": time.strftime("%H:%M:%S")
-    }
-    if JOB_ID:
-        payload["job_id"] = JOB_ID
-    
-    json_str = json.dumps(payload, ensure_ascii=False)
-    print(json_str, flush=True)
-
-    if CALLBACK_URL:
-        try:
-            req = urllib.request.Request(CALLBACK_URL, data=json_str.encode('utf-8'), headers={'Content-Type': 'application/json'})
-            urllib.request.urlopen(req, timeout=5)
-        except Exception as e:
-            print(f"Warning: Failed to call webhook: {e}", file=sys.stderr)
+    print(
+        json.dumps(
+            {
+                "success": success,
+                "message": message,
+                "status": status,
+                "data": data,
+            },
+            ensure_ascii=False,
+        ),
+        flush=True,
+    )
 
 
-def load_credentials(config_path=None):
-    # Prioridade 1: Arquivo enviado por argumento --config (mais seguro com sudo)
-    if config_path and os.path.exists(config_path):
-        try:
-            with open(config_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                if data.get("usuario") and data.get("senha"):
-                    return data
-        except Exception:
-            pass
-
-    # Prioridade 2: STDIN
+def load_credentials():
     if not sys.stdin.isatty():
         try:
             line = sys.stdin.readline()
@@ -210,13 +170,12 @@ def goto_login(page, base_url: str):
 
     for url in candidates:
         try:
-            send_msg(True, f"Abrindo página: {url}", "navigating")
-            page.goto(url, timeout=45000, wait_until="domcontentloaded")
+            send_msg(True, f"Abrindo login: {url}", "navigating")
+            page.goto(url, timeout=30000, wait_until="domcontentloaded")
             # Se carregou algo que parece login ou já logado, sucesso
             if is_login_page(page) or is_logged_in(page):
                 return True
-        except Exception as e:
-            send_msg(True, f"Falha ao abrir {url}: {e}", "processing")
+        except Exception:
             continue
     return False
 
@@ -354,13 +313,12 @@ def go_to_search(page, base_url: str):
     for url in candidates:
         try:
             send_msg(True, f"Indo para tela inicial: {url}", "navigating")
-            page.goto(url, timeout=45000, wait_until="domcontentloaded")
-            page.wait_for_timeout(1500)
+            page.goto(url, timeout=30000, wait_until="domcontentloaded")
+            page.wait_for_timeout(1000)
             close_popups(page)
             if is_logged_in(page):
                 return True
-        except Exception as e:
-            send_msg(True, f"Erro ao acessar {url}: {e}", "processing")
+        except Exception:
             continue
     return False
 
@@ -429,8 +387,6 @@ def check_keywords_in_page(page, keywords):
 
 
 def main():
-    global CALLBACK_URL, JOB_ID
-    unlock_memory_limits()
     parser = argparse.ArgumentParser()
     parser.add_argument("--action", choices=["login", "check"], required=True)
     parser.add_argument("--base_url", default="")
@@ -439,16 +395,8 @@ def main():
     parser.add_argument("--output_dir", default="")
     parser.add_argument("--keywords", default="")
     parser.add_argument("--orgao", default="")
-    parser.add_argument("--config", default="") # Novo
     parser.add_argument("--job_id", default="") # Aceita o job_id para evitar erro de argumentos
-    parser.add_argument("--callback_url", default="")
     args = parser.parse_args()
-
-    if args.callback_url:
-        CALLBACK_URL = args.callback_url
-    if args.job_id:
-        JOB_ID = args.job_id
-
 
     base_url = normalize_base_url(args.base_url)
     if not base_url:
@@ -464,41 +412,14 @@ def main():
     else:
         keywords = ["LAUDO PERICIAL", "LAUDO", "PERÍCIA", "PERICIA"]
 
-    credentials = load_credentials(args.config)
+    credentials = load_credentials()
     if args.action == "login" and not credentials:
         send_msg(False, "Credenciais não informadas para login.", "error")
         sys.exit(1)
 
-    # Restaura sessão se veio no config
-    if credentials and credentials.get("session_data") and session_file:
-        try:
-            os.makedirs(os.path.dirname(session_file), exist_ok=True)
-            with open(session_file, 'w', encoding='utf-8') as f:
-                f.write(credentials["session_data"])
-        except Exception as e:
-            send_msg(False, f"Falha ao restaurar sessão: {e}", "processing")
-
     with sync_playwright() as p:
-        send_msg(True, "Iniciando Playwright...", "processing")
         # Navegador em segundo plano (headless=True) agora que está tudo validado.
-        
-        # Caminho que confirmamos no probe.php
-        chrome_path = "/home/www/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell"
-        launch_args = {
-            "headless": True,
-            "args": [
-                '--no-sandbox', 
-                '--disable-setuid-sandbox', 
-                '--disable-dev-shm-usage', 
-                '--disable-gpu',
-                '--no-zygote'
-            ]
-        }
-        if os.path.exists(chrome_path):
-            launch_args["executable_path"] = chrome_path
-            send_msg(True, "Caminho do Chrome localizado.", "processing")
-
-        browser = p.chromium.launch(**launch_args)
+        browser = p.chromium.launch(headless=True)
 
         context_args = {
             "viewport": {"width": 1366, "height": 768},
@@ -566,18 +487,11 @@ def main():
                     send_msg(True, "Sessão expirada. Reconectando automaticamente...", "logging_in")
                     orgao_cred = orgao or (credentials.get("orgao", "") if credentials else "")
                     ok = do_login(page, base_url, credentials["usuario"], credentials["senha"], orgao_cred, output_dir)
-                    if session_file:
+                    if ok and session_file:
+                        Path(session_file).parent.mkdir(parents=True, exist_ok=True)
                         context.storage_state(path=session_file)
-                        # Lê para enviar de volta
-                        session_content = ""
-                        try:
-                            with open(session_file, 'r', encoding='utf-8') as f:
-                                session_content = f.read()
-                        except:
-                            pass
-                        send_msg(True, "Login realizado com sucesso!", "finished", data={"session_data": session_content})
-                    else:
-                        send_msg(True, "Login realizado com sucesso!", "finished")
+                    if not ok:
+                        send_msg(False, "Falha ao reconectar ao SEI.", "expired")
                         page.wait_for_timeout(5000)
                         browser.close()
                         return
@@ -687,7 +601,4 @@ def main():
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except Exception as e:
-        print(json.dumps({"success": False, "message": f"FALHA GLOBAL (SEI): {str(e)}", "status": "error"}), flush=True)
+    main()

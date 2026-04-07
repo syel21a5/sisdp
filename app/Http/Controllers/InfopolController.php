@@ -7,7 +7,6 @@ use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use ZipArchive;
 
@@ -19,18 +18,13 @@ class InfopolController extends Controller
 
     public function __construct()
     {
-        $this->pythonCommand = PHP_OS_FAMILY === 'Windows' ? "C:\\Python313\\python.exe" : "sudo /usr/local/bin/run_playwright.sh";
+        $this->pythonCommand = PHP_OS_FAMILY === 'Windows' ? "C:\\Python313\\python.exe" : "python3";
         $this->scriptPath = base_path('scripts/python/baixar_boes.py');
         
         $this->env = getenv();
         $this->env['PYTHONUNBUFFERED'] = '1';
         $this->env['PYTHONIOENCODING'] = 'UTF-8';
-        $this->env['DEBUG'] = 'pw:browser*';
-        $this->env['HOME'] = '/home/www';
-        $this->env['PLAYWRIGHT_BROWSERS_PATH'] = '/home/www/.cache/ms-playwright';
-        if (!isset($this->env['PATH'])) {
-            $this->env['PATH'] = '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin';
-        }
+        $this->env['PYTHONPATH'] = 'C:\\Users\\VGR\\AppData\\Roaming\\Python\\Python313\\site-packages';
     }
 
     public function index()
@@ -39,31 +33,29 @@ class InfopolController extends Controller
     }
 
     /**
-     * Realiza a conexão (login) e salva a sessão.
+     * Tenta realizar o login e salvar a sessão (auth state).
      */
     public function conectar(Request $request)
     {
         $request->validate([
-            'usuario' => 'required|string',
-            'senha' => 'required|string',
+            'usuario' => 'required',
+            'senha' => 'required'
         ]);
 
         $jobId = $request->jobId ?? 'sess_' . uniqid();
-        $sessionDir = storage_path("app/public/infopol_sessions/{$jobId}");
-        File::ensureDirectoryExists($sessionDir);
+        $sessionFile = storage_path("app/public/infopol_sessions/{$jobId}/auth.json");
+        
+        // Garante diretório da sessão
+        File::ensureDirectoryExists(dirname($sessionFile));
+
+        $command = "\"{$this->pythonCommand}\" \"{$this->scriptPath}\" --action login --session_file ".escapeshellarg($sessionFile);
 
         $credentials = [
             'usuario' => $request->usuario,
-            'senha' => $request->senha,
-            'job_id' => $jobId
+            'senha' => $request->senha
         ];
-        
-        return $this->dispatchGithubWorkflow('baixar_boes.yml', [
-            'action' => 'login',
-            'config_b64' => base64_encode(json_encode($credentials)),
-            'job_id' => $jobId,
-            'callback_url' => url('/api/github/callback')
-        ], $jobId);
+
+        return $this->streamPythonExecution($command, $credentials, $jobId);
     }
 
     /**
@@ -78,24 +70,19 @@ class InfopolController extends Controller
 
         $jobId = $request->jobId;
         $sessionFile = storage_path("app/public/infopol_sessions/{$jobId}/auth.json");
-        $sessionData = File::exists($sessionFile) ? File::get($sessionFile) : null;
+        
+        if (!File::exists($sessionFile)) {
+            return response()->json(['success' => false, 'message' => 'Sessão não encontrada. Conecte-se novamente.', 'status' => 'expired'], 401);
+        }
 
-        $credentials = [
-            'nome' => $request->nome,
-            'session_data' => $sessionData,
-            'job_id' => $jobId
-        ];
+        $nome = escapeshellarg($request->nome);
+        $inicio = escapeshellarg($request->inicio ?? '');
+        $fim = escapeshellarg($request->fim ?? '');
+        $delegacia = escapeshellarg($request->delegacia ?? '');
 
-        return $this->dispatchGithubWorkflow('baixar_boes.yml', [
-            'action' => 'search',
-            'nome' => $request->nome,
-            'inicio' => $request->inicio ?? '',
-            'fim' => $request->fim ?? '',
-            'delegacia' => $request->delegacia ?? '',
-            'config_b64' => base64_encode(json_encode($credentials)),
-            'job_id' => $jobId,
-            'callback_url' => url('/api/github/callback')
-        ], $jobId);
+        $command = "\"{$this->pythonCommand}\" \"{$this->scriptPath}\" --action search --nome {$nome} --inicio {$inicio} --fim {$fim} --delegacia {$delegacia} --session_file ".escapeshellarg($sessionFile);
+
+        return $this->streamPythonExecution($command, null, $jobId);
     }
 
     /**
@@ -106,101 +93,69 @@ class InfopolController extends Controller
         $request->validate([
             'nome' => 'required|string',
             'jobId' => 'required|string',
-            'indices' => 'required|string'
+            'indices' => 'required|string' // Ex: "0,1,5"
         ]);
 
         $jobId = $request->jobId;
         $sessionFile = storage_path("app/public/infopol_sessions/{$jobId}/auth.json");
-        $sessionData = File::exists($sessionFile) ? File::get($sessionFile) : null;
-
-        $credentials = [
-            'nome' => $request->nome,
-            'session_data' => $sessionData,
-            'job_id' => $jobId
-        ];
-
-        return $this->dispatchGithubWorkflow('baixar_boes.yml', [
-            'action' => 'download',
-            'nome' => $request->nome,
-            'inicio' => $request->inicio ?? '',
-            'fim' => $request->fim ?? '',
-            'indices' => $request->indices,
-            'config_b64' => base64_encode(json_encode($credentials)),
-            'job_id' => $jobId,
-            'callback_url' => url('/api/github/callback')
-        ], $jobId);
-    }
-
-    private function dispatchGithubWorkflow($workflow, $inputs, $jobId)
-    {
-        // Debug de emergência ignorando o sistema do Laravel
-        @file_put_contents(public_path('emergency_debug.txt'), date('H:i:s') . " - Tentando disparar GitHub: $workflow \n", FILE_APPEND);
-
-        $token = env('GITHUB_TOKEN') ?: config('services.github.token');
-        $repo = env('GITHUB_REPO') ?: config('services.github.repo');
-
-        if (!$token || !$repo) {
-            return response()->json(['success' => false, 'message' => 'GITHUB_TOKEN ou GITHUB_REPO não configurado no .env', 'status' => 'error'], 500);
-        }
-
-        // Limpa o log antigo se existir
-        $logFile = storage_path("app/public/jobs/{$jobId}/output.log");
-        if (File::exists($logFile)) File::delete($logFile);
-        File::ensureDirectoryExists(dirname($logFile));
-
-        \Illuminate\Support\Facades\Log::info("Tentando disparar GitHub...", ['workflow' => $workflow, 'repo' => $repo]);
-
-        $response = Http::withToken($token)
-            ->post("https://api.github.com/repos/{$repo}/actions/workflows/{$workflow}/dispatches", [
-                'ref' => 'main',
-                'inputs' => $inputs
-            ]);
-
-        \Illuminate\Support\Facades\Log::info("Resposta do GitHub Actions", [
-            'status' => $response->status(),
-            'body' => $response->body()
-        ]);
-
-        if ($response->failed()) {
-            return response()->json(['success' => false, 'message' => 'Falha ao disparar GitHub: ' . $response->body(), 'status' => 'error'], 500);
-        }
-
-        return response()->json(['success' => true, 'jobId' => $jobId, 'status' => 'dispatched']);
-    }
-
-    public function status(Request $request, $jobId)
-    {
-        $logFile = storage_path("app/public/jobs/{$jobId}/output.log");
-        $lastPos = (int) $request->input('lastPos', 0);
-
-        if (!File::exists($logFile)) {
-            // Arquivo ainda não existe (GitHub ainda vai começar)
-            return response()->json(['success' => true, 'lines' => [], 'lastPos' => $lastPos]);
-        }
-
-        $content = file_get_contents($logFile);
-        $newContent = substr($content, $lastPos);
-        $newPos = strlen($content);
-
-        $lines = array_filter(explode("\n", $newContent), 'trim');
+        $outputDir = storage_path("app/public/infopol_temp/{$jobId}/PDFs");
         
-        $parsedLines = [];
-        foreach($lines as $line) {
-            $data = json_decode($line, true);
-            if ($data) $parsedLines[] = $data;
-        }
+        File::ensureDirectoryExists($outputDir);
 
-        // Adiciona a URL de download se estiver finalizado
-        foreach ($parsedLines as &$data) {
-             if (($data['status'] ?? '') === 'finished') {
-                  $data['download_url'] = route('infopol.download', ['jobId' => $jobId]);
-             }
-        }
+        $nome = escapeshellarg($request->nome);
+        $inicio = escapeshellarg($request->inicio ?? '');
+        $fim = escapeshellarg($request->fim ?? '');
+        $indices = escapeshellarg($request->indices);
+        $outputDirEscaped = escapeshellarg($outputDir);
 
-        return response()->json([
-            'success' => true,
-            'lines' => $parsedLines,
-            'lastPos' => $newPos
+        $command = "\"{$this->pythonCommand}\" \"{$this->scriptPath}\" --action download --nome {$nome} --inicio {$inicio} --fim {$fim} --indices {$indices} --session_file ".escapeshellarg($sessionFile)." --output_dir {$outputDirEscaped}";
+
+        return $this->streamPythonExecution($command, null, $jobId);
+    }
+
+    /**
+     * Helper para executar o Python e realizar o streaming da saída.
+     */
+    private function streamPythonExecution($command, $credentials = null, $jobId = null)
+    {
+        return response()->stream(function () use ($command, $credentials, $jobId) {
+            try {
+                $process = Process::fromShellCommandline($command);
+                $process->setTimeout(600);
+                $process->setEnv($this->env);
+                
+                if ($credentials) {
+                    $process->setInput(json_encode($credentials));
+                }
+
+                $process->run(function ($type, $buffer) use ($jobId) {
+                    // Se for JSON de progresso/resultado, repassa
+                    if (strpos($buffer, '{') !== false) {
+                        $data = json_decode($buffer, true);
+                        if ($data) {
+                            if (($data['status'] ?? '') === 'finished') {
+                                $data['download_url'] = route('infopol.download', ['jobId' => $jobId]);
+                            }
+                            echo json_encode($data) . "\n";
+                        } else {
+                            echo $buffer;
+                        }
+                    } else {
+                        // Log de texto comum para debug (opcional)
+                        // echo json_encode(['message' => $buffer, 'status' => 'raw']) . "\n";
+                    }
+                    
+                    if (ob_get_level() > 0) ob_flush();
+                    flush();
+                });
+
+            } catch (\Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage(), 'status' => 'error']) . "\n";
+            }
+        }, 200, [
+            'Content-Type' => 'text/event-stream',
+            'Cache-Control' => 'no-cache',
+            'X-Accel-Buffering' => 'no',
         ]);
     }
 
