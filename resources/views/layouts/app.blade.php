@@ -104,6 +104,7 @@
                         @php
                             $appPerms = Auth::user()->permissions ?? [];
                             $canAuditoriaChipsApp = isset($appPerms['auditoria_chips']) ? $appPerms['auditoria_chips'] : false;
+                            $canInfopol = isset($appPerms['infopol']) ? $appPerms['infopol'] : true;
                         @endphp
                         @if($canAuditoriaChipsApp || (Auth::user()->nivel_acesso === 'administrador'))
                             <li class="nav-item">
@@ -123,11 +124,13 @@
 
 
 
+                    @if($canInfopol)
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('infopol.index') }}" target="_blank">
                             <i class="bi bi-cloud-arrow-down"></i> Sincronização SDS
                         </a>
                     </li>
+                    @endif
 
                     <li class="nav-item">
 

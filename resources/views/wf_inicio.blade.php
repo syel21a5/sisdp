@@ -41,6 +41,7 @@
                 $canApreensaoOutros = isset($userPermissions['apreensao_outros']) ? $userPermissions['apreensao_outros'] : true;
                 $canApfd = isset($userPermissions['apfd']) ? $userPermissions['apfd'] : true;
                 $canAuditoriaChips = isset($userPermissions['auditoria_chips']) ? $userPermissions['auditoria_chips'] : false;
+                $canInfopol = isset($userPermissions['infopol']) ? $userPermissions['infopol'] : true;
             @endphp
             @if(!$hasMenuAccess)
                 <!-- <span class="access-indicator">Acesso Restrito</span> -->
@@ -135,11 +136,13 @@
             </li>
 
             <!-- NOVO MENU SINCRONIZAÇÃO SDS -->
+            @if($canInfopol)
             <li>
                 <a href="{{ route('infopol.index') }}" target="_blank" style="color: #0dcaf0;">
                     <i class="bi bi-cloud-arrow-down"></i>Sincronização SDS
                 </a>
             </li>
+            @endif
             @endif
 
             <!-- BOTÃO DE SAIR - SEMPRE ACESSÍVEL -->
