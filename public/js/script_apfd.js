@@ -604,7 +604,17 @@ $(document).ready(function () {
             $('#boeProgressBar').removeClass('progress-bar-animated progress-bar-striped bg-primary bg-danger bg-success').addClass(cor).css('width', '100%').attr('aria-valuenow', 100);
             $('#boeProgressLabel').text(label);
             $('#boeProgressPercent').text('100%');
-            setTimeout(function () { $('#boeProgressWrapper').hide(); }, 2500);
+            setTimeout(function () { 
+                $('#boeProgressWrapper').hide();
+                // Se foi sucesso, já limpamos os campos para a próxima abertura
+                if (sucesso) {
+                    $('#textoBoe').val('');
+                    $('#pdfBoe').val('');
+                    // Reset da barra para 0% para a próxima vez
+                    $('#boeProgressBar').css('width', '0%').attr('aria-valuenow', 0);
+                    $('#boeProgressPercent').text('0%');
+                }
+            }, 2500);
         }
 
         if (pdfAtivo) {
