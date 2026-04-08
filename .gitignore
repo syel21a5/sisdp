@@ -21,3 +21,23 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# Custom Ignored Files
+*.sql
+*.log
+test_*.pdf
+test_*.php
+debug_*.php
+import_*.php
+fix_*.php
+temp_*
+*.txt
+*.json
+!composer.json
+!package.json
+!*.schema.json
+
+# Custom Ignored Directories
+/outros_backups
+/documentos_boe_exemplo
+/cache
