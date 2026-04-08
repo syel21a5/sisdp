@@ -36,10 +36,15 @@ def ensure_package(module_name: str, pip_name: str):
             sys.exit(1)
 
 ensure_package('google.genai', 'google-genai')
+ensure_package('openai', 'openai')
 ensure_package('fitz', 'PyMuPDF')
 
 from google import genai  # type: ignore
 import fitz  # type: ignore  # PyMuPDF
+try:
+    from openai import OpenAI
+except:
+    pass
 
 def fallback_json(error_msg: str):
     """Fallback simples caso o processo falhe."""
@@ -78,11 +83,8 @@ def ler_arquivo(file_path: str) -> str:
         fallback_json(f"Erro ao tentar ler o arquivo {ext}: {str(e)}")
     return ""
 
-def extract_with_gemini(texto: str, api_key: str, ext_type: str = 'apfd'):
-    try:
-        client = genai.Client(api_key=api_key)
-    except Exception as e:
-        return {"success": False, "error": f"Erro de credenciais na IA: {str(e)}"}
+def extract_with_ai(texto: str, gemini_key: str, deepseek_key: str, ext_type: str = 'apfd'):
+    use_deepseek = bool(deepseek_key)
 
     # Prompt base com regras comuns
     prompt_base = rf"""Você é um sistema especializado em extração de dados estruturados a partir de textos de Boletins de Ocorrência Policial (BOE) brasileiros.
@@ -278,25 +280,41 @@ TEXTO DO BOE:
     max_retries = 3
     for attempt in range(max_retries):
         try:
-            response = client.models.generate_content(
-                model='gemini-2.5-flash',
-                contents=prompt,
-            )
             import re
-            match = re.search(r'\{.*\}', response.text, re.DOTALL)
+            if use_deepseek:
+                client = OpenAI(api_key=deepseek_key, base_url="https://api.deepseek.com")
+                response = client.chat.completions.create(
+                    model="deepseek-chat",
+                    messages=[
+                        {"role": "system", "content": "Você é um assistente especializado em extrair dados de documentos e retornar ESTRITAMENTE em formato JSON."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    response_format={"type": "json_object"}
+                )
+                content = response.choices[0].message.content
+            else:
+                client = genai.Client(api_key=gemini_key)
+                response = client.models.generate_content(
+                    model='gemini-2.5-flash',
+                    contents=prompt,
+                )
+                content = response.text
+                
+            match = re.search(r'\{.*\}', content, re.DOTALL)
             if match:
                 texto_limpo = match.group(0)
             else:
-                texto_limpo = response.text.replace("```json", "").replace("```", "").strip()
+                texto_limpo = content.replace("```json", "").replace("```", "").strip()
             
             js_data = json.loads(texto_limpo)
             return js_data
         except Exception as e:
             err_str = str(e)
-            if ('503' in err_str or '429' in err_str) and attempt < max_retries - 1:
+            if ('503' in err_str or '429' in err_str or '502' in err_str) and attempt < max_retries - 1:
                 time.sleep(5)
                 continue
-            return {"success": False, "error": f"Erro na IA: {err_str}"}
+            provider_name = "DeepSeek" if use_deepseek else "Gemini"
+            return {"success": False, "error": f"Erro na IA ({provider_name}): {err_str}"}
 
 import argparse
 
@@ -314,20 +332,23 @@ if __name__ == "__main__":
     if not texto.strip():
         fallback_json("Arquivo vazio ou texto não localizável.")
 
-    api_key = os.environ.get('GEMINI_API_KEY')
-    if not api_key:
-        try:
-            env_path = os.path.join(os.path.dirname(__file__), '../../.env')
+    gemini_key = os.environ.get('GEMINI_API_KEY')
+    deepseek_key = os.environ.get('DEEPSEEK_API_KEY')
+    
+    try:
+        env_path = os.path.join(os.path.dirname(__file__), '../../.env')
+        if os.path.exists(env_path):
             with open(env_path, 'r', encoding='utf-8') as env_file:
                 for line in env_file:
-                    if line.startswith('GEMINI_API_KEY='):
-                        api_key = line.split('=', 1)[1].strip()
-                        break
-        except:
-            pass
+                    if line.startswith('GEMINI_API_KEY=') and not gemini_key:
+                        gemini_key = line.split('=', 1)[1].strip()
+                    if line.startswith('DEEPSEEK_API_KEY=') and not deepseek_key:
+                        deepseek_key = line.split('=', 1)[1].strip()
+    except:
+        pass
 
-    if not api_key:
-        fallback_json("Chave API não encontrada.")
+    if not deepseek_key and not gemini_key:
+        fallback_json("Nenhuma chave de IA (GEMINI_API_KEY ou DEEPSEEK_API_KEY) foi configurada.")
 
-    resultado = extract_with_gemini(texto, str(api_key), args.type)
+    resultado = extract_with_ai(texto, gemini_key or "", deepseek_key or "", args.type)
     print(json.dumps(resultado, ensure_ascii=False))
