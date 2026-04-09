@@ -212,5 +212,9 @@ if __name__ == "__main__":
     except: pass
 
     resultado = process_with_rotation(texto, config)
-    if "success" not in resultado: resultado["success"] = True
-    print(json.dumps(resultado, ensure_ascii=False))
+    if "success" in resultado and not resultado["success"]:
+        # Erro real vindo da IA - já está no formato correto
+        print(json.dumps(resultado, ensure_ascii=False))
+    else:
+        # Sucesso - embrulha no formato que o PHP espera: {"success": true, "dados": {...}}
+        print(json.dumps({"success": True, "dados": resultado}, ensure_ascii=False))
