@@ -113,7 +113,11 @@ TEXTO: {texto}"""
 def call_gemini(texto, key):
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={key}"
     data = json.dumps({"contents": [{"parts": [{"text": get_prompt(texto)}]}]}).encode('utf-8')
-    req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json'})
+    headers = {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    }
+    req = urllib.request.Request(url, data=data, headers=headers)
     with urllib.request.urlopen(req, timeout=120) as response:
         res = json.loads(response.read().decode('utf-8'))
         return res['candidates'][0]['content']['parts'][0]['text']
@@ -125,7 +129,12 @@ def call_groq(texto, key):
         "messages": [{"role": "user", "content": get_prompt(texto)}],
         "response_format": {"type": "json_object"}
     }).encode('utf-8')
-    req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json', 'Authorization': f'Bearer {key}'})
+    headers = {
+        'Content-Type': 'application/json', 
+        'Authorization': f'Bearer {key}',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    }
+    req = urllib.request.Request(url, data=data, headers=headers)
     with urllib.request.urlopen(req, timeout=120) as response:
         res = json.loads(response.read().decode('utf-8'))
         return res['choices'][0]['message']['content']
@@ -137,7 +146,12 @@ def call_deepseek(texto, key):
         "messages": [{"role": "user", "content": get_prompt(texto)}],
         "response_format": {"type": "json_object"}
     }).encode('utf-8')
-    req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json', 'Authorization': f'Bearer {key}'})
+    headers = {
+        'Content-Type': 'application/json', 
+        'Authorization': f'Bearer {key}',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    }
+    req = urllib.request.Request(url, data=data, headers=headers)
     with urllib.request.urlopen(req, timeout=120) as response:
         res = json.loads(response.read().decode('utf-8'))
         return res['choices'][0]['message']['content']
