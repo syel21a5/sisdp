@@ -726,6 +726,15 @@ $(document).ready(function () {
                         data: $('#inputData').val(),
                         ip: $('#inputIP').val()
                     };
+                    
+                    // ✅ NOVO: Verificar se o BOE já existia na base
+                    if (response.registroExistenteId) {
+                        window.mostrarErro('Já existe um registro no sistema com esse BOE. Os dados extraídos foram transferidos para o formulário para você atualizar o registro original.');
+                        if (typeof OcorrenciasApp !== 'undefined') {
+                            OcorrenciasApp.currentId = response.registroExistenteId;
+                            // A próxima atualização de botões forçará o estado para Editar.
+                        }
+                    }
 
                     console.log('🤖 SISTEMA EXTRAÇÃO CONCLUÍDA:', {
                         celulares: window.pendentesIA_Celulares.length,

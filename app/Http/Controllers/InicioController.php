@@ -556,11 +556,23 @@ class InicioController extends Controller
             return response()->json($result, $result['status'] ?? 500);
         }
 
+        // NOVO: Verificar se o BOE extraído já existe no banco (cadprincipal)
+        $registroExistenteId = null;
+        if (!empty($result['dados']['boe'])) {
+            $registro = \Illuminate\Support\Facades\DB::table('cadprincipal')
+                ->where('BOE', $result['dados']['boe'])
+                ->first();
+            if ($registro) {
+                $registroExistenteId = $registro->id;
+            }
+        }
+
         return response()->json([
             'success' => true,
             'dados' => $result['dados'],
             'celulares' => $result['dados']['celulares'] ?? [],
-            'veiculos' => $result['dados']['veiculos'] ?? []
+            'veiculos' => $result['dados']['veiculos'] ?? [],
+            'registroExistenteId' => $registroExistenteId
         ]);
     }
     private function normalizarTexto($string)

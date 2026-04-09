@@ -1055,7 +1055,7 @@
     <script src="{{ asset('js/vinculos_completo.js') }}"></script>
     <script src="{{ asset('js/script.js') }}?v={{ time() }}_fix4"></script>
     <script src="{{ asset('js/menu_lateral.js') }}"></script>
-    <script src="{{ asset('js/script_apfd.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/script_apfd.js') }}?v={{ time() }}_fix3"></script>
     <script>
         // Lógica de Alertas de Pendências com Filtros e Paginação
         $(document).ready(function() {
