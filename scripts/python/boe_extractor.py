@@ -170,7 +170,9 @@ def process_with_rotation(texto, config):
             if provider['type'] == 'gemini': res = call_gemini(texto, provider['key'])
             else: res = call_groq(texto, provider['key'])
             match = re.search(r'\{.*\}', res, re.DOTALL)
-            return json.loads(match.group(0) if match else res)
+            dados = json.loads(match.group(0) if match else res)
+            sys.stderr.write(f"[BOE-IA] Provedor usado: {provider['type'].upper()} | Chave: ...{provider['key'][-6:]}\n")
+            return dados
         except Exception as e:
             last_error = str(e)
             continue
@@ -179,7 +181,9 @@ def process_with_rotation(texto, config):
         try:
             res = call_deepseek(texto, config['deepseek_key'])
             match = re.search(r'\{.*\}', res, re.DOTALL)
-            return json.loads(match.group(0) if match else res)
+            dados = json.loads(match.group(0) if match else res)
+            sys.stderr.write(f"[BOE-IA] Provedor usado: DEEPSEEK (backup)\n")
+            return dados
         except Exception as e:
             return {"success": False, "error": f"Falha geral nas Gratuitas ({last_error}). Erro backup (DeepSeek): {str(e)}"}
             
