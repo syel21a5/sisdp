@@ -110,8 +110,28 @@ IMPORTANTE: JAMAIS extraia o policial que registrou o BO.
 TEXTO: {texto}"""
 
 # --- Lógica de Chamada (Apenas DeepSeek) ---
+def call_deepseek(texto, api_key):
+    url = "https://api.deepseek.com/chat/completions"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}"
+    }
+    payload = {
+        "model": "deepseek-chat",
+        "messages": [
+            {"role": "system", "content": "Você é um assistente especialista em extrair dados de Boletins de Ocorrência da Polícia Civil de Pernambuco."},
+            {"role": "user", "content": get_prompt(texto)}
+        ],
+        "temperature": 0.1
+    }
+    
+    req = urllib.request.Request(url, data=json.dumps(payload).encode(), headers=headers)
+    with urllib.request.urlopen(req, timeout=60) as response:
+        res = json.loads(response.read().decode())
+        return res['choices'][0]['message']['content']
+
 def process_with_deepseek(texto, config):
-    if not config['deepseek_key']:
+    if not config['deepseek_key'] or config['deepseek_key'] == '':
         return {"success": False, "error": "Chave do DeepSeek não configurada no .env."}
     
     try:
