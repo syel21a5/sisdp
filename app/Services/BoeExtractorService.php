@@ -18,6 +18,10 @@ class BoeExtractorService
     public function extract(Request $request, string $type): array
     {
         try {
+            // Aumenta o timeout do PHP para 5 minutos (a IA pode demorar no servidor)
+            set_time_limit(300);
+            ini_set('max_execution_time', '300');
+
             $tmpPath = '';
 
             // 1. Processa o Upload (PDF ou Texto) e gera um Hash para Cache
@@ -78,7 +82,10 @@ class BoeExtractorService
             @unlink($tmpPath);
 
             // 4. Verifica o output do shell
+            Log::info("Saída do Python (primeiros 200 chars): " . substr($output ?? '(null)', 0, 200));
+
             if (!$output) {
+                Log::error("shell_exec retornou null/vazio. Possível timeout ou função desabilitada.");
                 return ['success' => false, 'message' => "Falha silenciosa ao executar o extrator Python.", 'status' => 500];
             }
 
