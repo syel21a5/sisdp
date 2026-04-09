@@ -5,6 +5,17 @@ import time
 import random
 import re
 import subprocess
+import socket
+
+# --- PATCH DE REDE MÁGICO (Força IPv4) ---
+# Resolve o problema de servidores Linux VPS (Vultr/DO/etc) com rotas IPv6 quebradas 
+# que causam timeouts de exatos 2 minutos nas conexões com APIs externas.
+old_getaddrinfo = socket.getaddrinfo
+def new_getaddrinfo(*args, **kwargs):
+    responses = old_getaddrinfo(*args, **kwargs)
+    return [res for res in responses if res[0] == socket.AF_INET]
+socket.getaddrinfo = new_getaddrinfo
+
 
 # --- Configuração de Ambiente para Windows ---
 # Configuração de Ambiente (Apenas Windows)
