@@ -23,6 +23,9 @@ if os.name == 'nt':
     except:
         pass
 
+import urllib.request
+import urllib.error
+
 # --- Dependências ---
 def ensure_package(module_name: str, pip_name: str):
     try:
@@ -34,15 +37,8 @@ def ensure_package(module_name: str, pip_name: str):
                                   stderr=subprocess.DEVNULL)
         except: pass
 
-ensure_package('google.genai', 'google-genai')
-ensure_package('openai', 'openai')
 ensure_package('fitz', 'PyMuPDF')
-
 import fitz
-try:
-    from google import genai
-    from openai import OpenAI
-except: pass
 
 # --- utilitários ---
 def fallback_json(error_msg: str):
@@ -104,27 +100,36 @@ IMPORTANTE: JAMAIS extraia o policial que registrou o BO.
 TEXTO: {texto}"""
 
 def call_gemini(texto, key):
-    client = genai.Client(api_key=key)
-    response = client.models.generate_content(model='gemini-1.5-flash', contents=get_prompt(texto))
-    return response.text
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={key}"
+    data = json.dumps({"contents": [{"parts": [{"text": get_prompt(texto)}]}]}).encode('utf-8')
+    req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json'})
+    with urllib.request.urlopen(req, timeout=15) as response:
+        res = json.loads(response.read().decode('utf-8'))
+        return res['candidates'][0]['content']['parts'][0]['text']
 
 def call_groq(texto, key):
-    client = OpenAI(api_key=key, base_url="https://api.groq.com/openai/v1")
-    response = client.chat.completions.create(
-        model="llama3-70b-8192",
-        messages=[{"role": "user", "content": get_prompt(texto)}],
-        response_format={"type": "json_object"}
-    )
-    return response.choices[0].message.content
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    data = json.dumps({
+        "model": "llama3-70b-8192",
+        "messages": [{"role": "user", "content": get_prompt(texto)}],
+        "response_format": {"type": "json_object"}
+    }).encode('utf-8')
+    req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json', 'Authorization': f'Bearer {key}'})
+    with urllib.request.urlopen(req, timeout=15) as response:
+        res = json.loads(response.read().decode('utf-8'))
+        return res['choices'][0]['message']['content']
 
 def call_deepseek(texto, key):
-    client = OpenAI(api_key=key, base_url="https://api.deepseek.com")
-    response = client.chat.completions.create(
-        model="deepseek-chat",
-        messages=[{"role": "user", "content": get_prompt(texto)}],
-        response_format={"type": "json_object"}
-    )
-    return response.choices[0].message.content
+    url = "https://api.deepseek.com/chat/completions"
+    data = json.dumps({
+        "model": "deepseek-chat",
+        "messages": [{"role": "user", "content": get_prompt(texto)}],
+        "response_format": {"type": "json_object"}
+    }).encode('utf-8')
+    req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json', 'Authorization': f'Bearer {key}'})
+    with urllib.request.urlopen(req, timeout=20) as response:
+        res = json.loads(response.read().decode('utf-8'))
+        return res['choices'][0]['message']['content']
 
 # --- Lógica de Rodízio ---
 def process_with_rotation(texto, config):
