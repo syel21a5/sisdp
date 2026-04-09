@@ -114,7 +114,7 @@ def call_gemini(texto, key):
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={key}"
     data = json.dumps({"contents": [{"parts": [{"text": get_prompt(texto)}]}]}).encode('utf-8')
     req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json'})
-    with urllib.request.urlopen(req, timeout=15) as response:
+    with urllib.request.urlopen(req, timeout=120) as response:
         res = json.loads(response.read().decode('utf-8'))
         return res['candidates'][0]['content']['parts'][0]['text']
 
@@ -126,7 +126,7 @@ def call_groq(texto, key):
         "response_format": {"type": "json_object"}
     }).encode('utf-8')
     req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json', 'Authorization': f'Bearer {key}'})
-    with urllib.request.urlopen(req, timeout=15) as response:
+    with urllib.request.urlopen(req, timeout=120) as response:
         res = json.loads(response.read().decode('utf-8'))
         return res['choices'][0]['message']['content']
 
@@ -138,7 +138,7 @@ def call_deepseek(texto, key):
         "response_format": {"type": "json_object"}
     }).encode('utf-8')
     req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json', 'Authorization': f'Bearer {key}'})
-    with urllib.request.urlopen(req, timeout=20) as response:
+    with urllib.request.urlopen(req, timeout=120) as response:
         res = json.loads(response.read().decode('utf-8'))
         return res['choices'][0]['message']['content']
 
@@ -148,16 +148,18 @@ def process_with_rotation(texto, config):
     for k in config['gemini_keys']: free_pool.append({'type': 'gemini', 'key': k})
     for k in config['groq_keys']: free_pool.append({'type': 'groq', 'key': k})
     
-    # Embaralha as chaves gratuitas para o rodízio
     random.shuffle(free_pool)
     
+    last_error = ""
     for provider in free_pool:
         try:
             if provider['type'] == 'gemini': res = call_gemini(texto, provider['key'])
             else: res = call_groq(texto, provider['key'])
             match = re.search(r'\{.*\}', res, re.DOTALL)
             return json.loads(match.group(0) if match else res)
-        except: continue
+        except Exception as e:
+            last_error = str(e)
+            continue
             
     if config['deepseek_key']:
         try:
@@ -165,9 +167,9 @@ def process_with_rotation(texto, config):
             match = re.search(r'\{.*\}', res, re.DOTALL)
             return json.loads(match.group(0) if match else res)
         except Exception as e:
-            return {"success": False, "error": f"Falha geral. Erro backup: {str(e)}"}
+            return {"success": False, "error": f"Falha geral nas Gratuitas ({last_error}). Erro backup (DeepSeek): {str(e)}"}
             
-    return {"success": False, "error": "Nenhuma IA disponível."}
+    return {"success": False, "error": f"Nenhuma IA disponivel. Erro final da gratuita: {last_error}"}
 
 if __name__ == "__main__":
     import argparse
