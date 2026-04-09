@@ -66,18 +66,26 @@ def limpar_texto_boe(texto: str) -> str:
     return "\n".join(linhas_filtradas)
 
 def ler_arquivo(file_path: str) -> str:
-    if not os.path.exists(file_path): return ""
+    abs_path = os.path.abspath(file_path)
+    if not os.path.exists(file_path):
+        return f"ERRO_DEBUG: Arquivo nao encontrado no caminho: {abs_path}"
+    
     ext = os.path.splitext(file_path)[1].lower()
     try:
         if ext == '.pdf':
-            doc = fitz.open(file_path)
+            try:
+                doc = fitz.open(file_path)
+            except Exception as e_fitz:
+                return f"ERRO_DEBUG: Biblioteca PyMuPDF (fitz) falhou ao abrir o PDF: {str(e_fitz)}"
+                
             content = "\n".join([page.get_text() for page in doc])
             doc.close()
             return limpar_texto_boe(content)
         else:
             with open(file_path, 'r', encoding='utf-8') as f:
                 return limpar_texto_boe(f.read())
-    except: return ""
+    except Exception as e_gen:
+        return f"ERRO_DEBUG: Erro geral ao ler arquivo: {str(e_gen)}"
 
 # --- Chamadas de IA ---
 def get_prompt(texto):
@@ -151,7 +159,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     texto = ler_arquivo(args.file_path)
-    if not texto: fallback_json("Arquivo não legível.")
+    if texto.startswith("ERRO_DEBUG:"):
+        fallback_json(texto)
+    if not texto:
+        fallback_json("O arquivo foi lido mas resultou em texto vazio.")
 
     config = {'gemini_keys': [], 'groq_keys': [], 'deepseek_key': ''}
     try:
