@@ -29,7 +29,9 @@ def ensure_package(module_name: str, pip_name: str):
         __import__(module_name)
     except ImportError:
         try:
-            subprocess.check_call([sys.executable, "-m", "pip", "install", pip_name])
+            subprocess.check_call([sys.executable, "-m", "pip", "install", pip_name], 
+                                  stdout=subprocess.DEVNULL, 
+                                  stderr=subprocess.DEVNULL)
         except: pass
 
 ensure_package('google.genai', 'google-genai')

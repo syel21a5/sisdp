@@ -83,9 +83,13 @@ class BoeExtractorService
             }
 
             // 5. Faz o parse do JSON do Python
-            $json = json_decode($output, true);
+            // Usamos regex para encontrar o JSON caso o Python tenha cuspido algum aviso extra ou erro de site-packages
+            $json = null;
+            if (preg_match('/\{.*\}/s', $output, $matches)) {
+                $json = json_decode($matches[0], true);
+            }
 
-            if (json_last_error() === JSON_ERROR_NONE && isset($json['success'])) {
+            if (is_array($json) && isset($json['success'])) {
                 if ($json['success']) {
                     $dados = $json['dados'] ?? [];
                     
