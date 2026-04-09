@@ -82,7 +82,7 @@ class BoeExtractorService
             @unlink($tmpPath);
 
             // 4. Verifica o output do shell
-            Log::info("Saída do Python (primeiros 200 chars): " . substr($output ?? '(null)', 0, 200));
+            Log::info("Saída do Python (primeiros 500 chars): " . substr($output ?? '(null)', 0, 500));
 
             if (!$output) {
                 Log::error("shell_exec retornou null/vazio. Possível timeout ou função desabilitada.");
