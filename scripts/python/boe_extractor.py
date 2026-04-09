@@ -7,20 +7,21 @@ import re
 import subprocess
 
 # --- Configuração de Ambiente para Windows ---
-try:
-    import site
-    user_site = site.getusersitepackages()
-    if user_site and user_site not in sys.path:
-        sys.path.append(user_site)
-    appdata = os.environ.get('APPDATA')
-    if not appdata:
-        appdata = r"C:\Users\VGR\AppData\Roaming"
-    py_ver = f"Python{sys.version_info.major}{sys.version_info.minor}"
-    hard_path = os.path.join(appdata, "Python", py_ver, "site-packages")
-    if os.path.exists(hard_path) and hard_path not in sys.path:
-        sys.path.append(hard_path)
-except:
-    pass
+# Configuração de Ambiente (Apenas Windows)
+if os.name == 'nt':
+    try:
+        import site
+        user_site = site.getusersitepackages()
+        if user_site and user_site not in sys.path:
+            sys.path.append(user_site)
+        appdata = os.environ.get('APPDATA')
+        if appdata:
+            py_ver = f"Python{sys.version_info.major}{sys.version_info.minor}"
+            hard_path = os.path.join(appdata, "Python", py_ver, "site-packages")
+            if os.path.exists(hard_path) and hard_path not in sys.path:
+                sys.path.append(hard_path)
+    except:
+        pass
 
 # --- Dependências ---
 def ensure_package(module_name: str, pip_name: str):
