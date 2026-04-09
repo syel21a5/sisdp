@@ -729,7 +729,7 @@ $(document).ready(function () {
                     
                     // ✅ NOVO: Verificar se o BOE já existia na base
                     if (response.registroExistenteId) {
-                        window.mostrarErro('BOE já cadastrado no sistema! Dados carregados para atualização.');
+                        window.mostrarAlerta('BOE já cadastrado no sistema! Dados carregados para atualização.');
                         if (typeof OcorrenciasApp !== 'undefined') {
                             OcorrenciasApp.currentId = response.registroExistenteId;
                             // A próxima atualização de botões forçará o estado para Editar.
