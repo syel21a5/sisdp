@@ -599,13 +599,13 @@ window.OcorrenciasApp = {
             }
 
             // ✅ Layout flexível para acomodar o label embaixo do nome quando for sugestão
-            let nomeArea = `<span class="lh-1" style="margin-top:2px;">${nome}</span>`;
+            let nomeArea = `<span class="lh-1" style="margin-top:2px;">${nome.toUpperCase()}</span>`;
             if (mostrarLabelSugestao) {
                 const quem = criadoPorNome || 'Colega';
                 const labelSugestao = `<span class="badge bg-light text-dark fw-normal mt-1" style="font-size: 0.62rem; padding: 2px 5px; width: fit-content; text-transform:none;">Sugestão de: <b>${quem}</b></span>`;
                 nomeArea = `
                     <div class="d-flex flex-column justify-content-center">
-                        <span class="lh-1" style="margin-top:2px;">${nome}</span>
+                        <span class="lh-1" style="margin-top:2px;">${nome.toUpperCase()}</span>
                         ${labelSugestao}
                     </div>
                 `;

@@ -18,10 +18,6 @@ class BoeExtractorService
     public function extract(Request $request, string $type): array
     {
         try {
-            // Aumenta o timeout do PHP para 5 minutos (a IA pode demorar no servidor)
-            set_time_limit(300);
-            ini_set('max_execution_time', '300');
-
             $tmpPath = '';
 
             // 1. Processa o Upload (PDF ou Texto) e gera um Hash para Cache
@@ -52,8 +48,7 @@ class BoeExtractorService
             $cacheFileHashComplete = $cacheDir . "/hash_{$contentHash}_apfd.json";
             
             // Se o arquivo idêntico já foi processado no modo COMPLETO, usa ele
-            // Verificamos também se o arquivo não está corrompido (tamanho mínimo razoável)
-            if (file_exists($cacheFileHashComplete) && filesize($cacheFileHashComplete) > 100) {
+            if (file_exists($cacheFileHashComplete)) {
                 $cachedData = json_decode(file_get_contents($cacheFileHashComplete), true);
                 if ($cachedData) {
                     @unlink($tmpPath); 
@@ -73,41 +68,34 @@ class BoeExtractorService
             // Forçamos o type 'apfd' para que a IA extraia tudo de uma vez e salve no cache
             $command = escapeshellcmd($pythonCmd) . " " . escapeshellarg($scriptPath) . " --type apfd " . escapeshellarg($tmpPath) . " 2>&1";
             
-            Log::info("Executando Comando BOE: " . $command);
-            Log::info("Arquivo Temporário existe? " . (file_exists($tmpPath) ? 'SIM' : 'NÃO'));
-            
             $output = \shell_exec($command);
             
             // Limpeza
             @unlink($tmpPath);
 
             // 4. Verifica o output do shell
-            Log::info("Saída do Python (primeiros 500 chars): " . substr($output ?? '(null)', 0, 500));
-
             if (!$output) {
-                Log::error("shell_exec retornou null/vazio. Possível timeout ou função desabilitada.");
                 return ['success' => false, 'message' => "Falha silenciosa ao executar o extrator Python.", 'status' => 500];
             }
 
-            // 5. Faz o parse do JSON do Python
-            // Usamos regex para encontrar o JSON caso o Python tenha cuspido algum aviso extra ou erro de site-packages
+            // 5. Faz o parse do JSON do Python (usa regex para ignorar linhas de log como [BOE-IA])
             $json = null;
             if (preg_match('/\{.*\}/s', $output, $matches)) {
                 $json = json_decode($matches[0], true);
             }
 
             if (is_array($json) && isset($json['success'])) {
+
                 if ($json['success']) {
                     $dados = $json['dados'] ?? [];
                     
-                    // ✅ SALVAR NO CACHE (Apenas se tiver dados reais para não "viciar" o cache com erros)
-                    if (!empty($dados['boe']) && count($dados) > 5) {
-                        $jsonParaCache = json_encode($dados, JSON_UNESCAPED_UNICODE);
-                        file_put_contents($cacheFileHashComplete, $jsonParaCache);
-                        
+                    // ✅ SALVAR NO CACHE (Sempre como apfd para ser o mestre)
+                    file_put_contents($cacheFileHashComplete, json_encode($dados));
+                    
+                    if (!empty($dados['boe'])) {
                         $boeLimpo = preg_replace('/[^A-Za-z0-9]/', '', $dados['boe']);
                         $cacheFileBoe = $cacheDir . "/boe_{$boeLimpo}_apfd.json";
-                        file_put_contents($cacheFileBoe, $jsonParaCache);
+                        file_put_contents($cacheFileBoe, json_encode($dados));
                     }
 
                     return [
