@@ -783,11 +783,13 @@ $(document).ready(function () {
                         });
                     });
 
-                    window.mostrarSucesso('Dados do BOE importados com sucesso!');
+                    if (!response.registroExistenteId) {
+                        window.mostrarSucesso('Dados do BOE importados com sucesso!');
+                    }
 
                     // Fecha o modal
                     var modal = bootstrap.Modal.getInstance(document.getElementById('modalImportarBoe'));
-                    modal.hide();
+                    if (modal) modal.hide();
                 } else {
                     window.mostrarErro('Falha ao processar o texto. Nenhum dado foi extraído.');
                 }
