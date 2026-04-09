@@ -69,6 +69,9 @@ class BoeExtractorService
             // Forçamos o type 'apfd' para que a IA extraia tudo de uma vez e salve no cache
             $command = escapeshellcmd($pythonCmd) . " " . escapeshellarg($scriptPath) . " --type apfd " . escapeshellarg($tmpPath) . " 2>&1";
             
+            Log::info("Executando Comando BOE: " . $command);
+            Log::info("Arquivo Temporário existe? " . (file_exists($tmpPath) ? 'SIM' : 'NÃO'));
+            
             $output = \shell_exec($command);
             
             // Limpeza
