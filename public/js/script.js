@@ -1261,8 +1261,10 @@ window.OcorrenciasApp = {
                 $('#acoes-botoes').append('<div id="avisoChipVermelho" class="text-danger mt-2 small"><i class="bi bi-exclamation-triangle"></i> Resolva os itens em vermelho antes de salvar.</div>');
             }
         } else {
-            // ✅ CORREÇÃO: Salvar só habilita para NOVOS registros (sem ID)
-            if (!this.currentId && !$btnSalvar.html().includes('spinner')) {
+            // ✅ CORREÇÃO: Salvar só habilita para NOVOS registros (sem ID válido)
+            const isNovo = !this.currentId || this.currentId === '' || this.currentId === 'null' || this.currentId === 0;
+            
+            if (isNovo && !$btnSalvar.html().includes('spinner')) {
                 $btnSalvar.prop('disabled', false);
             } else {
                 $btnSalvar.prop('disabled', true);
@@ -1270,7 +1272,7 @@ window.OcorrenciasApp = {
 
             // Editar só habilita se tiver ID selecionado e for o dono
             const isOwner = this.isOwner !== undefined ? this.isOwner : true;
-            if (this.currentId && isOwner && !$btnEditar.html().includes('spinner')) {
+            if (!isNovo && isOwner && !$btnEditar.html().includes('spinner')) {
                 $btnEditar.prop('disabled', false);
             } else {
                 $btnEditar.prop('disabled', true);
