@@ -111,7 +111,7 @@ IMPORTANTE: JAMAIS extraia o policial que registrou o BO.
 TEXTO: {texto}"""
 
 def call_gemini(texto, key):
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={key}"
     data = json.dumps({"contents": [{"parts": [{"text": get_prompt(texto)}]}]}).encode('utf-8')
     req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json'})
     with urllib.request.urlopen(req, timeout=120) as response:
