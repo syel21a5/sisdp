@@ -1053,7 +1053,7 @@
     <!-- ✅✅✅ ORDEM CORRIGIDA DOS SCRIPTS -->
     <script src="{{ asset('js/vinculos_boe_simples.js') }}"></script>
     <script src="{{ asset('js/vinculos_completo.js') }}"></script>
-    <script src="{{ asset('js/script.js') }}?v={{ time() }}_fix3"></script>
+    <script src="{{ asset('js/script.js') }}?v={{ time() }}_fix4"></script>
     <script src="{{ asset('js/menu_lateral.js') }}"></script>
     <script src="{{ asset('js/script_apfd.js') }}?v={{ time() }}"></script>
     <script>
