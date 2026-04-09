@@ -2,7 +2,6 @@ import sys
 import json
 import os
 import time
-import random
 import re
 import subprocess
 import socket
@@ -110,84 +109,20 @@ def get_prompt(texto):
 IMPORTANTE: JAMAIS extraia o policial que registrou o BO.
 TEXTO: {texto}"""
 
-def call_gemini(texto, key):
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={key}"
-    data = json.dumps({"contents": [{"parts": [{"text": get_prompt(texto)}]}]}).encode('utf-8')
-    headers = {
-        'Content-Type': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-    }
-    req = urllib.request.Request(url, data=data, headers=headers)
-    with urllib.request.urlopen(req, timeout=120) as response:
-        res = json.loads(response.read().decode('utf-8'))
-        return res['candidates'][0]['content']['parts'][0]['text']
-
-def call_groq(texto, key):
-    url = "https://api.groq.com/openai/v1/chat/completions"
-    data = json.dumps({
-        "model": "llama3-70b-8192",
-        "messages": [{"role": "user", "content": get_prompt(texto)}],
-        "response_format": {"type": "json_object"}
-    }).encode('utf-8')
-    headers = {
-        'Content-Type': 'application/json', 
-        'Authorization': f'Bearer {key}',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-    }
-    req = urllib.request.Request(url, data=data, headers=headers)
-    with urllib.request.urlopen(req, timeout=120) as response:
-        res = json.loads(response.read().decode('utf-8'))
-        return res['choices'][0]['message']['content']
-
-def call_deepseek(texto, key):
-    url = "https://api.deepseek.com/chat/completions"
-    data = json.dumps({
-        "model": "deepseek-chat",
-        "messages": [{"role": "user", "content": get_prompt(texto)}],
-        "response_format": {"type": "json_object"}
-    }).encode('utf-8')
-    headers = {
-        'Content-Type': 'application/json', 
-        'Authorization': f'Bearer {key}',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-    }
-    req = urllib.request.Request(url, data=data, headers=headers)
-    with urllib.request.urlopen(req, timeout=120) as response:
-        res = json.loads(response.read().decode('utf-8'))
-        return res['choices'][0]['message']['content']
-
-# --- Lógica de Rodízio ---
-def process_with_rotation(texto, config):
-    free_pool = []
-    for k in config['gemini_keys']: free_pool.append({'type': 'gemini', 'key': k})
-    for k in config['groq_keys']: free_pool.append({'type': 'groq', 'key': k})
+# --- Lógica de Chamada (Apenas DeepSeek) ---
+def process_with_deepseek(texto, config):
+    if not config['deepseek_key']:
+        return {"success": False, "error": "Chave do DeepSeek não configurada no .env."}
     
-    random.shuffle(free_pool)
-    
-    last_error = ""
-    for provider in free_pool:
-        try:
-            if provider['type'] == 'gemini': res = call_gemini(texto, provider['key'])
-            else: res = call_groq(texto, provider['key'])
-            match = re.search(r'\{.*\}', res, re.DOTALL)
-            dados = json.loads(match.group(0) if match else res)
-            sys.stderr.write(f"[BOE-IA] Provedor usado: {provider['type'].upper()} | Chave: ...{provider['key'][-6:]}\n")
-            return dados
-        except Exception as e:
-            last_error = str(e)
-            continue
-            
-    if config['deepseek_key']:
-        try:
-            res = call_deepseek(texto, config['deepseek_key'])
-            match = re.search(r'\{.*\}', res, re.DOTALL)
-            dados = json.loads(match.group(0) if match else res)
-            sys.stderr.write(f"[BOE-IA] Provedor usado: DEEPSEEK (backup)\n")
-            return dados
-        except Exception as e:
-            return {"success": False, "error": f"Falha geral nas Gratuitas ({last_error}). Erro backup (DeepSeek): {str(e)}"}
-            
-    return {"success": False, "error": f"Nenhuma IA disponivel. Erro final da gratuita: {last_error}"}
+    try:
+        sys.stderr.write(f"[BOE-IA] Iniciando extração com DEEPSEEK...\n")
+        res = call_deepseek(texto, config['deepseek_key'])
+        match = re.search(r'\{.*\}', res, re.DOTALL)
+        dados = json.loads(match.group(0) if match else res)
+        sys.stderr.write(f"[BOE-IA] Extração concluída com DEEPSEEK\n")
+        return dados
+    except Exception as e:
+        return {"success": False, "error": f"Falha na IA (DeepSeek): {str(e)}"}
 
 if __name__ == "__main__":
     import argparse
@@ -215,7 +150,7 @@ if __name__ == "__main__":
                         if k == 'DEEPSEEK_API_KEY': config['deepseek_key'] = v
     except: pass
 
-    resultado = process_with_rotation(texto, config)
+    resultado = process_with_deepseek(texto, config)
     if "success" in resultado and not resultado["success"]:
         # Erro real vindo da IA - já está no formato correto
         print(json.dumps(resultado, ensure_ascii=False))
