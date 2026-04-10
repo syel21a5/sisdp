@@ -161,7 +161,7 @@ class BoeExtractorService
             if ($ext === 'txt') {
                 // Para texto, lê direto com PHP (instantâneo)
                 $content = file_get_contents($filePath);
-                if (preg_match('/N[^\d]+(\d+[A-Z]\d+)/', $content, $m)) {
+                if (preg_match('/N[^\d]+(\d+[A-Z]\d+)/i', $content, $m) || preg_match('/\b(\d{2,}[A-Z]\d{5,})\b/i', $content, $m)) {
                     return $m[1];
                 }
                 return null;
@@ -169,7 +169,7 @@ class BoeExtractorService
             
             // Para PDF, usa Python para ler só a primeira página (ultra-rápido ~200ms)
             $pythonCmd = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? 'python' : 'python3';
-            $pyCode = 'import fitz,re,sys;doc=fitz.open(sys.argv[1]);t=doc[0].get_text();m=re.search(r"N[^\d]+(\d+[A-Z]\d+)",t);print(m.group(1) if m else "")';
+            $pyCode = 'import fitz,re,sys;doc=fitz.open(sys.argv[1]);t=doc[0].get_text();m=re.search(r"N[^\d]+(\d+[A-Z]\d+)",t,re.I);m=m if m else re.search(r"\b(\d{2,}[A-Z]\d{5,})\b",t,re.I);print(m.group(1) if m else "")';
             $cmd = escapeshellcmd($pythonCmd) . ' -c ' . escapeshellarg($pyCode) . ' ' . escapeshellarg($filePath) . ' 2>/dev/null';
             
             $result = trim(shell_exec($cmd) ?? '');

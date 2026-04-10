@@ -66,7 +66,10 @@ def parse_boe_python(texto: str) -> dict:
     texto = re.sub(r'\d{2}/\d{2}/\d{4},\s*\d{2}:\d{2}\s*\nSecretaria de Defesa Social\s*::\s*INFOPOL\s*\nhttps?://[^\n]+(?:\n\d+/\d+)?', '\n', texto, flags=re.IGNORECASE)
     
     # BOE
-    m_boe = re.search(r'N[^\d]+(\d+[A-Z]\d+)', texto)
+    m_boe = re.search(r'N[^\d]+(\d+[A-Z]\d+)', texto, flags=re.IGNORECASE)
+    if not m_boe:
+        # Tenta achar o padrao puro do Boletim de Pernambuco (ex: 26E0257000953)
+        m_boe = re.search(r'\b(\d{2,}[A-Z]\d{5,})\b', texto, flags=re.IGNORECASE)
     if m_boe: dados["boe"] = m_boe.group(1).strip()
     
     # Natureza
