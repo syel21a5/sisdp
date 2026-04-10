@@ -56,8 +56,28 @@ class BoeExtractorService
                         'success' => true,
                         'dados' => $cachedData,
                         'cached' => true,
-                        'cache_type' => 'apfd'
+                        'cache_type' => 'hash'
                     ];
+                }
+            }
+
+            // 2.5 CACHE POR NÚMERO DO BOE (Busca rápida sem rodar extração completa)
+            // Extrai só o número do BOE do arquivo para procurar no cache existente
+            $boeFromFile = $this->quickExtractBoeNumber($tmpPath);
+            if ($boeFromFile) {
+                $boeLimpo = preg_replace('/[^A-Za-z0-9]/', '', $boeFromFile);
+                $cacheFileBoe = $cacheDir . "/boe_{$boeLimpo}_apfd.json";
+                if (file_exists($cacheFileBoe)) {
+                    $cachedData = json_decode(file_get_contents($cacheFileBoe), true);
+                    if ($cachedData) {
+                        @unlink($tmpPath);
+                        return [
+                            'success' => true,
+                            'dados' => $cachedData,
+                            'cached' => true,
+                            'cache_type' => 'boe'
+                        ];
+                    }
                 }
             }
 
@@ -126,6 +146,37 @@ class BoeExtractorService
         } catch (\Exception $e) {
             Log::error("Exceção na extração de BOE ({$type}): " . $e->getMessage());
             return ['success' => false, 'message' => "Erro Interno do Servidor: " . $e->getMessage(), 'status' => 500];
+        }
+    }
+
+    /**
+     * Extrai rapidamente APENAS o número do BOE de um arquivo (PDF ou TXT).
+     * Usado para buscar cache por número do BOE antes de rodar extração completa.
+     */
+    private function quickExtractBoeNumber(string $filePath): ?string
+    {
+        try {
+            $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+            
+            if ($ext === 'txt') {
+                // Para texto, lê direto com PHP (instantâneo)
+                $content = file_get_contents($filePath);
+                if (preg_match('/N[^\d]+(\d+[A-Z]\d+)/', $content, $m)) {
+                    return $m[1];
+                }
+                return null;
+            }
+            
+            // Para PDF, usa Python para ler só a primeira página (ultra-rápido ~200ms)
+            $pythonCmd = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? 'python' : 'python3';
+            $pyCode = 'import fitz,re,sys;doc=fitz.open(sys.argv[1]);t=doc[0].get_text();m=re.search(r"N[^\d]+(\d+[A-Z]\d+)",t);print(m.group(1) if m else "")';
+            $cmd = escapeshellcmd($pythonCmd) . ' -c ' . escapeshellarg($pyCode) . ' ' . escapeshellarg($filePath) . ' 2>/dev/null';
+            
+            $result = trim(shell_exec($cmd) ?? '');
+            return $result ?: null;
+        } catch (\Exception $e) {
+            Log::warning("quickExtractBoeNumber falhou: " . $e->getMessage());
+            return null;
         }
     }
 }
