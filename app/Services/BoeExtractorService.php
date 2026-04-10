@@ -106,11 +106,21 @@ class BoeExtractorService
                 } else {
                     $msg = $json['error'] ?? 'Erro desconhecido no script Python.';
                     Log::error("IA retornou erro mapeado (apfd): " . $msg);
-                    return ['success' => false, 'message' => "Falha na IA: " . $msg, 'status' => 500];
+                    return [
+                        'success' => true, 
+                        'dados' => [],
+                        'cached' => false,
+                        'obs' => "Falha na extração ($msg). Por favor, preencha manualmente."
+                    ];
                 }
             } else {
                 Log::error("Script Python falhou brutalmente (apfd):\n" . $output);
-                return ['success' => false, 'message' => "Falha estrutural ao executar Python:\n" . $output, 'status' => 500];
+                return [
+                    'success' => true, 
+                    'dados' => [],
+                    'cached' => false,
+                    'obs' => "Falha estrutural ao executar Python. Por favor, preencha manualmente."
+                ];
             }
 
         } catch (\Exception $e) {
