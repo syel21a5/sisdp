@@ -269,15 +269,25 @@ def process_with_deepseek(texto, config):
     if not config['deepseek_key'] or config['deepseek_key'] == '':
         return {"success": False, "error": "Chave do DeepSeek não configurada no .env."}
     
-    try:
-        sys.stderr.write(f"[BOE-IA] Iniciando extração com DEEPSEEK...\n")
-        res = call_deepseek(texto, config['deepseek_key'])
-        match = re.search(r'\{.*\}', res, re.DOTALL)
-        dados = json.loads(match.group(0) if match else res)
-        sys.stderr.write(f"[BOE-IA] Extração concluída com DEEPSEEK\n")
-        return dados
-    except Exception as e:
-        return {"success": False, "error": f"Falha na IA (DeepSeek): {str(e)}"}
+    import time
+    max_tentativas = 3
+    for tentativa in range(1, max_tentativas + 1):
+        try:
+            sys.stderr.write(f"[BOE-IA] Tentativa {tentativa}/{max_tentativas} com DEEPSEEK...\n")
+            res = call_deepseek(texto, config['deepseek_key'])
+            match = re.search(r'\{.*\}', res, re.DOTALL)
+            dados = json.loads(match.group(0) if match else res)
+            sys.stderr.write(f"[BOE-IA] Extração concluída na tentativa {tentativa}\n")
+            return dados
+        except Exception as e:
+            err_msg = str(e)
+            sys.stderr.write(f"[BOE-IA] Tentativa {tentativa} falhou: {err_msg}\n")
+            # Se for erro 503 (sobrecarga) ou timeout, espera e tenta de novo
+            if tentativa < max_tentativas and ("503" in err_msg or "timeout" in err_msg.lower() or "unavailable" in err_msg.lower()):
+                sys.stderr.write(f"[BOE-IA] Aguardando 5s antes da proxima tentativa...\n")
+                time.sleep(5)
+            else:
+                return {"success": False, "error": f"Falha na IA (DeepSeek) apos {tentativa} tentativa(s): {err_msg}"}
 
 if __name__ == "__main__":
     import argparse
