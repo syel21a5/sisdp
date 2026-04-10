@@ -331,27 +331,33 @@ if __name__ == "__main__":
         
     success_py, py_data = parse_boe_python(texto_raw_original)
     
+    # MODO RÁPIDO (Padrão): Retorna resultado do Python IMEDIATAMENTE
+    # A IA só é acionada se BOE_USE_AI=true estiver no .env (desligado por padrão)
+    use_ai = os.environ.get('BOE_USE_AI', '').lower() == 'true'
+    
     if success_py:
+        # Python extraiu tudo com sucesso → retorna instantâneo
         print(json.dumps({"success": True, "dados": py_data}, ensure_ascii=False))
-    else:
-        # FALHOU O PYTHON - ACIONAR IA (LAPIDADA FINAL)
-        print("[SISTEMA] Acionando IA como Fallback devido a formatação densa do PDF...", file=sys.stderr)
+    elif use_ai:
+        # MODO IA ATIVADO (apenas se BOE_USE_AI=true no .env)
+        print("[SISTEMA] Acionando IA como Fallback (BOE_USE_AI=true)...", file=sys.stderr)
         texto_limpo_ia = clean_boe_raw_text(texto_raw_original)
         resultado = process_with_deepseek(texto_limpo_ia, config)
         
-        # O process_with_deepseek retorna {"success": False, ...} em caso de erro.
         if "success" in resultado and not resultado["success"]:
-            final_json = {"success": True, "dados": py_data, "obs": "Baseado puramente em regex (IA falhou por excesso/timeout)", "ia_error": resultado}
+            final_json = {"success": True, "dados": py_data, "obs": "IA falhou, dados parciais do Python"}
             print(json.dumps(final_json, ensure_ascii=False))
         else:
             final_json = {"success": True, "dados": resultado}
             print(json.dumps(final_json, ensure_ascii=False))
+    else:
+        # MODO RÁPIDO: Python não extraiu tudo, mas retorna o que achou sem chamar IA
+        # Campos faltantes ficam vazios para preenchimento manual
+        print(json.dumps({"success": True, "dados": py_data, "obs": "Extração parcial via Python (IA desativada)"}, ensure_ascii=False))
             
     # Salva rastreio oculto para diagnostico
     try:
         with open("/tmp/debug_boe_trace.json", "w", encoding="utf-8") as ft:
-            if success_py:
-                ft.write(json.dumps({"fonte": "PYTHON", "dados": py_data}, ensure_ascii=False))
-            else:
-                ft.write(json.dumps({"fonte": "IA_DEEPSEEK", "dados_final": final_json}, ensure_ascii=False))
+            ft.write(json.dumps({"fonte": "PYTHON" if success_py else ("IA_DEEPSEEK" if use_ai else "PYTHON_PARCIAL"), "success_py": success_py, "dados": py_data}, ensure_ascii=False))
     except: pass
+
