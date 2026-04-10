@@ -103,7 +103,7 @@ def parse_boe_python(texto: str) -> dict:
     bloco_envolvidos = re.search(r'Envolvidos\s*\n(.*?)(?=\nObjetos\s*\n|\nComplemento\s*\n|\Z)', texto, flags=re.DOTALL)
     if bloco_envolvidos:
         txt_env = bloco_envolvidos.group(1)
-        pessoas_matches = list(re.finditer(r'^([A-Z\s]+?)\s+\([^()]*?\)\s*Sexo:', txt_env, flags=re.MULTILINE))
+        pessoas_matches = list(re.finditer(r'^([A-ZÀ-ÿ\s]+?)\s+\([^()]*?\)\s*Sexo:', txt_env, flags=re.MULTILINE))
         for i, match in enumerate(pessoas_matches):
             nome_raw = match.group(1).strip().upper()
             start = match.end()
@@ -162,7 +162,9 @@ def parse_boe_python(texto: str) -> dict:
             all_ok = False # Faltou o nome!
             
     # Nao vamos reprovar se faltar CPF, porque 'SOCIEDADE' nao tem CPF e muitas vitimas tbm nao.
-    is_success = has_boe and has_pessoas and all_ok
+    # Basta ter o BOE e pelo menos ter encontrado as categorias de envolvidos (vitimas/autores)
+    has_categorias = len(dados['vitimas']) > 0 or len(dados['autores']) > 0 or len(dados['testemunhas']) > 0
+    is_success = has_boe and (has_pessoas or has_categorias)
     return is_success, dados
 
 
@@ -220,10 +222,11 @@ def ler_arquivo(file_path: str, clean_mode: bool = True) -> str:
             for page in doc:
                 full_text += page.get_text()
             doc.close()
-            return clean_boe_raw_text(full_text)
+            return clean_boe_raw_text(full_text) if clean_mode else full_text
         else:
             with open(file_path, 'r', encoding='utf-8') as f:
-                return clean_boe_raw_text(f.read())
+                raw = f.read()
+            return clean_boe_raw_text(raw) if clean_mode else raw
     except Exception as e_gen:
         return f"ERRO_DEBUG: Erro geral ao ler arquivo: {str(e_gen)}"
 
