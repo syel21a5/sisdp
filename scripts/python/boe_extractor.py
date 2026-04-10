@@ -155,6 +155,69 @@ def parse_boe_python(texto: str) -> dict:
         if condutor_nome not in dados['condutor']:
             dados['condutor'].append(condutor_nome)
 
+    # --- NOVO: Extração de Objetos (Veículos e Celulares) ---
+    bloco_objetos = re.search(r'Objetos\s*\n(.*?)(?=\nComplemento|\nHistórico|\nNarrativa|\nCondutor da ocorrência:|\Z)', texto, flags=re.DOTALL | re.IGNORECASE)
+    if bloco_objetos:
+        txt_obj = bloco_objetos.group(1)
+        # Identifica cada item (VEICULO, CELULAR, etc)
+        # O cabeçalho costuma ser algo como "NOME DO OBJETO (CATEGORIA)"
+        itens = re.split(r'\n(?=[^:\n]+ \([^()\n]+\)\n)', "\n" + txt_obj)
+        
+        obj_list_text = []
+        for item in itens:
+            item = item.strip()
+            if not item: continue
+            
+            # Pega o cabeçalho do item
+            m_header = re.match(r'^([A-ZÀ-ÿ0-9/.\-\s]+) \(([^()]+)\)', item, re.IGNORECASE)
+            if not m_header: continue
+            
+            nome_obj = m_header.group(1).strip().upper()
+            categoria = m_header.group(2).strip().upper()
+            obj_list_text.append(f"{nome_obj} ({categoria})")
+            
+            # --- Se for VEICULO ---
+            if 'VEICULO' in categoria or 'VEÍCULO' in categoria or 'VEICULO' in nome_obj:
+                v = {"marca_modelo": "", "placa": "", "chassi": "", "cor": ""}
+                
+                # Marca/Modelo
+                m_v_mod = re.search(r'Categoria/Marca/Modelo:\s*([^/-]+)', item)
+                if m_v_mod: v['marca_modelo'] = m_v_mod.group(1).replace('NÃO INFORMADO', '').strip(' /').strip()
+                
+                # Cor
+                m_v_cor = re.search(r'Cor:\s*([A-ZÀ-ÿ]+)', item, re.IGNORECASE)
+                if m_v_cor: v['cor'] = m_v_cor.group(1).strip()
+                
+                # Placa
+                m_v_placa = re.search(r'Placa:\s*([A-Z0-9]{7})', item, re.IGNORECASE)
+                if m_v_placa: v['placa'] = m_v_placa.group(1).strip()
+                
+                # Chassi
+                m_v_chassi = re.search(r'Chassi:\s*([A-Z0-9]{17})', item, re.IGNORECASE)
+                if m_v_chassi: v['chassi'] = m_v_chassi.group(1).strip()
+                
+                if v['placa'] or v['marca_modelo'] or v['chassi']:
+                    dados['veiculos'].append(v)
+
+            # --- Se for CELULAR ---
+            elif 'TELEF' in categoria or 'CELULAR' in categoria or 'CELULAR' in nome_obj:
+                c = {"marca_modelo": nome_obj, "imei1": "", "imei2": ""}
+                
+                # Busca por IMEIs (15 dígitos)
+                imeis = re.findall(r'\b(\d{15})\b', item)
+                if len(imeis) >= 1: c['imei1'] = imeis[0]
+                if len(imeis) >= 2: c['imei2'] = imeis[1]
+                
+                # Se não achou na busca global, tenta label específica
+                if not c['imei1']:
+                    m_imei = re.search(r'IMEI\s*\d?:\s*(\d{15})', item, re.IGNORECASE)
+                    if m_imei: c['imei1'] = m_imei.group(1)
+                
+                dados['celulares'].append(c)
+
+        if obj_list_text:
+            dados['objetos_apreendidos'] = " / ".join(obj_list_text)
+
     # Validacao de Sucesso Inicial
     has_boe = bool(dados["boe"])
     has_pessoas = len(dados["envolvidos_detalhes"]) > 0
