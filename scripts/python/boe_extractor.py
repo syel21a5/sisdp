@@ -166,6 +166,21 @@ def parse_boe_python(texto: str) -> dict:
 
 
 def clean_boe_raw_text(texto: str) -> str:
+    import re
+    # Remove cabecalhos, rodapes de impressao e URLs geradas pelo PDF do INFOPOL
+    texto = re.sub(r'\d{2}/\d{2}/\d{4},\s*\d{2}:\d{2}\s*\nSecretaria de Defesa Social\s*::\s*INFOPOL\s*\nhttps?://[^\n]+(?:\n\d+/\d+)?', '\n', texto, flags=re.IGNORECASE)
+    
+    # Remove textos discursivos gigantes (Histórico/Complemento) e para antes dos dados vitais finais 
+    pattern_historico = r'(?:^|\n)(Complemento|Histórico(?:\s+da\s+ocorrência)?|Historico)[:\s]*\n.*?(?=\nCondutor da ocorrência:|\nB\.O\. registrado pelo policial:|\Z)'
+    texto = re.sub(pattern_historico, '\n\n[HISTORICO/NARRATIVA REMOVIDO VIA PYTHON PARA ECONOMIA DE TOKENS DA IA]\n\n', texto, flags=re.DOTALL | re.IGNORECASE)
+
+    # Limpeza final de espacamentos inuteis
+    texto = re.sub(r'\n{3,}', '\n\n', texto)
+    return texto.strip()
+
+def fallback_json(error_msg: str):
+    import json
+    import sys
     print(json.dumps({"success": False, "error": error_msg}))
     sys.exit(1)
 
@@ -187,7 +202,7 @@ def limpar_texto_boe(texto: str) -> str:
     linhas_filtradas = [l.strip() for l in linhas if l.strip() and not any(re.search(p, l, re.I) for p in padroes_lixo)]
     return "\n".join(linhas_filtradas)
 
-def ler_arquivo(file_path: str) -> str:
+def ler_arquivo(file_path: str, clean_mode: bool = True) -> str:
     abs_path = os.path.abspath(file_path)
     if not os.path.exists(file_path):
         return f"ERRO_DEBUG: Arquivo nao encontrado no caminho: {abs_path}"
@@ -293,7 +308,7 @@ if __name__ == "__main__":
         fallback_json("Nenhuma chave de IA (GEMINI_API_KEY ou DEEPSEEK_API_KEY) foi configurada.")
 
     # TENTA COMPLETAMENTE VIA PYTHON PRIMEIRO (Custo Zero)
-    texto_raw_original = ler_arquivo(args.file_path, clean_mode=False) # Lemos sem cortar caso o Py falhe
+    texto_raw_original = ler_arquivo(args.file_path, clean_mode=False) 
     success_py, py_data = parse_boe_python(texto_raw_original)
     
     if success_py:
@@ -302,9 +317,12 @@ if __name__ == "__main__":
         # FALHOU O PYTHON - ACIONAR IA (LAPIDADA FINAL)
         print("[SISTEMA] Acionando IA como Fallback devido a formatação densa do PDF...", file=sys.stderr)
         texto_limpo_ia = clean_boe_raw_text(texto_raw_original)
-        resultado = extract_with_ai(texto_limpo_ia, gemini_key or "", deepseek_key or "", args.type)
-        if resultado.get("success"):
-            print(json.dumps(resultado, ensure_ascii=False))
+        resultado = process_with_deepseek(texto_limpo_ia, config)
+        
+        # O process_with_deepseek retorna {"success": False, ...} em caso de erro.
+        if "success" in resultado and not resultado["success"]:
+            # IA falhou, retorna o q o python salvou e avisa
+            print(json.dumps({"success": True, "dados": py_data, "obs": "Baseado puramente em regex (IA falhou por excesso/timeout)"}, ensure_ascii=False))
         else:
-            # IA falhou tamem, retorna o q o python salvou
-            print(json.dumps({"success": True, "dados": py_data, "obs": "Baseado puramente em regex (IA falhou)"}, ensure_ascii=False))
+            # IA completou o json com sucesso
+            print(json.dumps({"success": True, "dados": resultado}, ensure_ascii=False))
