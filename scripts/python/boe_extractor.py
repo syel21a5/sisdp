@@ -155,12 +155,13 @@ def parse_boe_python(texto: str) -> dict:
     # Validacao de Sucesso Inicial
     has_boe = bool(dados["boe"])
     has_pessoas = len(dados["envolvidos_detalhes"]) > 0
-    # Checar se as pessoas tem nome ou cpf minimamente
+    # Checar se as pessoas tem nome
     all_ok = True
     for p in dados["envolvidos_detalhes"].values():
-        if not p["cpf"] and not p["nascimento"]:
-            all_ok = False # Faltou cpf ou nasc de alguem
+        if not p["nome"]:
+            all_ok = False # Faltou o nome!
             
+    # Nao vamos reprovar se faltar CPF, porque 'SOCIEDADE' nao tem CPF e muitas vitimas tbm nao.
     is_success = has_boe and has_pessoas and all_ok
     return is_success, dados
 
@@ -309,6 +310,12 @@ if __name__ == "__main__":
 
     # TENTA COMPLETAMENTE VIA PYTHON PRIMEIRO (Custo Zero)
     texto_raw_original = ler_arquivo(args.file_path, clean_mode=False) 
+    
+    if texto_raw_original.startswith("ERRO_DEBUG:"):
+        fallback_json(texto_raw_original)
+    if not texto_raw_original.strip():
+        fallback_json("O arquivo foi lido mas resultou em texto vazio. Verifique se o PDF contém texto selecionável.")
+        
     success_py, py_data = parse_boe_python(texto_raw_original)
     
     if success_py:
