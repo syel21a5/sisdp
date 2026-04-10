@@ -328,8 +328,17 @@ if __name__ == "__main__":
         
         # O process_with_deepseek retorna {"success": False, ...} em caso de erro.
         if "success" in resultado and not resultado["success"]:
-            # IA falhou, retorna o q o python salvou e avisa
-            print(json.dumps({"success": True, "dados": py_data, "obs": "Baseado puramente em regex (IA falhou por excesso/timeout)"}, ensure_ascii=False))
+            final_json = {"success": True, "dados": py_data, "obs": "Baseado puramente em regex (IA falhou por excesso/timeout)", "ia_error": resultado}
+            print(json.dumps(final_json, ensure_ascii=False))
         else:
-            # IA completou o json com sucesso
-            print(json.dumps({"success": True, "dados": resultado}, ensure_ascii=False))
+            final_json = {"success": True, "dados": resultado}
+            print(json.dumps(final_json, ensure_ascii=False))
+            
+    # Salva rastreio oculto para diagnostico
+    try:
+        with open("/tmp/debug_boe_trace.json", "w", encoding="utf-8") as ft:
+            if success_py:
+                ft.write(json.dumps({"fonte": "PYTHON", "dados": py_data}, ensure_ascii=False))
+            else:
+                ft.write(json.dumps({"fonte": "IA_DEEPSEEK", "dados_final": final_json}, ensure_ascii=False))
+    except: pass
