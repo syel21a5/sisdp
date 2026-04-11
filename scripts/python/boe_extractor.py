@@ -51,6 +51,13 @@ ensure_package('fitz', 'PyMuPDF')
 import fitz
 
 # --- utilitários ---
+import unicodedata
+def normalizar_nome(nome: str) -> str:
+    """Remove acentos e normaliza espaços para comparação."""
+    nfkd = unicodedata.normalize('NFKD', nome)
+    sem_acentos = ''.join(c for c in nfkd if not unicodedata.combining(c))
+    return re.sub(r'\s+', ' ', sem_acentos).strip().upper()
+
 def parse_boe_python(texto: str) -> dict:
     import re
     dados = {
@@ -160,6 +167,37 @@ def parse_boe_python(texto: str) -> dict:
             if m_tel: p['telefone'] = m_tel.group(1).strip()
 
             dados['envolvidos_detalhes'][nome_raw] = p
+
+    # Reconciliar chaves de envolvidos_detalhes com os nomes das listas
+    # (as listas podem ter acentos, mas as chaves do detalhe não)
+    todos_nomes_listas = set()
+    for k in ['vitimas', 'autores', 'testemunhas', 'condutor', 'outros']:
+        todos_nomes_listas.update(dados[k])
+    
+    detalhes_reconciliados = {}
+    for nome_lista in todos_nomes_listas:
+        # Tenta chave exata primeiro
+        if nome_lista in dados['envolvidos_detalhes']:
+            detalhes_reconciliados[nome_lista] = dados['envolvidos_detalhes'][nome_lista]
+            detalhes_reconciliados[nome_lista]['nome'] = nome_lista
+            continue
+        # Tenta match normalizado (sem acentos)
+        nome_norm = normalizar_nome(nome_lista)
+        for chave_det, val_det in dados['envolvidos_detalhes'].items():
+            if normalizar_nome(chave_det) == nome_norm:
+                val_det['nome'] = nome_lista
+                detalhes_reconciliados[nome_lista] = val_det
+                break
+    
+    # Mantém também chaves originais que não foram reconciliadas
+    for chave_det, val_det in dados['envolvidos_detalhes'].items():
+        if chave_det not in detalhes_reconciliados:
+            nome_norm = normalizar_nome(chave_det)
+            ja_existe = any(normalizar_nome(k) == nome_norm for k in detalhes_reconciliados)
+            if not ja_existe:
+                detalhes_reconciliados[chave_det] = val_det
+    
+    dados['envolvidos_detalhes'] = detalhes_reconciliados
 
     # Condutor
     m_condutor = re.search(r'Condutor da ocorrência:\s*\nNome:\s*(.*?)(?=\n|3\s+SARGENTO|MAT\.|Cargo:)', texto)

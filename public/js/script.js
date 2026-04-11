@@ -1124,7 +1124,62 @@ window.OcorrenciasApp = {
                         open();
                     }).always(() => { btn.html(originalIcon).prop('disabled', false); });
                 } else {
-                    $('#inputNomeCondutor').val(nomePessoa || '');
+                    // Tenta preencher com dados importados (chip vermelho sem vinculo)
+                    const metaCond = this.vinculos.condutores ? this.vinculos.condutores[index] : null;
+                    let detCond = (metaCond && metaCond.detalhes) || (OcorrenciasApp.obterDadosImportadosPorNome ? OcorrenciasApp.obterDadosImportadosPorNome(nomePessoa) : null) || {};
+                    
+                    if (typeof OcorrenciasApp.extrairDetalhesDoTexto === 'function') {
+                        const detTexto = OcorrenciasApp.extrairDetalhesDoTexto(nomePessoa);
+                        if (detTexto) {
+                            for (const key in detTexto) {
+                                if (!detCond[key] || detCond[key] === 'NÃO INFORMADO') {
+                                    detCond[key] = detTexto[key];
+                                }
+                            }
+                        }
+                    }
+                    
+                    if (detCond && Object.keys(detCond).length > 0) {
+                        $('#inputNomeCondutor').val(detCond.nome || nomePessoa || '');
+                        $('#inputAlcunha').val(detCond.alcunha || '');
+                        let dataNasc = detCond.nascimento || '';
+                        if (dataNasc && dataNasc.includes('/')) {
+                            const partes = dataNasc.split('/');
+                            if (partes.length === 3) {
+                                let d = partes[0].trim(); let m = partes[1].trim();
+                                if (d.length === 1) d = '0' + d;
+                                if (m.length === 1) m = '0' + m;
+                                dataNasc = `${d}/${m}/${partes[2].trim()}`;
+                            }
+                        }
+                        $('#inputDataNascimento').val(dataNasc);
+                        if (dataNasc) {
+                            const partes = dataNasc.split('/');
+                            if (partes.length === 3) {
+                                const nascip = new Date(partes[2], partes[1] - 1, partes[0]);
+                                if (!isNaN(nascip.getTime())) {
+                                    const hoje = new Date();
+                                    let idade = hoje.getFullYear() - nascip.getFullYear();
+                                    const mc = hoje.getMonth() - nascip.getMonth();
+                                    if (mc < 0 || (mc === 0 && hoje.getDate() < nascip.getDate())) idade--;
+                                    $('#inputIdade').val(idade);
+                                }
+                            }
+                        }
+                        $('#inputEstadoCivil').val(detCond.estado_civil || '');
+                        $('#inputNaturalidade').val(detCond.naturalidade || '');
+                        $('#inputInstrucao').val(detCond.instrucao || detCond.escolaridade || '');
+                        $('#inputRG').val(detCond.rg || '');
+                        $('#inputCPF').val(detCond.cpf || '');
+                        let tel = detCond.telefone || ''; if (!tel || tel.trim() === '') tel = '(00) 00000-0000';
+                        $('#inputTelefone').val(tel);
+                        $('#inputProfissao').val(detCond.profissao || '');
+                        $('#inputMae').val(detCond.mae || '');
+                        $('#inputPai').val(detCond.pai || '');
+                        $('#inputEndereco').val(detCond.endereco || '');
+                    } else {
+                        $('#inputNomeCondutor').val(nomePessoa || '');
+                    }
                     open();
                 }
             }
