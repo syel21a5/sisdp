@@ -15,42 +15,221 @@
     <!-- Reutilizando estilos principais -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <style>
-        /* Estilos específicos para o Dashboard de Relatórios */
-        .report-card {
-            border: none;
+        /* Padrão de Cores Moderno Dark Mode - SisDP (Baseado na Auditoria) */
+        body, .main-content {
+            background-color: #12141c !important;
+            background: #12141c !important;
+            color: #e2e8f0 !important;
+            font-family: 'Inter', system-ui, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Força fundo dark em qualquer utilitário ou card claro */
+        .bg-white, .bg-light, .card.bg-white, .card.bg-light {
+            background-color: transparent !important;
+            background: transparent !important;
+        }
+
+        /* Sidebar Dark Slate */
+        .sidebar {
+            background: #0f172a !important;
+            border-right: 1px solid #1e293b;
+            color: #94a3b8;
+        }
+        .sidebar-header {
+            border-bottom: 1px solid #1e293b;
+            background-color: transparent !important;
+            color: #fff;
+        }
+        .sidebar-menu li a { color: #94a3b8; }
+        .sidebar-menu li a:hover, .sidebar-menu li .active-submenu {
+            background: #1e293b !important;
+            color: #38bdf8 !important;
+        }
+        .active-submenu {
+            border-left: 3px solid #38bdf8 !important;
+        }
+        .menu-toggle { color: #94a3b8; }
+
+        /* Overriding Light Bootstrap Utilities */
+        .bg-white, .bg-light { background-color: transparent !important; }
+        .text-dark { color: #f8fafc !important; }
+        .text-muted { color: #94a3b8 !important; }
+
+        /* Module Header (Faixa do Título) */
+        .module-header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid #334155;
+            color: #f8fafc;
+            padding: 20px 30px;
             border-radius: 12px;
-            transition: transform 0.2s, box-shadow 0.2s;
-            overflow: hidden;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+        .module-header h2 { margin: 0; color: #fff !important; }
+
+        /* Filter bar matching Auditoria select boxes */
+        .filter-bar {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid #334155;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            margin-bottom: 2rem;
+        }
+        .form-label {
+            color: #94a3b8 !important;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+        .form-select, .form-control {
+            background-color: #0f172a !important;
+            border: 1px solid #334155 !important;
+            color: #f8fafc !important;
+            border-radius: 8px;
+        }
+        .form-select:focus, .form-control:focus {
+            border-color: #38bdf8 !important;
+            box-shadow: 0 0 0 0.25rem rgba(56, 189, 248, 0.25) !important;
+        }
+
+        /* Report Cards */
+        .report-card {
+            background: #1e293b !important;
+            border: 1px solid #334155 !important;
+            border-radius: 12px !important;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
         }
         .report-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+            border-color: #38bdf8 !important;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5) !important;
         }
         .card-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
+            background: #0f172a !important;
+            border-radius: 10px;
         }
-        .count-value {
-            font-size: 2rem;
-            font-weight: 700;
-            line-height: 1;
+        .count-value { color: #fff !important; font-weight: 700; font-size: 2.2rem !important; }
+
+        /* Ranking and Detalhamento Cards */
+        .card.border-0 {
+            background: #1e293b !important;
+            border: 1px solid #334155 !important;
+            border-radius: 12px !important;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important;
+            overflow: hidden !important;
         }
-        .count-label {
-            font-size: 0.875rem;
-            color: #6c757d;
+        .card-header {
+            background: #0f172a !important;
+            border-bottom: 1px solid #334155 !important;
+            padding: 15px 25px !important;
+        }
+        .card-header h5 { color: #e2e8f0 !important; font-weight: 600 !important; margin: 0; }
+        
+        .card-footer {
+            background: #0f172a !important;
+            border-top: 1px solid #334155 !important;
+        }
+
+        /* Tables matching Auditoria table style */
+        .table { color: #e2e8f0 !important; }
+        .table thead th {
+            background-color: #1e293b !important;
+            color: #94a3b8 !important;
+            border-bottom: 2px solid #334155 !important;
+            font-weight: 700 !important;
+            text-transform: uppercase !important;
+            font-size: 0.75rem !important;
+            padding: 12px 20px !important;
+            letter-spacing: 0.5px;
+        }
+        .table tbody td {
+            background-color: transparent !important;
+            border-bottom: 1px solid #334155 !important;
+            padding: 15px 20px !important;
+            color: #e2e8f0 !important;
+            vertical-align: middle !important;
+        }
+        .table-striped tbody tr:nth-of-type(odd) td {
+            background-color: rgba(255, 255, 255, 0.02) !important;
+        }
+        .table-hover tbody tr:hover td {
+            background-color: rgba(56, 189, 248, 0.05) !important;
+            color: #fff !important;
+        }
+
+        /* Progress Bars */
+        .progress {
+            background-color: #0f172a !important;
+            border-radius: 10px !important;
+            border: 1px solid #334155;
+        }
+
+        /* Export Button */
+        .btn-success {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+            border: none !important;
+            font-weight: 600 !important;
+            border-radius: 8px !important;
+            padding: 10px 20px !important;
+        }
+        .btn-success:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4) !important;
+        }
+
+        /* Modal Dark */
+        .modal-content {
+            background-color: #1e293b !important;
+            border: 1px solid #475569 !important;
+            color: #e2e8f0 !important;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5) !important;
+        }
+        .modal-header { border-bottom: 1px solid #334155 !important; }
+        .modal-footer { border-top: 1px solid #334155 !important; }
+
+        /* Estilização da Paginação Dark */
+        #paginacaoContainer .pagination { margin-top: 10px; }
+        #paginacaoContainer .page-link {
+            background-color: #1e293b !important;
+            border-color: #334155 !important;
+            color: #94a3b8 !important;
             font-weight: 500;
+            padding: 8px 16px;
+            transition: all 0.2s;
         }
-        .filter-bar {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
-            margin-bottom: 2rem;
+        #paginacaoContainer .page-link:hover {
+            background-color: #334155 !important;
+            color: #fff !important;
+        }
+        #paginacaoContainer .page-item.disabled .page-link {
+            background-color: #0f172a !important;
+            color: #475569 !important;
+            border-color: #1e293b !important;
+        }
+
+        /* Suavização das Badges de Prioridade Média (Amarelo Forte) */
+        .badge.bg-warning {
+            background-color: #ca8a04 !important; /* Amber mais fechado/premium */
+            color: #fff !important; /* Texto branco para melhor contraste no dark */
+            font-weight: 600 !important;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .badge.bg-danger {
+            background-color: #991b1b !important; /* Vermelho mais sóbrio */
+            color: #fff !important;
+        }
+        .badge.bg-success {
+            background-color: #065f46 !important; /* Verde mais escuro e elegante */
+            color: #fff !important;
+        }
+        .badge.bg-primary {
+            background-color: #1e40af !important;
+            color: #fff !important;
         }
     </style>
 </head>
@@ -136,10 +315,10 @@
     <div class="main-content">
         <div class="container">
             <!-- Header da Página -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="module-header d-flex justify-content-between align-items-center">
                 <div>
-                    <h2 class="fw-bold text-dark mb-1">Relatório de Procedimentos</h2>
-                    <p class="text-muted text-sm">Acompanhamento e estatísticas de procedimentos policiais.</p>
+                    <h2 class="fw-bold mb-1"><i class="bi bi-file-earmark-bar-graph me-2 text-info"></i>Relatório de Procedimentos</h2>
+                    <p class="text-muted mb-0" style="font-size: 0.9rem;">Acompanhamento e estatísticas de procedimentos policiais.</p>
                 </div>
                 <div class="text-end text-muted">
                     <small><i class="bi bi-clock"></i> Atualizado em: {{ date('d/m/Y H:i') }}</small>
@@ -151,13 +330,13 @@
                 <div class="row g-3">
                     <div class="col-md-3">
                         <label class="form-label fw-bold small text-muted">ANO</label>
-                        <select class="form-select border-0 bg-light" id="filtroAno">
+                        <select class="form-select border-0" id="filtroAno" style="background-color: #0f172a !important; color: white !important;">
                             <!-- Preenchido via JS -->
                         </select>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label fw-bold small text-muted">MÊS</label>
-                        <select class="form-select border-0 bg-light" id="filtroMes">
+                        <select class="form-select border-0" id="filtroMes" style="background-color: #0f172a !important; color: white !important;">
                             <option value="">Todos os Meses</option>
                             <option value="1">Janeiro</option>
                             <option value="2">Fevereiro</option>
@@ -175,7 +354,7 @@
                     </div>
                     <div class="col-md-3">
                         <label class="form-label fw-bold small text-muted">STATUS</label>
-                        <select class="form-select border-0 bg-light" id="filtroStatus">
+                        <select class="form-select border-0" id="filtroStatus" style="background-color: #0f172a !important; color: white !important;">
                             <option value="">Todos os Status</option>
                             <option value="Em andamento">Em Andamento</option>
                             <option value="Concluído">Concluído - Aguardando Relatório</option>
@@ -277,8 +456,8 @@
             <!-- Seção de Análise Estratégica -->
             <div class="row g-4 mb-4">
                 <div class="col-md-12">
-                    <div class="card border-0 shadow-sm rounded-4">
-                        <div class="card-header bg-white border-bottom-0 py-3 rounded-top-4">
+                    <div class="card border-0">
+                        <div class="card-header border-bottom-0 py-3 rounded-top-4">
                             <h5 class="mb-0 fw-bold"><i class="bi bi-bar-chart-line-fill text-primary me-2"></i>Ranking de Naturezas (Top 5)</h5>
                             <small class="text-muted">Quais são os crimes mais frequentes neste período?</small>
                         </div>
@@ -293,8 +472,8 @@
             </div>
 
             <!-- Tabela de Resultados -->
-            <div class="card border-0 shadow-sm rounded-4">
-                <div class="card-header bg-white border-bottom-0 py-3 rounded-top-4">
+            <div class="card border-0">
+                <div class="card-header border-bottom-0 py-3 rounded-top-4">
                     <h5 class="mb-0 fw-bold">Detalhamento</h5>
                 </div>
                 <div class="table-responsive">
@@ -315,7 +494,7 @@
                     </table>
                 </div>
                 <!-- Rodapé da Tabela com Paginação -->
-                <div class="card-footer bg-white border-top-0 py-3">
+                <div class="card-footer border-top-0 py-3">
                     <div id="paginacaoContainer" class="d-flex justify-content-center"></div>
                 </div>
             </div>

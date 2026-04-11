@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Services\StatusLogService;
 
 class InicioController extends Controller
 {
@@ -240,6 +241,11 @@ class InicioController extends Controller
                 'updated_at' => now()
             ]);
 
+            // ✅ Registrar no log de status (Remetido/Concluído)
+            if ($request->status && StatusLogService::isStatusRastreado($request->status)) {
+                StatusLogService::registrar($id, $request->boe, $request->status);
+            }
+
             $this->vincularNomesAoBoe($request->boe, $request->vitimas, 'VITIMA');
             $this->vincularNomesAoBoe($request->boe, $request->autores, 'AUTOR');
             $this->vincularNomesAoBoe($request->boe, $request->testemunhas, 'TESTEMUNHA');
@@ -381,6 +387,20 @@ class InicioController extends Controller
                     'Apreensao' => $request->Apreensao,
                     'updated_at' => now()
                 ]);
+
+            // ✅ Registrar/atualizar log de status (Remetido/Concluído)
+            $statusAnterior = $registro->status ?? '';
+            $statusNovo = $request->status ?? '';
+
+            // Se mudou PARA um status rastreado, registra
+            if (StatusLogService::isStatusRastreado($statusNovo)) {
+                StatusLogService::registrar((int) $id, $request->boe, $statusNovo);
+            }
+
+            // Se SAIU de um status rastreado, remove o log antigo
+            if (StatusLogService::isStatusRastreado($statusAnterior) && $statusAnterior !== $statusNovo) {
+                StatusLogService::remover((int) $id, $statusAnterior);
+            }
 
             $idsVinculados = [
                 'VITIMA' => $this->vincularNomesAoBoe($request->boe, $request->vitimas, 'VITIMA'),

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\PdfService;
+use App\Services\StatusLogService;
 use Illuminate\Support\Facades\DB;
 use App\Exports\ProcedimentosExport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -33,19 +34,54 @@ class ProcedimentosController extends Controller
 
         $query = DB::table('cadprincipal');
 
-        // Aplicar Filtro de Ano
-        if ($ano) {
-            $query->whereYear('data', $ano);
+        // Normalizar status para cobrir variações de acento (à vs a)
+        $statusNormalizado = $status;
+        $statusLike = null;
+        if ($status && mb_stripos($status, 'Remetido') !== false) {
+            $statusLike = 'Remetido%Just%';
         }
 
-        // Aplicar Filtro de Mês
-        if ($mes) {
-            $query->whereMonth('data', $mes);
-        }
+        // ✅ Lógica especial para status rastreados (Remetido/Concluído):
+        // Quando filtrar por mês/ano + status rastreado, usa o log JSON
+        // para pegar os IDs dos procedimentos que mudaram de status naquele período.
+        $usarLogStatus = $status && StatusLogService::isStatusRastreado($status) && ($mes || $ano);
 
-        // Aplicar Filtro de Status
-        if ($status) {
-            $query->where('status', $status);
+        if ($usarLogStatus) {
+            // Busca IDs no log JSON pelo período
+            $idsNoPeriodo = StatusLogService::buscarIdsPorPeriodo(
+                $status,
+                $mes ? (int) $mes : null,
+                $ano ? (int) $ano : null
+            );
+
+            if (count($idsNoPeriodo) > 0) {
+                $query->whereIn('id', $idsNoPeriodo);
+            } else {
+                // Nenhum registro no log para esse período, retorna vazio
+                $query->whereRaw('1 = 0');
+            }
+
+            // Aplica o filtro de status no banco (com LIKE para variações de acento)
+            if ($statusLike) {
+                $query->where('status', 'LIKE', $statusLike);
+            } else {
+                $query->where('status', $status);
+            }
+        } else {
+            // Lógica padrão: filtra por data do procedimento
+            if ($ano) {
+                $query->whereYear('data', $ano);
+            }
+            if ($mes) {
+                $query->whereMonth('data', $mes);
+            }
+            if ($status) {
+                if ($statusLike) {
+                    $query->where('status', 'LIKE', $statusLike);
+                } else {
+                    $query->where('status', $status);
+                }
+            }
         }
 
         // --- SEPARAÇÃO DE QUERIES ---
@@ -155,14 +191,34 @@ class ProcedimentosController extends Controller
     {
         $query = DB::table('cadprincipal');
 
-        if (!empty($filtros['ano'])) {
-            $query->whereYear('data', $filtros['ano']);
-        }
-        if (!empty($filtros['mes'])) {
-            $query->whereMonth('data', $filtros['mes']);
-        }
-        if (!empty($filtros['status'])) {
-            $query->where('status', $filtros['status']);
+        $status = $filtros['status'] ?? null;
+        $mes = $filtros['mes'] ?? null;
+        $ano = $filtros['ano'] ?? null;
+        $usarLogStatus = $status && StatusLogService::isStatusRastreado($status) && ($mes || $ano);
+
+        if ($usarLogStatus) {
+            $idsNoPeriodo = StatusLogService::buscarIdsPorPeriodo(
+                $status,
+                $mes ? (int) $mes : null,
+                $ano ? (int) $ano : null
+            );
+
+            if (count($idsNoPeriodo) > 0) {
+                $query->whereIn('id', $idsNoPeriodo);
+            } else {
+                $query->whereRaw('1 = 0');
+            }
+            $query->where('status', $status);
+        } else {
+            if (!empty($ano)) {
+                $query->whereYear('data', $ano);
+            }
+            if (!empty($mes)) {
+                $query->whereMonth('data', $mes);
+            }
+            if (!empty($status)) {
+                $query->where('status', $status);
+            }
         }
 
         $registros = $query->orderBy('data', 'desc')->get();

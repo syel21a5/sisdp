@@ -177,7 +177,7 @@ $(document).ready(function () {
                 statusLabel = 'Concluído - Ag. Relatório'; // Abreviação para caber bem
             }
             else if (item.status === 'Parado') {
-                statusBadge = 'bg-warning text-dark';
+                statusBadge = 'bg-warning';
                 statusLabel = 'Aguardando Diligência';
             }
             else if (item.status === 'Arquivado') {
@@ -195,7 +195,7 @@ $(document).ready(function () {
             if (prioridadeUpper.includes('ALTA')) {
                 prioridadeBadge = 'bg-danger';
             } else if (prioridadeUpper.includes('MÉDIA') || prioridadeUpper.includes('MEDIA')) {
-                prioridadeBadge = 'bg-warning text-dark';
+                prioridadeBadge = 'bg-warning';
             } else if (prioridadeUpper.includes('BAIXA')) {
                 prioridadeBadge = 'bg-success';
             }
