@@ -135,10 +135,26 @@ def parse_boe_python(texto: str) -> dict:
             if m_rg: p['rg'] = m_rg.group(1).strip()
 
             m_natural = re.search(r'Naturalidade:\s*([^\n;]+)', ficha)
-            if m_natural: p['naturalidade'] = m_natural.group(1).replace('/', ' / ').strip()
+            if m_natural:
+                nat_raw = m_natural.group(1)
+                nat_parts = [x.strip() for x in nat_raw.split('/') if x.strip() and x.strip() != 'BRASIL']
+                if len(nat_parts) >= 2:
+                    city = nat_parts[0]
+                    state = nat_parts[1].upper()
+                    st_map = {'ACRE':'AC','ALAGOAS':'AL','AMAPA':'AP','AMAPÁ':'AP','AMAZONAS':'AM','BAHIA':'BA','CEARA':'CE','CEARÁ':'CE','DISTRITO FEDERAL':'DF','ESPIRITO SANTO':'ES','ESPÍRITO SANTO':'ES','GOIAS':'GO','GOIÁS':'GO','MARANHAO':'MA','MARANHÃO':'MA','MATO GROSSO':'MT','MATO GROSSO DO SUL':'MS','MINAS GERAIS':'MG','PARA':'PA','PARÁ':'PA','PARAIBA':'PB','PARAÍBA':'PB','PARANA':'PR','PARANÁ':'PR','PERNAMBUCO':'PE','PIAUI':'PI','PIAUÍ':'PI','RIO DE JANEIRO':'RJ','RIO GRANDE DO NORTE':'RN','RIO GRANDE DO SUL':'RS','RONDONIA':'RO','RONDÔNIA':'RO','RORAIMA':'RR','SANTA CATARINA':'SC','SAO PAULO':'SP','SÃO PAULO':'SP','SERGIPE':'SE','TOCANTINS':'TO'}
+                    if city in ['NÃO INFORMADO', 'NAO INFORMADO']:
+                        p['naturalidade'] = 'NÃO INFORMADO'
+                    else:
+                        uf = st_map.get(state, state)
+                        p['naturalidade'] = f"{city}-{uf}"
+                elif len(nat_parts) == 1:
+                    p['naturalidade'] = nat_parts[0]
             
             m_prof = re.search(r'Profissão:\s*([^\n;]+)', ficha)
-            if m_prof: p['profissao'] = m_prof.group(1).strip()
+            if m_prof:
+                prof_raw = m_prof.group(1).strip()
+                prof_raw = re.sub(r'(?i)\s*Telefones Celulares:?$', '', prof_raw).strip()
+                p['profissao'] = prof_raw
                 
             m_tel = re.search(r'Telefones Celulares:\s*\n-\s*([\d\s]+)', ficha)
             if m_tel: p['telefone'] = m_tel.group(1).strip()
@@ -217,6 +233,20 @@ def parse_boe_python(texto: str) -> dict:
 
         if obj_list_text:
             dados['objetos_apreendidos'] = " / ".join(obj_list_text)
+
+    # Deduplicacao e Filtragem de Categorias (Hierarquia: Autores > Vitimas > Condutor > Testemunhas > Outros)
+    for k in ['autores', 'vitimas', 'condutor', 'testemunhas', 'outros']:
+        dados[k] = list(dict.fromkeys(dados[k]))
+    
+    def remove_from_list(target_list, to_remove_lists):
+        for rem_list in to_remove_lists:
+            target_list = [x for x in target_list if x not in rem_list]
+        return target_list
+
+    dados['vitimas'] = remove_from_list(dados['vitimas'], [dados['autores']])
+    dados['condutor'] = remove_from_list(dados['condutor'], [dados['autores'], dados['vitimas']])
+    dados['testemunhas'] = remove_from_list(dados['testemunhas'], [dados['autores'], dados['vitimas'], dados['condutor']])
+    dados['outros'] = remove_from_list(dados['outros'], [dados['autores'], dados['vitimas'], dados['condutor'], dados['testemunhas']])
 
     # Validacao de Sucesso Inicial
     has_boe = bool(dados["boe"])
