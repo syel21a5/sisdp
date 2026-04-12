@@ -31,6 +31,14 @@
             background: transparent !important;
         }
 
+        /* Sobrescreve o container do style.css padrão para manter o tema dark */
+        .container {
+            background-color: transparent !important;
+            box-shadow: none !important;
+            border: none !important;
+            max-width: 1400px !important;
+        }
+
         /* Sidebar Dark Slate */
         .sidebar {
             background: #0f172a !important;
