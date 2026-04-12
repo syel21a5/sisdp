@@ -103,7 +103,7 @@ def parse_boe_python(texto: str) -> dict:
                 papel_map[nome] = papel
                 if 'VITIMA' in papel or 'VÍTIMA' in papel:
                     if nome not in dados['vitimas']: dados['vitimas'].append(nome)
-                elif 'AUTOR' in papel or 'AGENTE' in papel or 'IMPUTADO' in papel or 'SUSPEITO' in papel:
+                elif 'AUTOR' in papel or 'AGENTE' in papel or 'IMPUTADO' in papel or 'SUSPEITO' in papel or 'CAPTURADO' in papel or 'PRESO' in papel or 'DETIDO' in papel or 'CONDUZIDO' in papel:
                     if nome not in dados['autores']: dados['autores'].append(nome)
                 elif 'TESTEMUNHA' in papel:
                     if nome not in dados['testemunhas']: dados['testemunhas'].append(nome)

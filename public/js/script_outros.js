@@ -214,32 +214,52 @@ $(document).ready(function () {
     window.preencherOutroVinculado = function (dados) {
         console.log('🔄 PREENCHENDO OUTRO DO VÍNCULO:', dados);
 
-        currentOutroId = dados.IdCad;
+        // Helper: busca valor em PascalCase ou lowercase
+        const g = (pascal, lower) => dados[pascal] || dados[lower] || '';
 
-        $('#outro_id').val(dados.IdCad || '');
-        $('#inputNomeOutro').val(dados.Nome || '');
-        $('#inputAlcunhaOutro').val(dados.Alcunha || '');
+        currentOutroId = dados.IdCad || dados.id || null;
 
-        if (dados.Nascimento) {
-            const dataNasc = new Date(dados.Nascimento);
-            if (!isNaN(dataNasc.getTime())) {
-                $('#inputDataNascimentoOutro').val(dataNasc.toLocaleDateString('pt-BR'));
-                $('#inputIdadeOutro').val(calcularIdade($('#inputDataNascimentoOutro').val()));
+        $('#outro_id').val(currentOutroId || '');
+        $('#inputNomeOutro').val(g('Nome', 'nome'));
+        $('#inputAlcunhaOutro').val(g('Alcunha', 'alcunha'));
+
+        // Nascimento: pode vir como "YYYY-MM-DD" (BD) ou "DD/MM/YYYY" (extração)
+        let dataNascStr = g('Nascimento', 'nascimento');
+        if (dataNascStr) {
+            if (/^\d{4}-\d{2}-\d{2}$/.test(dataNascStr)) {
+                // Formato BD (YYYY-MM-DD) → converte para DD/MM/YYYY
+                const p = dataNascStr.split('-');
+                dataNascStr = `${p[2]}/${p[1]}/${p[0]}`;
+            } else if (dataNascStr.includes('/')) {
+                // Formato extração (D/M/YYYY) → padding
+                const p = dataNascStr.split('/');
+                if (p.length === 3) {
+                    let d = p[0].trim(), m = p[1].trim();
+                    if (d.length === 1) d = '0' + d;
+                    if (m.length === 1) m = '0' + m;
+                    dataNascStr = `${d}/${m}/${p[2].trim()}`;
+                }
             }
+            $('#inputDataNascimentoOutro').val(dataNascStr);
+            $('#inputIdadeOutro').val(calcularIdade(dataNascStr));
         }
 
-        $('#inputEstadoCivilOutro').val(dados.EstCivil || '');
-        $('#inputNaturalidadeOutro').val(dados.Naturalidade || '');
-        $('#inputProfissaoOutro').val(dados.Profissao || '');
-        $('#inputInstrucaoOutro').val(dados.Instrucao || '');
-        $('#inputRGOutro').val(dados.RG || '');
-        $('#inputCPFOutro').val(dados.CPF || '').trigger('input');
-        $('#inputTelefoneOutro').val(dados.Telefone || '(00) 00000-0000').trigger('input');
-        $('#inputMaeOutro').val(dados.Mae || '');
-        $('#inputPaiOutro').val(dados.Pai || '');
-        $('#inputEnderecoOutro').val(dados.Endereco || '');
+        $('#inputEstadoCivilOutro').val(g('EstCivil', 'estado_civil'));
+        $('#inputNaturalidadeOutro').val(g('Naturalidade', 'naturalidade'));
+        $('#inputProfissaoOutro').val(g('Profissao', 'profissao'));
+        $('#inputInstrucaoOutro').val(g('Instrucao', 'instrucao') || g('Escolaridade', 'escolaridade'));
+        $('#inputRGOutro').val(g('RG', 'rg'));
+        $('#inputCPFOutro').val(g('CPF', 'cpf')).trigger('input');
+        let tel = g('Telefone', 'telefone');
+        if (!tel || tel.trim() === '') tel = '(00) 00000-0000';
+        $('#inputTelefoneOutro').val(tel).trigger('input');
+        $('#inputMaeOutro').val(g('Mae', 'mae'));
+        $('#inputPaiOutro').val(g('Pai', 'pai'));
+        $('#inputEnderecoOutro').val(g('Endereco', 'endereco'));
 
-        $('#btnEditarOutro, #btnExcluirOutro').prop('disabled', false);
+        if (currentOutroId) {
+            $('#btnEditarOutro, #btnExcluirOutro').prop('disabled', false);
+        }
 
         console.log('✅ OUTRO VINCULADO PREENCHIDO - ID:', currentOutroId);
     };
