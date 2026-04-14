@@ -52,7 +52,8 @@ class UsuarioController extends Controller
                 'infopol' => $request->has('perm_infopol'),
                 'antecedentes' => $request->has('perm_antecedentes'),
                 'auditoria_chips' => $request->has('perm_auditoria_chips'),
-                'verificar_sei' => $request->has('perm_verificar_sei')
+                'verificar_sei' => $request->has('perm_verificar_sei'),
+                'ver_apenas_proprias' => $request->has('perm_ver_apenas_proprias')
             ]
         ];
 
@@ -100,7 +101,8 @@ class UsuarioController extends Controller
                 'infopol' => $request->has('perm_infopol'),
                 'antecedentes' => $request->has('perm_antecedentes'),
                 'auditoria_chips' => $request->has('perm_auditoria_chips'),
-                'verificar_sei' => $request->has('perm_verificar_sei')
+                'verificar_sei' => $request->has('perm_verificar_sei'),
+                'ver_apenas_proprias' => $request->has('perm_ver_apenas_proprias')
             ]
         ];
 

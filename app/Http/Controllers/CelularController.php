@@ -28,7 +28,8 @@ class CelularController extends Controller
         return view('wf_celular', [
             'userId' => Auth::id(),
             'isAdmin' => Auth::id() == 4,
-            'canVerificarSei' => isset($perms['verificar_sei']) ? $perms['verificar_sei'] : true
+            'canVerificarSei' => isset($perms['verificar_sei']) ? $perms['verificar_sei'] : true,
+            'verApenasProrias' => isset($perms['ver_apenas_proprias']) ? $perms['ver_apenas_proprias'] : false
         ]);
     }
 
@@ -53,6 +54,14 @@ class CelularController extends Controller
 
         $query = DB::table('cadcelular')
             ->leftJoin('usuario', 'cadcelular.user_id', '=', 'usuario.id');
+
+        $user = Auth::user();
+        $perms = $user->permissions ?? [];
+        $verApenas = isset($perms['ver_apenas_proprias']) ? $perms['ver_apenas_proprias'] : false;
+        
+        if ($verApenas && $userId != 4) {
+            $query->where('cadcelular.user_id', $userId);
+        }
 
         $registros = $query->where("cadcelular.{$filtro}", 'LIKE', "%{$termo}%")
             ->orderBy('cadcelular.data', 'desc')
@@ -82,6 +91,14 @@ class CelularController extends Controller
 
             $query = DB::table('cadcelular')
                 ->leftJoin('usuario', 'cadcelular.user_id', '=', 'usuario.id');
+
+            $user = Auth::user();
+            $perms = $user->permissions ?? [];
+            $verApenas = isset($perms['ver_apenas_proprias']) ? $perms['ver_apenas_proprias'] : false;
+            
+            if ($verApenas && $userId != 4) {
+                $query->where('cadcelular.user_id', $userId);
+            }
 
             // Usar ordenação por ID para evitar erro se não existir created_at
             $registros = $query->orderBy('cadcelular.id', 'desc')
@@ -422,6 +439,14 @@ class CelularController extends Controller
         $query = DB::table('cadcelular')
             ->leftJoin('usuario', 'cadcelular.user_id', '=', 'usuario.id');
 
+        $user = Auth::user();
+        $perms = $user->permissions ?? [];
+        $verApenas = isset($perms['ver_apenas_proprias']) ? $perms['ver_apenas_proprias'] : false;
+        
+        if ($verApenas && $userId != 4) {
+            $query->where('cadcelular.user_id', $userId);
+        }
+
         // Buscar celulares por período apenas se informado
         if ($dataInicio && $dataFim) {
             $query->whereBetween('cadcelular.data', [$dataInicio->format('Y-m-d'), $dataFim->format('Y-m-d')]);
@@ -478,6 +503,14 @@ class CelularController extends Controller
         $status     = $request->status      ?? null;
 
         $query = DB::table('cadcelular');
+        
+        $user = Auth::user();
+        $perms = $user->permissions ?? [];
+        $verApenas = isset($perms['ver_apenas_proprias']) ? $perms['ver_apenas_proprias'] : false;
+        
+        if ($verApenas && $userId != 4) {
+            $query->where('user_id', $userId);
+        }
         
         if ($dataInicio && $dataFim) {
             $query->whereBetween('data', [$dataInicio->format('Y-m-d'), $dataFim->format('Y-m-d')]);

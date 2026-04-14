@@ -31,7 +31,11 @@ class CelularExport implements FromView, ShouldAutoSize, WithTitle, WithStyles
     {
         $query = DB::table('cadcelular');
 
-        if ($this->userId != 4) {
+        $user = Auth::user();
+        $perms = $user->permissions ?? [];
+        $verApenas = isset($perms['ver_apenas_proprias']) ? $perms['ver_apenas_proprias'] : false;
+
+        if ($this->userId != 4 && $verApenas) {
             $query->where('user_id', $this->userId);
         }
 

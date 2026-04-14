@@ -257,6 +257,13 @@
                                 </div>
                             </div>
 
+                            @if(isset($verApenasProrias) && $verApenasProrias && !(isset($isAdmin) && $isAdmin))
+                            <div class="alert alert-warning d-flex align-items-center py-2 mb-2" role="alert" style="font-size:0.9rem;">
+                                <i class="bi bi-eye-slash-fill me-2 flex-shrink-0"></i>
+                                <span>Você está visualizando <strong>apenas seus próprios registros</strong>. Contate o administrador para acesso completo.</span>
+                            </div>
+                            @endif
+
                             <!-- Empty State -->
                             <div id="emptyStatePesquisaVeiculo" class="text-center py-5 rounded bg-light border border-dashed text-muted mt-3">
                                 <i class="bi bi-search display-4 text-secondary mb-3 opacity-50"></i>
@@ -492,6 +499,7 @@
         id="veiculoPageConfig"
         data-current-user-id="{{ $userId ?? '' }}"
         data-is-admin-user="{{ isset($isAdmin) && $isAdmin ? '1' : '0' }}"
+        data-ver-apenas-proprias="{{ isset($verApenasProrias) && $verApenasProrias && !$isAdmin ? '1' : '0' }}"
         data-route-importar-boe-texto="{{ route('veiculo.importar_boe_texto') }}"
         data-route-pesquisar="{{ route('veiculo.pesquisar') }}"
         data-route-salvar="{{ route('veiculo.salvar') }}"

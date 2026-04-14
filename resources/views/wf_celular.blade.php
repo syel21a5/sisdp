@@ -266,6 +266,13 @@
                                 </div>
                             </div>
 
+                            @if(isset($verApenasProrias) && $verApenasProrias && !(isset($isAdmin) && $isAdmin))
+                            <div class="alert alert-warning d-flex align-items-center py-2 mb-2" role="alert" style="font-size:0.9rem;">
+                                <i class="bi bi-eye-slash-fill me-2 flex-shrink-0"></i>
+                                <span>Você está visualizando <strong>apenas seus próprios registros</strong>. Contate o administrador para acesso completo.</span>
+                            </div>
+                            @endif
+
                             <!-- Empty State -->
                             <div id="emptyStatePesquisaCelular" class="text-center py-5 rounded bg-light border border-dashed text-muted mt-3">
                                 <i class="bi bi-search display-4 text-secondary mb-3 opacity-50"></i>
@@ -536,6 +543,7 @@
     <script>
         window.currentUserId = {{ $userId ?? 'null' }};
         window.isAdminUser = {{ isset($isAdmin) && $isAdmin ? 'true' : 'false' }};
+        window.verApenasProrias = {{ isset($verApenasProrias) && $verApenasProrias && !$isAdmin ? 'true' : 'false' }};
     </script>
     <script>
         var rotasCelular = {

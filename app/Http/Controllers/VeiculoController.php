@@ -28,7 +28,8 @@ class VeiculoController extends Controller
         return view('wf_veiculo', [
             'userId' => Auth::id(),
             'isAdmin' => Auth::id() == 4,
-            'canVerificarSei' => isset($perms['verificar_sei']) ? $perms['verificar_sei'] : true
+            'canVerificarSei' => isset($perms['verificar_sei']) ? $perms['verificar_sei'] : true,
+            'verApenasProrias' => isset($perms['ver_apenas_proprias']) ? $perms['ver_apenas_proprias'] : false
         ]);
     }
 
@@ -53,6 +54,14 @@ class VeiculoController extends Controller
 
         $query = DB::table('cadveiculo')
             ->leftJoin('usuario', 'cadveiculo.user_id', '=', 'usuario.id');
+
+        $user = Auth::user();
+        $perms = $user->permissions ?? [];
+        $verApenas = isset($perms['ver_apenas_proprias']) ? $perms['ver_apenas_proprias'] : false;
+        
+        if ($verApenas && $userId != 4) {
+            $query->where('cadveiculo.user_id', $userId);
+        }
 
         $registros = $query->where("cadveiculo.{$filtro}", 'LIKE', "%{$termo}%")
             ->orderBy('cadveiculo.data', 'desc')
@@ -82,6 +91,14 @@ class VeiculoController extends Controller
 
             $query = DB::table('cadveiculo')
                 ->leftJoin('usuario', 'cadveiculo.user_id', '=', 'usuario.id');
+
+            $user = Auth::user();
+            $perms = $user->permissions ?? [];
+            $verApenas = isset($perms['ver_apenas_proprias']) ? $perms['ver_apenas_proprias'] : false;
+            
+            if ($verApenas && $userId != 4) {
+                $query->where('cadveiculo.user_id', $userId);
+            }
 
             // Usar ordenação por ID para evitar erro se não existir created_at
             $registros = $query->orderBy('cadveiculo.id', 'desc')
@@ -433,6 +450,14 @@ class VeiculoController extends Controller
         $query = DB::table('cadveiculo')
             ->leftJoin('usuario', 'cadveiculo.user_id', '=', 'usuario.id');
 
+        $user = Auth::user();
+        $perms = $user->permissions ?? [];
+        $verApenas = isset($perms['ver_apenas_proprias']) ? $perms['ver_apenas_proprias'] : false;
+        
+        if ($verApenas && $userId != 4) {
+            $query->where('cadveiculo.user_id', $userId);
+        }
+
         // Buscar veículos por período apenas se informado
         if ($dataInicio && $dataFim) {
             $query->whereBetween('cadveiculo.data', [$dataInicio->format('Y-m-d'), $dataFim->format('Y-m-d')]);
@@ -490,6 +515,14 @@ class VeiculoController extends Controller
 
         $query = DB::table('cadveiculo');
         
+        $user = Auth::user();
+        $perms = $user->permissions ?? [];
+        $verApenas = isset($perms['ver_apenas_proprias']) ? $perms['ver_apenas_proprias'] : false;
+        
+        if ($verApenas && $userId != 4) {
+            $query->where('user_id', $userId);
+        }
+
         if ($dataInicio && $dataFim) {
             $query->whereBetween('data', [$dataInicio->format('Y-m-d'), $dataFim->format('Y-m-d')]);
         }
