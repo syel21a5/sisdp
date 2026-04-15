@@ -58,6 +58,144 @@ def normalizar_nome(nome: str) -> str:
     sem_acentos = ''.join(c for c in nfkd if not unicodedata.combining(c))
     return re.sub(r'\s+', ' ', sem_acentos).strip().upper()
 
+def remover_acentos(texto: str) -> str:
+    """Remove acentos/diacríticos (ã→a, ç→c, é→e, etc.) sem alterar caixa."""
+    if not texto:
+        return texto
+    nfkd = unicodedata.normalize('NFKD', texto)
+    return ''.join(c for c in nfkd if not unicodedata.combining(c))
+
+def _formatar_endereco(end_raw: str) -> str:
+    """Reformata endereço do BOE (separado por ;) para a ordem:
+    Rua, Número, Bairro, Cidade, Estado.
+    
+    Formato BOE típico: 
+    'RUA PEDRO IVO , 144; RUA PEDRO IVO, BORGES; 0; CENTRO; AFOGADOS DA INGAZEIRA; PERNAMBUCO; BRASIL; BAR DA SEPARACAO'
+    Ou: 'MUNICIPIO DE AFOGADOS DA INGAZEIRA, 97; RUA CLETO CAMPELO; 55000-000'
+    """
+    # Separa por ;
+    partes = [p.strip() for p in end_raw.split(';') if p.strip()]
+    
+    # Remove BRASIL, CEPs (00000-000 ou 55000-000) e zeros puros
+    limpo = []
+    for p in partes:
+        p_upper = p.upper().strip()
+        if p_upper == 'BRASIL':
+            continue
+        if re.match(r'^\d{5}-?\d{3}$', p_upper):
+            continue
+        if p_upper == '0' or p_upper == '00':
+            continue
+        # Remove estado por extenso se já temos cidade
+        limpo.append(p)
+    
+    if not limpo:
+        return end_raw
+    
+    # Mapa de estados para abreviação
+    st_map = {'ACRE':'AC','ALAGOAS':'AL','AMAPA':'AP','AMAPÁ':'AP','AMAZONAS':'AM','BAHIA':'BA',
+              'CEARA':'CE','CEARÁ':'CE','DISTRITO FEDERAL':'DF','ESPIRITO SANTO':'ES','ESPÍRITO SANTO':'ES',
+              'GOIAS':'GO','GOIÁS':'GO','MARANHAO':'MA','MARANHÃO':'MA','MATO GROSSO':'MT',
+              'MATO GROSSO DO SUL':'MS','MINAS GERAIS':'MG','PARA':'PA','PARÁ':'PA','PARAIBA':'PB',
+              'PARAÍBA':'PB','PARANA':'PR','PARANÁ':'PR','PERNAMBUCO':'PE','PIAUI':'PI','PIAUÍ':'PI',
+              'RIO DE JANEIRO':'RJ','RIO GRANDE DO NORTE':'RN','RIO GRANDE DO SUL':'RS',
+              'RONDONIA':'RO','RONDÔNIA':'RO','RORAIMA':'RR','SANTA CATARINA':'SC',
+              'SAO PAULO':'SP','SÃO PAULO':'SP','SERGIPE':'SE','TOCANTINS':'TO'}
+    
+    # Identifica o estado (se houver) e converte para sigla
+    estado_uf = ''
+    partes_sem_estado = []
+    for p in limpo:
+        p_upper = p.upper().strip()
+        if p_upper in st_map:
+            estado_uf = st_map[p_upper]
+        else:
+            partes_sem_estado.append(p)
+    
+    # Tenta identificar componentes do endereço
+    rua = ''
+    numero = ''
+    bairro = ''
+    cidade = ''
+    complemento = ''
+    referencia = ''
+    
+    for idx, p in enumerate(partes_sem_estado):
+        p_clean = p.strip()
+        p_upper = p_clean.upper()
+        
+        # Primeira parte geralmente é "RUA X, NUMERO" ou "MUNICIPIO DE X, NUMERO"
+        if idx == 0:
+            # Verifica se tem número embutido (ex: "RUA PEDRO IVO , 144" ou "MUNICIPIO DE X, 97")
+            m_rua_num = re.match(r'^(.+?)\s*,\s*(\d+)\s*$', p_clean)
+            if m_rua_num:
+                rua = m_rua_num.group(1).strip()
+                numero = m_rua_num.group(2).strip()
+                # Se começa com MUNICIPIO DE, é indicador de zona rural
+                if re.match(r'(?i)MUNICIPIO\s+DE\s+', rua):
+                    # Extrai a cidade do "MUNICIPIO DE X"
+                    m_mun = re.match(r'(?i)MUNICIPIO\s+DE\s+(.*)', rua)
+                    if m_mun:
+                        cidade = m_mun.group(1).strip()
+                        rua = ''  # Será preenchido pela próxima parte
+            else:
+                rua = p_clean
+        elif idx == 1:
+            # Pode ser repetição da rua (com complemento), bairro, ou nome do local
+            if not rua:
+                # Se rua ficou vazio (era MUNICIPIO DE), esta é a rua real
+                rua = p_clean
+            elif p_upper.startswith('RUA ') or p_upper.startswith('AV ') or p_upper.startswith('AVENIDA '):
+                # Repetição de rua com possível complemento - ignora se já temos
+                pass
+            else:
+                # Provavelmente é o bairro ou complemento
+                if not bairro:
+                    bairro = p_clean
+                else:
+                    complemento = p_clean
+        elif idx == 2:
+            if not bairro:
+                bairro = p_clean
+            elif not cidade:
+                cidade = p_clean
+            else:
+                referencia = p_clean
+        elif idx == 3:
+            if not cidade:
+                cidade = p_clean
+            else:
+                referencia = p_clean
+        else:
+            # Referências extras
+            if p_clean and p_upper not in ['NAO INFORMADO', 'NÃO INFORMADO']:
+                referencia = p_clean
+    
+    # Monta o endereço formatado: Rua, Número, Bairro, Cidade-UF
+    resultado = []
+    if rua:
+        # Limpa espaçamento extra do rua (ex: "RUA PEDRO IVO " -> "RUA PEDRO IVO")
+        rua = re.sub(r'\s+', ' ', rua).strip()
+        resultado.append(rua)
+    if numero and numero != '0' and numero != '00':
+        resultado.append(numero)
+    if bairro:
+        resultado.append(bairro)
+    if cidade:
+        if estado_uf:
+            resultado.append(f"{cidade}-{estado_uf}")
+        else:
+            resultado.append(cidade)
+    elif estado_uf:
+        resultado.append(estado_uf)
+    
+    if not resultado:
+        # Fallback: retorna original limpo
+        return ', '.join(partes_sem_estado)
+    
+    return ', '.join(resultado)
+
+
 def parse_boe_python(texto: str) -> dict:
     import re
     dados = {
@@ -81,7 +219,7 @@ def parse_boe_python(texto: str) -> dict:
     
     # Natureza
     nats = re.findall(r'Natureza:(.*?)\nData:', texto, flags=re.DOTALL)
-    if nats: dados["natureza"] = ' / '.join([n.strip().replace('\n', ' ') for n in nats])
+    if nats: dados["natureza"] = remover_acentos(' / '.join([n.strip().replace('\n', ' ') for n in nats]))
     
     # Data/Hora
     m_data = re.search(r'Data:\s*([\d/]+)\s*Hora:\s*([\d:]+)', texto)
@@ -90,7 +228,7 @@ def parse_boe_python(texto: str) -> dict:
         dados["hora_fato"] = m_data.group(2).strip()
         
     m_end = re.search(r'Endereço do fato:(.*?)\nLocal do fato:', texto, flags=re.DOTALL)
-    if m_end: dados["end_fato"] = m_end.group(1).strip().replace('\n', ' ')
+    if m_end: dados["end_fato"] = remover_acentos(m_end.group(1).strip().replace('\n', ' '))
 
     bloco_envolvidos_idx = re.findall(r'Envolvidos:\s*\n(.*?)(?=\nObjetos:|\nNatureza:|\nCondutor da ocorrência:|\nEnvolvidos\s*\n)', texto, flags=re.DOTALL)
     papel_map = {}
@@ -98,10 +236,10 @@ def parse_boe_python(texto: str) -> dict:
         for linha in bloco.strip().split('\n'):
             m = re.match(r'^(.*?)\s+\(\s*([^()]+?)\s*\)$', linha.strip())
             if m:
-                nome = m.group(1).strip().upper()
+                nome = remover_acentos(m.group(1).strip().upper())
                 papel = m.group(2).strip().upper()
                 papel_map[nome] = papel
-                if 'VITIMA' in papel or 'VÍTIMA' in papel:
+                if 'VITIMA' in papel or 'VÍTIMA' in papel or 'VITIMA' in remover_acentos(papel):
                     if nome not in dados['vitimas']: dados['vitimas'].append(nome)
                 elif 'AUTOR' in papel or 'AGENTE' in papel or 'IMPUTADO' in papel or 'SUSPEITO' in papel or 'CAPTURADO' in papel or 'PRESO' in papel or 'DETIDO' in papel or 'CONDUZIDO' in papel:
                     if nome not in dados['autores']: dados['autores'].append(nome)
@@ -115,56 +253,126 @@ def parse_boe_python(texto: str) -> dict:
         txt_env = bloco_envolvidos.group(1)
         pessoas_matches = list(re.finditer(r'^([A-ZÀ-ÿ\s]+?)\s+\([^()]*?\)\s*Sexo:', txt_env, flags=re.MULTILINE))
         for i, match in enumerate(pessoas_matches):
-            nome_raw = match.group(1).strip().upper()
+            nome_raw = remover_acentos(match.group(1).strip().upper())
             start = match.end()
             end = pessoas_matches[i+1].start() if i+1 < len(pessoas_matches) else len(txt_env)
-            ficha = txt_env[start:end]
+            ficha_raw = txt_env[start:end]
+            
+            # ✅ FIX: Unir linhas quebradas pelo PDF para evitar truncamento de campos
+            # O PDF quebra linhas no meio de frases. Juntamos linhas que continuam
+            # um campo (linha que NÃO começa com palavra-chave conhecida).
+            ficha = re.sub(r'\n(?!Mãe:|Pai:|Nascimento:|Naturalidade:|Documentos:|Estado\s+Civil:|Escolaridade:|Profissão:|Telefones?|Endereço|Características|Idade\s+aparente|Pessoa\s+com|[A-ZÀ-ÿ]{3,}[A-ZÀ-ÿ\s]+\([^()]*\)\s*Sexo:)', ' ', ficha_raw)
             
             p = {
                 "nome": nome_raw, "cpf": "", "rg": "", "nascimento": "", 
                 "mae": "", "pai": "", "estado_civil": "", "naturalidade": "",
-                "profissao": "", "telefone": "", "endereco": "", "escolaridade": ""
+                "profissao": "", "telefone": "", "endereco": "", "escolaridade": "",
+                "alcunha": ""
             }
             
-            m_mae = re.search(r'Mãe:\s*([^\n;]+)', ficha)
-            if m_mae: p['mae'] = m_mae.group(1).strip()
+            # Mãe: captura até o próximo campo (Pai:) ou fim de seção
+            m_mae = re.search(r'Mãe:\s*(.+?)(?=;\s*Pai:|Pai:|$)', ficha, re.IGNORECASE)
+            if m_mae: p['mae'] = re.sub(r'\s+', ' ', m_mae.group(1).strip().rstrip(';').strip())
             
-            m_pai = re.search(r'Pai:\s*([^\n;]+)', ficha)
-            if m_pai: p['pai'] = m_pai.group(1).strip()
+            # Pai: captura até o próximo campo (Nascimento:) ou fim de seção
+            m_pai = re.search(r'Pai:\s*(.+?)(?=;\s*Nascimento:|Nascimento:|$)', ficha, re.IGNORECASE)
+            if m_pai: p['pai'] = re.sub(r'\s+', ' ', m_pai.group(1).strip().rstrip(';').strip())
             
             m_nasc = re.search(r'Nascimento:\s*([\d/]+)', ficha)
             if m_nasc: p['nascimento'] = m_nasc.group(1).strip()
             
+            # CPF: Extrair e FORMATAR como XXX.XXX.XXX-XX
             m_cpf = re.search(r'(\d{11})\s*\(CPF\)', ficha)
-            if m_cpf: p['cpf'] = m_cpf.group(1).strip()
+            if m_cpf:
+                cpf_raw = m_cpf.group(1).strip()
+                p['cpf'] = f"{cpf_raw[:3]}.{cpf_raw[3:6]}.{cpf_raw[6:9]}-{cpf_raw[9:]}"
             
             m_rg = re.search(r'([\d/]+[A-Za-z/]+)\s*\(RG\)', ficha)
             if m_rg: p['rg'] = m_rg.group(1).strip()
 
-            m_natural = re.search(r'Naturalidade:\s*([^\n;]+)', ficha)
+            # Alcunha/Apelido
+            m_alc = re.search(r'Apelido:\s*([^;\n]+)', ficha, re.IGNORECASE)
+            if m_alc:
+                alc = m_alc.group(1).strip()
+                if alc.upper() not in ['NAO INFORMADO', 'NÃO INFORMADO', '']:
+                    p['alcunha'] = alc
+
+            # Naturalidade: captura multi-linha (após join) até ;
+            m_natural = re.search(r'Naturalidade:\s*(.+?)(?=Documentos:|$)', ficha, re.IGNORECASE)
             if m_natural:
-                nat_raw = m_natural.group(1)
+                nat_raw = m_natural.group(1).strip().rstrip(';').strip()
                 nat_parts = [x.strip() for x in nat_raw.split('/') if x.strip() and x.strip() != 'BRASIL']
                 if len(nat_parts) >= 2:
                     city = nat_parts[0]
                     state = nat_parts[1].upper()
                     st_map = {'ACRE':'AC','ALAGOAS':'AL','AMAPA':'AP','AMAPÁ':'AP','AMAZONAS':'AM','BAHIA':'BA','CEARA':'CE','CEARÁ':'CE','DISTRITO FEDERAL':'DF','ESPIRITO SANTO':'ES','ESPÍRITO SANTO':'ES','GOIAS':'GO','GOIÁS':'GO','MARANHAO':'MA','MARANHÃO':'MA','MATO GROSSO':'MT','MATO GROSSO DO SUL':'MS','MINAS GERAIS':'MG','PARA':'PA','PARÁ':'PA','PARAIBA':'PB','PARAÍBA':'PB','PARANA':'PR','PARANÁ':'PR','PERNAMBUCO':'PE','PIAUI':'PI','PIAUÍ':'PI','RIO DE JANEIRO':'RJ','RIO GRANDE DO NORTE':'RN','RIO GRANDE DO SUL':'RS','RONDONIA':'RO','RONDÔNIA':'RO','RORAIMA':'RR','SANTA CATARINA':'SC','SAO PAULO':'SP','SÃO PAULO':'SP','SERGIPE':'SE','TOCANTINS':'TO'}
                     if city in ['NÃO INFORMADO', 'NAO INFORMADO']:
-                        p['naturalidade'] = 'NÃO INFORMADO'
+                        p['naturalidade'] = 'NAO INFORMADO'
                     else:
                         uf = st_map.get(state, state)
                         p['naturalidade'] = f"{city}-{uf}"
                 elif len(nat_parts) == 1:
-                    p['naturalidade'] = nat_parts[0]
+                    val = nat_parts[0]
+                    if val.upper() not in ['NAO', 'NÃO']:
+                        p['naturalidade'] = val
             
-            m_prof = re.search(r'Profissão:\s*([^\n;]+)', ficha)
+            # Profissão: captura até Telefones ou fim de seção
+            m_prof = re.search(r'Profissão:\s*(.+?)(?=Telefones|$)', ficha, re.IGNORECASE)
             if m_prof:
-                prof_raw = m_prof.group(1).strip()
-                prof_raw = re.sub(r'(?i)\s*Telefones Celulares:?$', '', prof_raw).strip()
-                p['profissao'] = prof_raw
-                
-            m_tel = re.search(r'Telefones Celulares:\s*\n-\s*([\d\s]+)', ficha)
-            if m_tel: p['telefone'] = m_tel.group(1).strip()
+                prof_raw = m_prof.group(1).strip().rstrip(';').strip()
+                prof_raw = re.sub(r'(?i)\s*Telefones\s+(?:Celulares|Fixos):?$', '', prof_raw).strip()
+                if prof_raw.upper() not in ['NAO INFORMADO', 'NÃO INFORMADO']:
+                    p['profissao'] = prof_raw
+
+            # Estado Civil: ex "Estado Civil: SOLTEIRO(A);"
+            m_ec = re.search(r'Estado\s+Civil:\s*([^;]+)', ficha, re.IGNORECASE)
+            if m_ec: 
+                ec_val = m_ec.group(1).strip()
+                if ec_val.upper() not in ['NAO INFORMADO', 'NÃO INFORMADO']:
+                    p['estado_civil'] = ec_val
+
+            # Escolaridade: captura até ; ou Profissão
+            m_esc = re.search(r'(?:Escolaridade|Grau\s+de\s+Instru[çc][ãa]o):\s*(.+?)(?=;\s*Profissão|;\s*Profiss|Profissão|$)', ficha, re.IGNORECASE)
+            if m_esc:
+                esc_val = m_esc.group(1).strip().rstrip(';').strip()
+                if esc_val.upper() not in ['NAO', 'NÃO', 'NAO INFORMADO', 'NÃO INFORMADO']:
+                    p['escolaridade'] = esc_val
+
+            # Telefone: tenta celular primeiro, depois fixo
+            m_tel = re.search(r'Telefones?\s+Celulares?:\s*\n\s*-\s*\(?(\d{2})\)?\s*([\d\-\s]+)', ficha_raw)
+            if m_tel:
+                p['telefone'] = f"({m_tel.group(1)}) {m_tel.group(2).strip()}"
+            else:
+                # Fallback: tenta telefone fixo
+                m_tel2 = re.search(r'Telefones?\s+Fixos?:\s*\n\s*-\s*\(?(\d{2})\)?\s*([\d\-\s]+)', ficha_raw)
+                if m_tel2:
+                    p['telefone'] = f"({m_tel2.group(1)}) {m_tel2.group(2).strip()}"
+                else:
+                    # Fallback genérico: qualquer telefone no formato (XX) XXXXX-XXXX
+                    m_tel3 = re.search(r'\((\d{2})\)\s*([\d\-]+)', ficha_raw)
+                    if m_tel3:
+                        p['telefone'] = f"({m_tel3.group(1)}) {m_tel3.group(2).strip()}"
+
+            # ✅ FIX: Endereço — Captura multi-linha e reformata na ordem:
+            # Rua, Número, Bairro, Cidade, Estado
+            enderecos = []
+            for m_end in re.finditer(r'Endere[çc]o\s+(?:Residencial|Comercial):\s*(.+?)(?=\nEndere[çc]o|\n[A-ZÀ-ÿ]{3,}[A-ZÀ-ÿ\s]+\([^()]*\)|Características|$)', ficha_raw, re.IGNORECASE | re.DOTALL):
+                end_raw = m_end.group(1).strip()
+                # Junta linhas quebradas numa só
+                end_raw = re.sub(r'\s*\n\s*', ' ', end_raw).strip()
+                if end_raw and end_raw.upper() not in ['NÃO INFORMADO', 'NAO INFORMADO', 'N/A']:
+                    enderecos.append(end_raw)
+            
+            if enderecos:
+                formatted_addrs = []
+                for end_raw in enderecos:
+                    formatted_addrs.append(_formatar_endereco(end_raw))
+                p['endereco'] = ' / '.join(formatted_addrs)
+
+            # ✅ FIX: Remover acentos/caracteres especiais de TODOS os campos extraídos
+            for key in p:
+                if isinstance(p[key], str) and p[key]:
+                    p[key] = remover_acentos(p[key])
 
             dados['envolvidos_detalhes'][nome_raw] = p
 
@@ -202,7 +410,7 @@ def parse_boe_python(texto: str) -> dict:
     # Condutor
     m_condutor = re.search(r'Condutor da ocorrência:\s*\nNome:\s*(.*?)(?=\n|3\s+SARGENTO|MAT\.|Cargo:)', texto)
     if m_condutor:
-        condutor_nome = m_condutor.group(1).strip().upper()
+        condutor_nome = remover_acentos(m_condutor.group(1).strip().upper())
         # Remove eventuais titulos militares que escaparam
         condutor_nome = re.sub(r'(SARGENTO|CABO|SOLDADO|CAPITAO|TENENTE|MAJOR|CORONEL).*$', '', condutor_nome).strip()
         condutor_nome = re.sub(r'\d+\s*$', '', condutor_nome).strip()
@@ -471,6 +679,8 @@ if __name__ == "__main__":
     
     if success_py:
         # Python extraiu tudo com sucesso → retorna instantâneo
+        # ✅ FIX: Inclui texto_raw para que o JS possa usar como fallback (para uploads de PDF)
+        py_data['texto_raw'] = texto_raw_original
         print(json.dumps({"success": True, "dados": py_data}, ensure_ascii=False))
     elif use_ai:
         # MODO IA ATIVADO (apenas se BOE_USE_AI=true no .env)
@@ -487,6 +697,7 @@ if __name__ == "__main__":
     else:
         # MODO RÁPIDO: Python não extraiu tudo, mas retorna o que achou sem chamar IA
         # Campos faltantes ficam vazios para preenchimento manual
+        py_data['texto_raw'] = texto_raw_original
         print(json.dumps({"success": True, "dados": py_data, "obs": "Extração parcial via Python (IA desativada)"}, ensure_ascii=False))
             
     # Salva rastreio oculto para diagnostico

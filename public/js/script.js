@@ -752,6 +752,10 @@ window.OcorrenciasApp = {
 
             // Helper para limpar e popular formulário
             const popularFormulario = (prefixo, dados) => {
+                // ✅ FIX: Remover acentos/caracteres especiais de todos os valores antes de preencher
+                const semAcento = (s) => typeof s === 'string' ? s.normalize('NFD').replace(/[\u0300-\u036f]/g, '') : (s || '');
+                Object.keys(dados).forEach(k => { if (typeof dados[k] === 'string') dados[k] = semAcento(dados[k]); });
+
                 console.log(`📝 Populating Form ${prefixo}:`, dados);
                 console.log(`🎯 Target Naturalidade: #inputNaturalidade${prefixo}`, $(`#inputNaturalidade${prefixo}`).length);
 
@@ -1080,6 +1084,9 @@ window.OcorrenciasApp = {
                     const rota = `/condutor-apfd/buscar/${pessoaId}`;
                     $.get(rota).done((resp) => {
                         const dados = resp.data || resp;
+                        // ✅ FIX: Remover acentos de todos os campos
+                        const semAcento = (s) => typeof s === 'string' ? s.normalize('NFD').replace(/[\u0300-\u036f]/g, '') : (s || '');
+                        Object.keys(dados).forEach(k => { if (typeof dados[k] === 'string') dados[k] = semAcento(dados[k]); });
                         $('#inputNomeCondutor').val(dados.Nome || nomePessoa || '');
                         $('#inputAlcunha').val(dados.Alcunha || '');
                         let dataNasc = dados.Nascimento || '';
@@ -1639,7 +1646,16 @@ window.OcorrenciasApp = {
         const self = this;
 
         tipos.forEach((tipo) => {
-            // ✅ FIX: Limpar vínculos anteriores antes de conciliar novos nomes extraídos
+            // ✅ FIX: Preservar detalhes já armazenados (vindos da extração do BOE)
+            // Em vez de zerar self.vinculos[tipo] = [], salvamos os detalhes existentes
+            // para re-aplicar após a conciliação, evitando a race condition.
+            const detalhesPreservados = {};
+            (self.vinculos[tipo] || []).forEach((vinc, idx) => {
+                if (vinc && vinc.detalhes) {
+                    const nome = self.envolvidos[tipo][idx] || vinc.nome;
+                    if (nome) detalhesPreservados[nome] = vinc.detalhes;
+                }
+            });
             self.vinculos[tipo] = [];
 
             (self.envolvidos[tipo] || []).forEach((nome, index) => {
@@ -1720,14 +1736,15 @@ window.OcorrenciasApp = {
 
                         const id = item ? (item.id || item.IdCad) : null;
                         
-                        // Preserva os detalhes se o script_apfd.js já os populou enquanto o AJAX rodava
+                        // ✅ FIX: Restaurar detalhes preservados
+                        const detalhes = detalhesPreservados[nome] || null;
                         const vincAtual = self.vinculos[tipo][index] || {};
                         
                         if (id) {
-                            self.vinculos[tipo][index] = Object.assign({}, vincAtual, { nome: nome, pessoa_id: id });
+                            self.vinculos[tipo][index] = Object.assign({}, vincAtual, { nome: nome, pessoa_id: id, detalhes: detalhes });
                         } else {
                             // Mantém o objeto de detalhes, só crava que pessoa_id é null
-                            self.vinculos[tipo][index] = Object.assign({}, vincAtual, { nome: nome, pessoa_id: null });
+                            self.vinculos[tipo][index] = Object.assign({}, vincAtual, { nome: nome, pessoa_id: null, detalhes: detalhes });
                         }
                     })
                 );

@@ -657,11 +657,14 @@ $(document).ready(function () {
                     } else {
                         OcorrenciasApp.dadosImportados = {};
                     }
-                    // if (dados.escrivao) $('#inputEscrivao').val(dados.escrivao); // Removido automático a pedido do usuário
+
+                    // ✅ FIX: Armazena o texto bruto do BOE para que o fallback extrairDetalhesDoTexto() funcione
+                    const textoOriginal = dados.texto_raw || $('#textoBoe').val() || '';
+                    if (textoOriginal.trim()) {
+                        OcorrenciasApp.textoBoeImportado = textoOriginal;
+                    }
                     if (dados.boe) $('#inputBOE').val(dados.boe);
                     if (dados.ip) $('#inputIP').val(dados.ip);
-                    // if (dados.delegacia) $('#inputDelegacia').val(dados.delegacia); // Removido automático a pedido do usuário
-                    // if (dados.cidade) $('#inputCidade').val(dados.cidade); // Garantir que cidade também não seja preenchida
                     if (dados.data_fato) $('#inputDataFato').val(dados.data_fato);
                     if (dados.hora_fato) $('#inputHoraFato').val(dados.hora_fato);
                     if (dados.end_fato) $('#inputEndFato').val(dados.end_fato);
@@ -675,7 +678,6 @@ $(document).ready(function () {
                     }
 
                     if (dados.condutor && dados.condutor.length > 0) {
-                        // ✅ Adicionar também ao array de envolvidos para gerar chips e permitir conciliação
                         dados.condutor.forEach(nome => {
                             if (!OcorrenciasApp.envolvidos.condutores.some(p => p === nome)) {
                                 OcorrenciasApp.envolvidos.condutores.push(nome);
@@ -722,17 +724,15 @@ $(document).ready(function () {
                     window.pendentesIA_Celulares = dados.celulares || [];
                     window.pendentesIA_Veiculos = dados.veiculos || [];
                     window.pendenteIA_Geral = {
-                        boe: $('#inputBOE').val(), // Pega o BOE atual do formulário
+                        boe: $('#inputBOE').val(),
                         data: $('#inputData').val(),
                         ip: $('#inputIP').val()
                     };
                     
-                    // ✅ NOVO: Verificar se o BOE já existia na base
                     if (response.registroExistenteId) {
                         window.mostrarAlerta('BOE já cadastrado no sistema! Dados carregados para atualização.');
                         if (typeof OcorrenciasApp !== 'undefined') {
                             OcorrenciasApp.currentId = response.registroExistenteId;
-                            // A próxima atualização de botões forçará o estado para Editar.
                         }
                     }
 
@@ -741,53 +741,47 @@ $(document).ready(function () {
                         veiculos: window.pendentesIA_Veiculos.length
                     });
 
-                    // ✅ NOVO: Conciliar nomes importados com o banco de dados imediatamente
-                    // Isso fará com que nomes já existentes fiquem AZUIS e novos fiquem VERMELHOS
-                    if (typeof OcorrenciasApp.conciliarEnvolvidosBD === 'function') {
-                        OcorrenciasApp.conciliarEnvolvidosBD(['vitimas', 'autores', 'testemunhas', 'condutores', 'outros']);
-                    }
-
-                    // ✅ NOVO: Para chips VERMELHOS, armazenar detalhes por nome dentro de vinculos
+                    // ✅ FIX: Processar e armazenar detalhes de extração ANTES da conciliação
                     ['vitimas', 'autores', 'testemunhas', 'condutores', 'outros'].forEach(function (tipo) {
                         const arr = OcorrenciasApp.envolvidos[tipo] || [];
                         OcorrenciasApp.vinculos[tipo] = OcorrenciasApp.vinculos[tipo] || [];
                         arr.forEach(function (nome, idx) {
-                            const vinc = OcorrenciasApp.vinculos[tipo][idx];
-                            const temPessoa = !!(vinc && vinc.pessoa_id);
-                            if (!temPessoa) {
-                                // Tenta obter detalhes de várias fontes
-                                let det = null;
+                            let det = null;
 
-                                // 1. Tenta do objeto dadosImportados (chave exata)
-                                if (OcorrenciasApp.dadosImportados && OcorrenciasApp.dadosImportados[nome]) {
-                                    det = OcorrenciasApp.dadosImportados[nome];
-                                }
+                            // 1. Tenta do objeto dadosImportados (chave exata)
+                            if (OcorrenciasApp.dadosImportados && OcorrenciasApp.dadosImportados[nome]) {
+                                det = OcorrenciasApp.dadosImportados[nome];
+                            }
 
-                                // 2. Tenta busca normalizada em dadosImportados
-                                if (!det && typeof OcorrenciasApp.obterDadosImportadosPorNome === 'function') {
-                                    det = OcorrenciasApp.obterDadosImportadosPorNome(nome);
-                                }
+                            // 2. Tenta busca normalizada em dadosImportados
+                            if (!det && typeof OcorrenciasApp.obterDadosImportadosPorNome === 'function') {
+                                det = OcorrenciasApp.obterDadosImportadosPorNome(nome);
+                            }
 
-                                // 3. Tenta extrair do texto bruto (fallback mais forte agora)
-                                if (!det && typeof OcorrenciasApp.extrairDetalhesDoTexto === 'function') {
-                                    det = OcorrenciasApp.extrairDetalhesDoTexto(nome);
-                                }
+                            // 3. Tenta extrair do texto bruto (fallback)
+                            if (!det && typeof OcorrenciasApp.extrairDetalhesDoTexto === 'function') {
+                                det = OcorrenciasApp.extrairDetalhesDoTexto(nome);
+                            }
 
-                                if (det) {
-                                    console.log(`[Importação] Detalhes encontrados para ${nome}:`, det);
-                                    OcorrenciasApp.vinculos[tipo][idx] = Object.assign({}, vinc, { detalhes: det });
-                                } else {
-                                    OcorrenciasApp.vinculos[tipo][idx] = Object.assign({}, vinc, { detalhes: null });
-                                }
+                            const vinc = OcorrenciasApp.vinculos[tipo][idx] || { nome: nome };
+                            if (det) {
+                                console.log(`[Importação] Detalhes encontrados pré-conciliação para ${nome}:`, det);
+                                OcorrenciasApp.vinculos[tipo][idx] = Object.assign({}, vinc, { detalhes: det });
+                            } else {
+                                OcorrenciasApp.vinculos[tipo][idx] = Object.assign({}, vinc, { detalhes: null });
                             }
                         });
                     });
+
+                    // ✅ NOVO: Conciliar nomes importados com o banco de dados imediatamente
+                    if (typeof OcorrenciasApp.conciliarEnvolvidosBD === 'function') {
+                        OcorrenciasApp.conciliarEnvolvidosBD(['vitimas', 'autores', 'testemunhas', 'condutores', 'outros']);
+                    }
 
                     if (!response.registroExistenteId) {
                         window.mostrarSucesso('Dados do BOE importados com sucesso!');
                     }
 
-                    // Fecha o modal
                     var modal = bootstrap.Modal.getInstance(document.getElementById('modalImportarBoe'));
                     if (modal) modal.hide();
                 } else {
