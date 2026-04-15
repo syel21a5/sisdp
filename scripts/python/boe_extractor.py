@@ -341,17 +341,31 @@ def parse_boe_python(texto: str) -> dict:
             # Telefone: tenta celular primeiro, depois fixo
             m_tel = re.search(r'Telefones?\s+Celulares?:\s*\n\s*-\s*\(?(\d{2})\)?\s*([\d\-\s]+)', ficha_raw)
             if m_tel:
-                p['telefone'] = f"({m_tel.group(1)}) {m_tel.group(2).strip()}"
+                num_clean = re.sub(r'\s+', '', m_tel.group(2).strip())
+                # Adiciona o espaço e hífen formatado, se for celular 9 dígitos
+                if len(num_clean) == 9 and '-' not in num_clean:
+                    num_clean = f"{num_clean[:5]}-{num_clean[5:]}"
+                elif '-' not in num_clean and len(num_clean) == 8:
+                    num_clean = f"{num_clean[:4]}-{num_clean[4:]}"
+                p['telefone'] = f"({m_tel.group(1)}) {num_clean}"
             else:
                 # Fallback: tenta telefone fixo
                 m_tel2 = re.search(r'Telefones?\s+Fixos?:\s*\n\s*-\s*\(?(\d{2})\)?\s*([\d\-\s]+)', ficha_raw)
                 if m_tel2:
-                    p['telefone'] = f"({m_tel2.group(1)}) {m_tel2.group(2).strip()}"
+                    num_clean2 = re.sub(r'\s+', '', m_tel2.group(2).strip())
+                    if '-' not in num_clean2 and len(num_clean2) == 8:
+                        num_clean2 = f"{num_clean2[:4]}-{num_clean2[4:]}"
+                    p['telefone'] = f"({m_tel2.group(1)}) {num_clean2}"
                 else:
                     # Fallback genérico: qualquer telefone no formato (XX) XXXXX-XXXX
-                    m_tel3 = re.search(r'\((\d{2})\)\s*([\d\-]+)', ficha_raw)
+                    m_tel3 = re.search(r'\((\d{2})\)\s*([\d\-\s]+)', ficha_raw)
                     if m_tel3:
-                        p['telefone'] = f"({m_tel3.group(1)}) {m_tel3.group(2).strip()}"
+                        num_clean3 = re.sub(r'\s+', '', m_tel3.group(2).strip())
+                        if len(num_clean3) == 9 and '-' not in num_clean3:
+                            num_clean3 = f"{num_clean3[:5]}-{num_clean3[5:]}"
+                        elif '-' not in num_clean3 and len(num_clean3) == 8:
+                            num_clean3 = f"{num_clean3[:4]}-{num_clean3[4:]}"
+                        p['telefone'] = f"({m_tel3.group(1)}) {num_clean3}"
 
             # ✅ FIX: Endereço — Captura multi-linha e reformata na ordem:
             # Rua, Número, Bairro, Cidade, Estado
