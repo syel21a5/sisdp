@@ -427,11 +427,18 @@ class InicioController extends Controller
 
                 // Melhor abordagem: Se $ids é array (mesmo vazio), sincronizamos.
                 if (is_array($ids)) {
-                    DB::table('boe_pessoas_vinculos')
-                        ->where('boe', $request->boe)
-                        ->where('tipo_vinculo', $tipo)
-                        ->whereNotIn('pessoa_id', $ids)
-                        ->delete();
+                    if (empty($ids)) {
+                        DB::table('boe_pessoas_vinculos')
+                            ->where('boe', $request->boe)
+                            ->where('tipo_vinculo', $tipo)
+                            ->delete();
+                    } else {
+                        DB::table('boe_pessoas_vinculos')
+                            ->where('boe', $request->boe)
+                            ->where('tipo_vinculo', $tipo)
+                            ->whereNotIn('pessoa_id', $ids)
+                            ->delete();
+                    }
                 }
             }
 
@@ -579,7 +586,7 @@ class InicioController extends Controller
         // NOVO: Verificar se o BOE extraído já existe no banco (cadprincipal)
         $registroExistenteId = null;
         if (!empty($result['dados']['boe'])) {
-            $registro = \Illuminate\Support\Facades\DB::table('cadprincipal')
+            $registro = DB::table('cadprincipal')
                 ->where('BOE', $result['dados']['boe'])
                 ->first();
             if ($registro) {

@@ -1422,33 +1422,33 @@ window.OcorrenciasApp = {
     // ✅ NOVO: Preparar dados dos envolvidos para envio
     prepararDadosEnvolvidos: function () {
         // Remover campos anteriores
-        $('[name^="vitimas"], [name^="autores"], [name^="testemunhas"], [name^="outros"], [name="envolvidos_json"]').remove();
+        $('[name^="vitimas"], [name^="autores"], [name^="testemunhas"], [name^="condutores"], [name^="outros"], [name="envolvidos_json"]').remove();
 
         const hasChipsModule = (typeof window.obterEnvolvidosParaSalvar === 'function') && window.envolvidosChips;
-        const nomesFromChips = {
-            vitimas: hasChipsModule ? (window.envolvidosChips.vitimas || []).map(v => v.nome).filter(Boolean) : [],
-            autores: hasChipsModule ? (window.envolvidosChips.autores || []).map(a => a.nome).filter(Boolean) : [],
-            testemunhas: hasChipsModule ? (window.envolvidosChips.testemunhas || []).map(t => t.nome).filter(Boolean) : [],
-            condutores: hasChipsModule ? (window.envolvidosChips.condutores || []).map(c => c.nome).filter(Boolean) : [],
-            outros: hasChipsModule ? (window.envolvidosChips.outros || []).map(o => o.nome).filter(Boolean) : []
-        };
 
-        const nomesFromApp = {
-            vitimas: (this.envolvidos.vitimas || []).slice(),
-            autores: (this.envolvidos.autores || []).slice(),
-            testemunhas: (this.envolvidos.testemunhas || []).slice(),
-            condutores: (this.envolvidos.condutores || []).slice(),
-            outros: (this.envolvidos.outros || []).slice()
-        };
+        // ✅ FIX: Se o módulo de chips está ativo, ele é a ÚNICA fonte de verdade.
+        // NÃO fazer fallback para arrays internos (que podem conter dados "sujos" de um BOE anterior).
+        let nomesEscolhidos;
+        if (hasChipsModule) {
+            nomesEscolhidos = {
+                vitimas: (window.envolvidosChips.vitimas || []).map(v => v.nome).filter(Boolean),
+                autores: (window.envolvidosChips.autores || []).map(a => a.nome).filter(Boolean),
+                testemunhas: (window.envolvidosChips.testemunhas || []).map(t => t.nome).filter(Boolean),
+                condutores: (window.envolvidosChips.condutores || []).map(c => c.nome).filter(Boolean),
+                outros: (window.envolvidosChips.outros || []).map(o => o.nome).filter(Boolean)
+            };
+        } else {
+            // Fallback: sem módulo de chips, usar arrays internos do app
+            nomesEscolhidos = {
+                vitimas: (this.envolvidos.vitimas || []).slice(),
+                autores: (this.envolvidos.autores || []).slice(),
+                testemunhas: (this.envolvidos.testemunhas || []).slice(),
+                condutores: (this.envolvidos.condutores || []).slice(),
+                outros: (this.envolvidos.outros || []).slice()
+            };
+        }
 
-        const escolher = (arrChips, arrApp) => (arrChips && arrChips.length) ? arrChips : arrApp;
-        const nomesEscolhidos = {
-            vitimas: escolher(nomesFromChips.vitimas, nomesFromApp.vitimas),
-            autores: escolher(nomesFromChips.autores, nomesFromApp.autores),
-            testemunhas: escolher(nomesFromChips.testemunhas, nomesFromApp.testemunhas),
-            condutores: escolher(nomesFromChips.condutores, nomesFromApp.condutores),
-            outros: escolher(nomesFromChips.outros, nomesFromApp.outros)
-        };
+        console.log('📋 [prepararDadosEnvolvidos] Fonte:', hasChipsModule ? 'chips' : 'app', '| Dados:', JSON.stringify(nomesEscolhidos));
 
         nomesEscolhidos.vitimas.forEach((nome, index) => {
             $('#formInicio').append(`<input type="hidden" name="vitimas[${index}]" value="${nome}">`);
@@ -2848,20 +2848,13 @@ window.OcorrenciasApp = {
                     $('#btnEditar').prop('disabled', false);
                     $('#btnExcluir').prop('disabled', false);
 
+                    // ✅ FIX: Recarregar vínculos do banco após salvar.
+                    // NÃO chamar /boe/vinculos/salvar separadamente — os vínculos já foram
+                    // criados pelo InicioController.salvar() via vincularNomesAoBoe().
+                    // A chamada extra com condutor_id causava "condutores fantasmas".
                     const boePos = $('#inputBOE').val();
                     if (boePos) {
-                        const condutorId = $('#condutor_id').val();
-                        if (condutorId) {
-                            $.ajax({
-                                url: '/boe/vinculos/salvar',
-                                method: 'POST',
-                                data: { boe: boePos, condutor_id: condutorId, _token: $('meta[name="csrf-token"]').attr('content') }
-                            }).always(() => {
-                                this.carregarVinculosDoBoe(boePos);
-                            });
-                        } else {
-                            this.carregarVinculosDoBoe(boePos);
-                        }
+                        this.carregarVinculosDoBoe(boePos);
                     }
 
                     // === ADICIONA O NOVO REGISTRO NA GRID ===
@@ -3124,6 +3117,8 @@ window.OcorrenciasApp = {
             // Limpar campos específicos do condutor/outro
             $('#inputCondutor').val('');
             $('#inputOutro').val('');
+            // ✅ FIX: Limpar IDs ocultos para evitar "vazamento" entre registros
+            $('#condutor_id').val('');
 
             // Limpar envolvidos internos do app
             this.envolvidos = { vitimas: [], autores: [], testemunhas: [], condutores: [], outros: [] };

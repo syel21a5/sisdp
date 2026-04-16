@@ -371,6 +371,17 @@ $(document).ready(function () {
 
         // Limpar condutor
         $('#inputCondutor').val('');
+        // ✅ FIX: Limpar IDs ocultos para evitar "vazamento" entre registros
+        $('#condutor_id').val('');
+
+        // ✅ CORREÇÃO: Limpar vínculos internos (previne fantasmas)
+        if (OcorrenciasApp.vinculos) {
+            OcorrenciasApp.vinculos.vitimas = [];
+            OcorrenciasApp.vinculos.autores = [];
+            OcorrenciasApp.vinculos.testemunhas = [];
+            OcorrenciasApp.vinculos.condutores = [];
+            OcorrenciasApp.vinculos.outros = [];
+        }
 
         // ✅ CORREÇÃO: Limpar arrays de envolvidos (incluindo condutores e outros)
         if (OcorrenciasApp.envolvidos) {
