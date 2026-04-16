@@ -59,6 +59,7 @@
                         $permInfopol = isset($permissions['infopol']) ? $permissions['infopol'] : true;
                         $permAntecedentes = isset($permissions['antecedentes']) ? $permissions['antecedentes'] : true;
                         $permAuditoriaChips = isset($permissions['auditoria_chips']) ? $permissions['auditoria_chips'] : false;
+                        $permGerarPrompts = isset($permissions['gerar_prompts']) ? $permissions['gerar_prompts'] : true;
                         $permVerificarSei = isset($permissions['verificar_sei']) ? $permissions['verificar_sei'] : true;
                         $permVerApenasProrias = isset($permissions['ver_apenas_proprias']) ? $permissions['ver_apenas_proprias'] : false;
                     @endphp
@@ -95,6 +96,10 @@
                                     <div class="form-check form-switch mb-2 fs-6">
                                         <input type="checkbox" class="form-check-input cursor-pointer" id="perm_antecedentes" name="perm_antecedentes" {{ old('perm_antecedentes', $permAntecedentes) ? 'checked' : '' }}>
                                         <label class="form-check-label fw-semibold cursor-pointer" for="perm_antecedentes"><i class="bi bi-robot text-danger"></i> Consultor Antecedentes (IA)</label>
+                                    </div>
+                                    <div class="form-check form-switch mb-2 fs-6">
+                                        <input type="checkbox" class="form-check-input cursor-pointer" id="perm_gerar_prompts" name="perm_gerar_prompts" {{ old('perm_gerar_prompts', $permGerarPrompts) ? 'checked' : '' }}>
+                                        <label class="form-check-label fw-semibold cursor-pointer" for="perm_gerar_prompts"><i class="bi bi-magic text-info"></i> Gerador de Prompts (IA)</label>
                                     </div>
                                     <div class="form-check form-switch mb-2 fs-6">
                                         <input type="checkbox" class="form-check-input cursor-pointer" id="perm_auditoria_chips" name="perm_auditoria_chips" {{ old('perm_auditoria_chips', $permAuditoriaChips) ? 'checked' : '' }}>

@@ -72,6 +72,10 @@
                                         <label class="form-check-label fw-semibold cursor-pointer" for="perm_antecedentes"><i class="bi bi-robot text-danger"></i> Consultor Antecedentes (IA)</label>
                                     </div>
                                     <div class="form-check form-switch mb-2 fs-6">
+                                        <input type="checkbox" class="form-check-input cursor-pointer" id="perm_gerar_prompts" name="perm_gerar_prompts" {{ old('perm_gerar_prompts', true) ? 'checked' : '' }}>
+                                        <label class="form-check-label fw-semibold cursor-pointer" for="perm_gerar_prompts"><i class="bi bi-magic text-info"></i> Gerador de Prompts (IA)</label>
+                                    </div>
+                                    <div class="form-check form-switch mb-2 fs-6">
                                         <input type="checkbox" class="form-check-input cursor-pointer" id="perm_auditoria_chips" name="perm_auditoria_chips" {{ old('perm_auditoria_chips', false) ? 'checked' : '' }}>
                                         <label class="form-check-label fw-semibold cursor-pointer" for="perm_auditoria_chips"><i class="bi bi-diagram-3 text-warning"></i> Auditoria Chips (Relatório)</label>
                                     </div>

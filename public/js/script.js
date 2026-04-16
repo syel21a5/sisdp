@@ -573,6 +573,10 @@ window.OcorrenciasApp = {
 
             // Botões de ação normais
             const btnEdit = `<button type="button" class="btn btn-sm btn-link text-white ms-2 btn-edit-chip p-0" data-tipo="${tipo}" data-index="${index}" title="Editar Detalhes"><i class="bi bi-pencil-square"></i></button>`;
+            
+            // Renderiza apenas se a permissão estiver ativa (ou não testada para fallback)
+            const btnPrompt = (window._userPerms && window._userPerms.gerar_prompts === false) ? '' : `<button type="button" class="btn btn-sm btn-link text-white ms-1 btn-prompt-chip p-0" data-tipo="${tipo}" data-index="${index}" title="Gerar Prompt" style="font-size: 0.9rem;">📋</button>`;
+            
             const btnRefresh = `<button type="button" class="btn btn-sm btn-link text-white ms-1 btn-refresh-chip p-0" data-tipo="${tipo}" data-index="${index}" title="Atualizar do Banco"><i class="bi bi-arrow-repeat"></i></button>`;
             const btnSwitch = `<button type="button" class="btn btn-sm btn-link text-white ms-1 btn-switch-chip p-0" data-tipo="${tipo}" data-index="${index}" title="Trocar Papel"><i class="bi bi-arrow-left-right"></i></button>`;
 
@@ -593,9 +597,9 @@ window.OcorrenciasApp = {
             // Botões extras (edit/switch/refresh) - non-owners still see edit but not switch
             let extraBtn = '';
             if (isOwner) {
-                extraBtn = btnEdit + btnSwitch + btnRefresh;
+                extraBtn = btnEdit + btnPrompt + btnSwitch + btnRefresh;
             } else {
-                extraBtn = btnEdit;
+                extraBtn = btnEdit + btnPrompt;
             }
 
             // ✅ Layout flexível para acomodar o label embaixo do nome quando for sugestão
@@ -628,7 +632,7 @@ window.OcorrenciasApp = {
 
         container.find('.chip-envolvido').on('click', (e) => {
             const target = $(e.target);
-            if (target.hasClass('btn-close') || target.closest('.btn-edit-chip').length || target.closest('.btn-refresh-chip').length || target.closest('.btn-switch-chip').length || target.closest('.btn-gerar-intimacao').length || target.closest('.btn-aprovar-chip').length || target.closest('.btn-rejeitar-chip').length) return;
+            if (target.hasClass('btn-close') || target.closest('.btn-edit-chip').length || target.closest('.btn-refresh-chip').length || target.closest('.btn-switch-chip').length || target.closest('.btn-prompt-chip').length || target.closest('.btn-gerar-intimacao').length || target.closest('.btn-aprovar-chip').length || target.closest('.btn-rejeitar-chip').length) return;
             const chip = $(e.currentTarget);
             const pencil = chip.find('.btn-edit-chip');
             if (pencil.length) pencil.trigger('click');
@@ -3297,5 +3301,135 @@ $(document).ready(function () {
     $(document).on('shown.bs.modal', '.modal', function () {
         $('body').css('overflow-y', 'auto');
     });
+
+    // ==========================================
+    // Lógica do Gerador de Prompts (Depoimentos)
+    // ==========================================
+    
+    // Ação do botão 📋 no chip (btn-prompt-chip)
+    $(document).on('click', '.btn-prompt-chip', function(e) {
+        e.preventDefault();
+        e.stopPropagation(); // Previne editar o chip
+        
+        let $chip = $(this).closest('.chip-envolvido');
+        let nome = $chip.find('span').first().text().trim(); // Pega apenas o nome
+        let tipoPlural = $(this).data('tipo');
+        
+        // Mapear plural para papel único
+        let tipoMap = {
+            'vitimas': 'VITIMA',
+            'autores': 'AUTOR',
+            'testemunhas': 'TESTEMUNHA',
+            'condutores': 'CONDUTOR',
+            'outros': 'OUTRO'
+        };
+        let papel = tipoMap[tipoPlural] || 'OUTRO';
+
+        let boe = $('#inputBOE').val();
+        if(!boe) {
+            OcorrenciasApp.mostrarErro("Você precisa importar um BOE primeiro.");
+            return;
+        }
+
+        // 1. Mostrar estado de carregamento
+        $('#selectTipoPrompt').html('<option value="">Carregando prompts...</option>').prop('disabled', true);
+        $('#textareaPromptGerado').val('Aguarde, gerando prompt com a Inteligência do SisDP...');
+        $('#badgeTipoCrimePrompt').text('Analisando...');
+        $('#avisoHistoricoFaltando').hide();
+        $('#btnCopiarPrompt').prop('disabled', true);
+
+        // Armazena dados atuais pra requisições de change
+        $('#modalPromptGenerator').data('current-boe', boe)
+                                 .data('current-nome', nome)
+                                 .data('current-papel', papel);
+
+        $('#modalPromptGenerator').modal('show');
+
+        // 2. Chamar a API
+        gerarPromptApi(boe, nome, papel, null);
+    });
+
+    // Quando o usuário muda o tipo de prompt no seletor
+    $(document).on('change', '#selectTipoPrompt', function() {
+        let tipoSelecionado = $(this).val();
+        if(!tipoSelecionado) return;
+
+        let boe = $('#modalPromptGenerator').data('current-boe');
+        let nome = $('#modalPromptGenerator').data('current-nome');
+        let papel = $('#modalPromptGenerator').data('current-papel');
+
+        $('#textareaPromptGerado').val('Atualizando prompt...');
+        $('#btnCopiarPrompt').prop('disabled', true);
+        
+        gerarPromptApi(boe, nome, papel, tipoSelecionado);
+    });
+
+    // Função para chamar o endpoint
+    function gerarPromptApi(boe, nome, papel, tipoPrompt) {
+        $.ajax({
+            url: '/prompt/gerar',
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            data: {
+                boe: boe,
+                nome: nome,
+                papel: papel,
+                tipo_prompt: tipoPrompt
+            },
+            success: function(resp) {
+                if(resp.success) {
+                    $('#textareaPromptGerado').val(resp.prompt);
+                    $('#btnCopiarPrompt').prop('disabled', false).html('<i class="bi bi-clipboard"></i> Copiar Prompt').removeClass('btn-success').addClass('btn-primary');
+                    
+                    if(!resp.tem_historico) {
+                        $('#avisoHistoricoFaltando').show();
+                    } else {
+                        $('#avisoHistoricoFaltando').hide();
+                    }
+
+                    let badges = '';
+                    if(resp.is_transito) badges += '<span class="badge bg-warning text-dark me-1">CRIME DE TRÂNSITO</span>';
+                    if(resp.is_pm) badges += '<span class="badge bg-primary me-1">POLICIAL MILITAR</span>';
+                    $('#badgeTipoCrimePrompt').html(badges);
+
+                    // Povoar o seletor apenas se for a primeira carga ou não tinha sido preenchido
+                    if(!tipoPrompt || $('#selectTipoPrompt option').length <= 1) {
+                        let options = '';
+                        resp.templates_disponiveis.forEach(t => {
+                            let selected = (t.id === resp.tipo_usado) ? 'selected' : '';
+                            options += `<option value="${t.id}" ${selected}>${t.titulo} - ${t.descricao}</option>`;
+                        });
+                        $('#selectTipoPrompt').html(options).prop('disabled', false);
+                    }
+                } else {
+                    $('#textareaPromptGerado').val("Erro retornado: " + resp.message);
+                }
+            },
+            error: function(xhr) {
+                let msg = 'Erro desconhecido';
+                if(xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+                $('#textareaPromptGerado').val("ERRO AO GERAR: " + msg);
+                $('#selectTipoPrompt').prop('disabled', false);
+            }
+        });
+    }
+
+    // Ação de copiar o texto
+    $('#btnCopiarPrompt').on('click', function() {
+        let textArea = document.getElementById('textareaPromptGerado');
+        textArea.select();
+        textArea.setSelectionRange(0, 99999); // Para mobile
+        
+        try {
+            document.execCommand('copy');
+            $(this).removeClass('btn-primary').addClass('btn-success').html('<i class="bi bi-check-lg"></i> Copiado!');
+            setTimeout(() => {
+                $(this).removeClass('btn-success').addClass('btn-primary').html('<i class="bi bi-clipboard"></i> Copiar Prompt');
+            }, 2500);
+        } catch(err) {
+            alert('Falha ao tentar copiar o texto.');
+        }
+    });
+
 });
 

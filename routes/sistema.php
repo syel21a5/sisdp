@@ -16,6 +16,7 @@ use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\IntimacaoController;
 use App\Http\Controllers\AdministrativoController;
 use App\Http\Controllers\PessoaController; // Adicionado
+use App\Http\Controllers\PromptGeneratorController;
 
 use Illuminate\Http\Request;
 
@@ -25,6 +26,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/pessoas/store', [PessoaController::class, 'store']); // Rota para salvar nova pessoa
 
     Route::post('/apfd/importar-boe-texto', 'App\Http\Controllers\InicioController@importarBoeTexto'); // Rota para importar texto do BOE
+
+    // ✅ GERADOR DE PROMPTS PARA DEPOIMENTOS
+    Route::post('/prompt/gerar', [PromptGeneratorController::class, 'gerarPrompt'])->name('prompt.gerar');
 
     // ✅ REMOVIDO: Estas rotas já estão no web.php
     // Route::get('/', [GeralController::class, 'index'])->name('geral');

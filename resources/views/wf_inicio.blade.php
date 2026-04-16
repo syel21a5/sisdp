@@ -857,6 +857,40 @@
                 </div>
             </div>
 
+            <!-- Modal Gerador de Prompts (Novo) -->
+            <div class="modal fade" id="modalPromptGenerator" tabindex="-1" aria-labelledby="modalPromptGeneratorLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="modalPromptGeneratorLabel">📋 Gerador de Prompt para Depoimento</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="selectTipoPrompt" class="form-label">Tipo de Prompt</label>
+                                <select class="form-select" id="selectTipoPrompt">
+                                    <option value="">Carregando...</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="textareaPromptGerado" class="form-label">Prompt Gerado (Pronto para copiar)</label>
+                                <textarea class="form-control" id="textareaPromptGerado" rows="12" style="font-family: monospace; font-size: 13px;"></textarea>
+                                <div class="form-text text-warning mt-2" id="avisoHistoricoFaltando" style="display: none;">
+                                    <i class="bi bi-exclamation-triangle-fill"></i> O histórico deste BOE não estava em cache. Por favor, cole manualmente o HISTÓRICO no final do texto acima antes de copiar.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer d-flex justify-content-between">
+                            <div><span class="badge bg-secondary" id="badgeTipoCrimePrompt"></span></div>
+                            <div>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                                <button type="button" class="btn btn-primary" id="btnCopiarPrompt"><i class="bi bi-clipboard"></i> Copiar Prompt</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Modal de Dados Complementares do Autor (Novo) -->
             <div class="modal fade" id="modalDadosAutor" tabindex="-1" aria-labelledby="modalDadosAutorLabel" aria-hidden="true">
                 <div class="modal-dialog modal-lg">
@@ -1423,6 +1457,11 @@
     </script>
 
     <script>
+        // Permissões
+        window._userPerms = {
+            gerar_prompts: {{ (Auth::check() && isset(Auth::user()->permissions['gerar_prompts']) && !Auth::user()->permissions['gerar_prompts']) ? 'false' : 'true' }}
+        };
+
         // Definir as rotas para a intimação
         var rotasIntimacao = {
             pesquisar: "{{ route('intimacao.pesquisar') }}",
