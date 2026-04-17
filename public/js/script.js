@@ -3326,8 +3326,12 @@ $(document).ready(function () {
         let papel = tipoMap[tipoPlural] || 'OUTRO';
 
         let boe = $('#inputBOE').val();
-        if(!boe) {
-            OcorrenciasApp.mostrarErro("Você precisa importar um BOE primeiro.");
+        let boePM = $('#inputBOEPM').val();
+        
+        let numeroBo = boe || boePM;
+
+        if(!numeroBo) {
+            OcorrenciasApp.mostrarErro("Você precisa importar um BOE ou BO PM primeiro.");
             return;
         }
 
@@ -3339,14 +3343,14 @@ $(document).ready(function () {
         $('#btnCopiarPrompt').prop('disabled', true);
 
         // Armazena dados atuais pra requisições de change
-        $('#modalPromptGenerator').data('current-boe', boe)
+        $('#modalPromptGenerator').data('current-boe', numeroBo)
                                  .data('current-nome', nome)
                                  .data('current-papel', papel);
 
         $('#modalPromptGenerator').modal('show');
 
         // 2. Chamar a API
-        gerarPromptApi(boe, nome, papel, null);
+        gerarPromptApi(numeroBo, nome, papel, null);
     });
 
     // Quando o usuário muda o tipo de prompt no seletor

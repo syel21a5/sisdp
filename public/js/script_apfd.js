@@ -577,6 +577,20 @@ $(document).ready(function () {
     $('#btnImportarBoe').on('click', function () {
         // Limpa a área de texto antes de abrir
         $('#textoBoe').val('');
+        // Força abrir a aba PC (Texto)
+        const tabTexto = document.getElementById('tab-texto');
+        if (tabTexto) new bootstrap.Tab(tabTexto).show();
+        // Abre o modal
+        var modal = new bootstrap.Modal(document.getElementById('modalImportarBoe'));
+        modal.show();
+    });
+
+    // Evento para o botão de importar BO PM - Abre o mesmo modal na aba PM
+    $('#btnImportarBoePM').on('click', function () {
+        $('#textoBoePM').val('');
+        // Força abrir a aba PM (Texto)
+        const tabTextoPM = document.getElementById('tab-texto-pm');
+        if (tabTextoPM) new bootstrap.Tab(tabTextoPM).show();
         // Abre o modal
         var modal = new bootstrap.Modal(document.getElementById('modalImportarBoe'));
         modal.show();
@@ -589,8 +603,11 @@ $(document).ready(function () {
         let formData = new FormData();
         formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
 
-        // Detectar aba ativa pelo botao que tem classe active
-        const pdfAtivo = document.getElementById('tab-pdf') && document.getElementById('tab-pdf').classList.contains('active');
+        // Detectar abas ativas
+        const pdfPCPAtivo = document.getElementById('tab-pdf') && document.getElementById('tab-pdf').classList.contains('active');
+        const pdfPMAtivo = document.getElementById('tab-pdf-pm') && document.getElementById('tab-pdf-pm').classList.contains('active');
+        const txtPMAtivo = document.getElementById('tab-texto-pm') && document.getElementById('tab-texto-pm').classList.contains('active');
+        const isPM = pdfPMAtivo || txtPMAtivo;
 
         // Helper: progresso suave
         let _boeProgressInterval = null;
@@ -621,6 +638,8 @@ $(document).ready(function () {
                 if (sucesso) {
                     $('#textoBoe').val('');
                     $('#pdfBoe').val('');
+                    $('#textoBoePM').val('');
+                    $('#pdfBoePM').val('');
                     // Reset da barra para 0% para a próxima vez
                     $('#boeProgressBar').css('width', '0%').attr('aria-valuenow', 0);
                     $('#boeProgressPercent').text('0%');
@@ -628,8 +647,8 @@ $(document).ready(function () {
             }, 2500);
         }
 
-        if (pdfAtivo) {
-            var fileInput = document.getElementById('pdfBoe');
+        if (pdfPCPAtivo || pdfPMAtivo) {
+            var fileInput = pdfPMAtivo ? document.getElementById('pdfBoePM') : document.getElementById('pdfBoe');
             if (!fileInput || fileInput.files.length === 0) {
                 window.mostrarErro('Selecione um arquivo PDF antes de processar.');
                 return;
@@ -638,7 +657,7 @@ $(document).ready(function () {
             $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Lendo documento...');
             iniciarProgresso('Lendo o documento...');
         } else {
-            var texto = $('#textoBoe').val();
+            var texto = txtPMAtivo ? $('#textoBoePM').val() : $('#textoBoe').val();
             if (!texto || texto.trim() === '') {
                 window.mostrarErro('Cole o texto do BOE primeiro.');
                 return;
@@ -647,6 +666,8 @@ $(document).ready(function () {
             $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Analisando dados...');
             iniciarProgresso('Analisando informações do BOE...');
         }
+        
+        formData.append('tipo_bo', isPM ? 'PM' : 'PC');
 
         $.ajax({
             url: '/apfd/importar-boe-texto',
@@ -663,18 +684,27 @@ $(document).ready(function () {
                     // if (dados.delegado) $('#inputDelegado').val(dados.delegado); // Removido automático a pedido do usuário
 
                     // Armazena os detalhes importados para uso no modal de edição
+                    // ✅ MELHORIA: Mescla com os dados já existentes (útil para PM -> PC)
+                    // No caso de conflito, o dado novo (mais recente e geralmente mais lapidado) vence.
                     if (dados.envolvidos_detalhes) {
-                        OcorrenciasApp.dadosImportados = dados.envolvidos_detalhes;
-                    } else {
+                        OcorrenciasApp.dadosImportados = { 
+                            ...(OcorrenciasApp.dadosImportados || {}), 
+                            ...dados.envolvidos_detalhes 
+                        };
+                    } else if (!OcorrenciasApp.dadosImportados) {
                         OcorrenciasApp.dadosImportados = {};
                     }
 
                     // ✅ FIX: Armazena o texto bruto do BOE para que o fallback extrairDetalhesDoTexto() funcione
-                    const textoOriginal = dados.texto_raw || $('#textoBoe').val() || '';
+                    const textoOriginal = dados.texto_raw || (isPM ? $('#textoBoePM').val() : $('#textoBoe').val()) || '';
                     if (textoOriginal.trim()) {
                         OcorrenciasApp.textoBoeImportado = textoOriginal;
                     }
-                    if (dados.boe) $('#inputBOE').val(dados.boe);
+                    if (isPM) {
+                        if (dados.boe) $('#inputBOEPM').val(dados.boe);
+                    } else {
+                        if (dados.boe) $('#inputBOE').val(dados.boe);
+                    }
                     if (dados.ip) $('#inputIP').val(dados.ip);
                     if (dados.data_fato) $('#inputDataFato').val(dados.data_fato);
                     if (dados.hora_fato) $('#inputHoraFato').val(dados.hora_fato);
@@ -690,7 +720,7 @@ $(document).ready(function () {
 
                     if (dados.condutor && dados.condutor.length > 0) {
                         dados.condutor.forEach(nome => {
-                            if (!OcorrenciasApp.envolvidos.condutores.some(p => p === nome)) {
+                            if (!OcorrenciasApp.envolvidos.condutores.some(p => OcorrenciasApp.normalizarNome(p) === OcorrenciasApp.normalizarNome(nome))) {
                                 OcorrenciasApp.envolvidos.condutores.push(nome);
                             }
                         });
@@ -699,7 +729,7 @@ $(document).ready(function () {
 
                     if (dados.vitimas && dados.vitimas.length > 0) {
                         dados.vitimas.forEach(nome => {
-                            if (!OcorrenciasApp.envolvidos.vitimas.some(p => p === nome)) {
+                            if (!OcorrenciasApp.envolvidos.vitimas.some(p => OcorrenciasApp.normalizarNome(p) === OcorrenciasApp.normalizarNome(nome))) {
                                 OcorrenciasApp.envolvidos.vitimas.push(nome);
                             }
                         });
@@ -707,7 +737,7 @@ $(document).ready(function () {
                     }
                     if (dados.autores && dados.autores.length > 0) {
                         dados.autores.forEach(nome => {
-                            if (!OcorrenciasApp.envolvidos.autores.some(p => p === nome)) {
+                            if (!OcorrenciasApp.envolvidos.autores.some(p => OcorrenciasApp.normalizarNome(p) === OcorrenciasApp.normalizarNome(nome))) {
                                 OcorrenciasApp.envolvidos.autores.push(nome);
                             }
                         });
@@ -715,7 +745,7 @@ $(document).ready(function () {
                     }
                     if (dados.testemunhas && dados.testemunhas.length > 0) {
                         dados.testemunhas.forEach(nome => {
-                            if (!OcorrenciasApp.envolvidos.testemunhas.some(p => p === nome)) {
+                            if (!OcorrenciasApp.envolvidos.testemunhas.some(p => OcorrenciasApp.normalizarNome(p) === OcorrenciasApp.normalizarNome(nome))) {
                                 OcorrenciasApp.envolvidos.testemunhas.push(nome);
                             }
                         });
@@ -724,7 +754,7 @@ $(document).ready(function () {
                     if (dados.outros && dados.outros.length > 0) {
                         if (!OcorrenciasApp.envolvidos.outros) OcorrenciasApp.envolvidos.outros = [];
                         dados.outros.forEach(nome => {
-                            if (!OcorrenciasApp.envolvidos.outros.some(p => p === nome)) {
+                            if (!OcorrenciasApp.envolvidos.outros.some(p => OcorrenciasApp.normalizarNome(p) === OcorrenciasApp.normalizarNome(nome))) {
                                 OcorrenciasApp.envolvidos.outros.push(nome);
                             }
                         });

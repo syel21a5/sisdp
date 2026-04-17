@@ -37,7 +37,10 @@ class PromptGeneratorController extends Controller
             $tipoPrompt = $request->tipo_prompt;
 
             // 1. Buscar dados do procedimento
-            $cadprincipal = DB::table('cadprincipal')->where('BOE', $boe)->first();
+            $cadprincipal = DB::table('cadprincipal')
+                ->where('BOE', $boe)
+                ->orWhere('boe_pm', $boe)
+                ->first();
 
             // 2. Buscar dados da pessoa (se tiver pessoa_id)
             $pessoa = null;
@@ -231,18 +234,18 @@ class PromptGeneratorController extends Controller
      */
     private function detectarPM(string $nome, $cadprincipal): bool
     {
-        if (!$cadprincipal) return false;
-
         $nomeUpper = mb_strtoupper(trim($nome), 'UTF-8');
 
-        // Verifica se o nome bate com policial_1 ou policial_2
-        $pol1 = mb_strtoupper(trim($cadprincipal->policial_1 ?? ''), 'UTF-8');
-        $pol2 = mb_strtoupper(trim($cadprincipal->policial_2 ?? ''), 'UTF-8');
+        if ($cadprincipal) {
+            // Verifica se o nome bate com policial_1 ou policial_2
+            $pol1 = mb_strtoupper(trim($cadprincipal->policial_1 ?? ''), 'UTF-8');
+            $pol2 = mb_strtoupper(trim($cadprincipal->policial_2 ?? ''), 'UTF-8');
 
-        if ($pol1 && strpos($pol1, $nomeUpper) !== false) return true;
-        if ($pol2 && strpos($pol2, $nomeUpper) !== false) return true;
-        if ($pol1 && strpos($nomeUpper, $pol1) !== false) return true;
-        if ($pol2 && strpos($nomeUpper, $pol2) !== false) return true;
+            if ($pol1 && strpos($pol1, $nomeUpper) !== false) return true;
+            if ($pol2 && strpos($pol2, $nomeUpper) !== false) return true;
+            if ($pol1 && strpos($nomeUpper, $pol1) !== false) return true;
+            if ($pol2 && strpos($nomeUpper, $pol2) !== false) return true;
+        }
 
         // Verifica por patentes militares no nome
         $patentes = ['SD ', 'CB ', 'SGT ', '1SGT ', '2SGT ', '3SGT ',

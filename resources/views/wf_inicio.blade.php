@@ -256,8 +256,14 @@
                                                 title="Importar dados do BOE"><i class="bi bi-upload"></i></button>
                                         </div>
                                     </div>
-                                    <div class="col-md-4"><input type="text" class="form-control" placeholder="BOE PM"
-                                            name="boe_pm" id="inputBOEPM"></div>
+                                    <div class="col-md-4">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" placeholder="BOE PM"
+                                                name="boe_pm" id="inputBOEPM">
+                                            <button class="btn btn-success" type="button" id="btnImportarBoePM"
+                                                title="Importar dados do BO PM"><i class="bi bi-upload"></i></button>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="row g-3 mb-3">
                                     <div class="col-md-6"><input type="text" class="form-control" placeholder="Delegado"
@@ -733,32 +739,59 @@
                             <!-- Abas de Navegação -->
                             <ul class="nav nav-tabs mb-3" id="boeImportTabs" role="tablist">
                                 <li class="nav-item" role="presentation">
-                                    <button class="nav-link active" id="tab-texto" data-bs-toggle="tab" data-bs-target="#content-texto" type="button" role="tab"><i class="bi bi-card-text me-1"></i> 📝 Colar Texto (Rápido)</button>
+                                    <button class="nav-link active" id="tab-texto" data-bs-toggle="tab" data-bs-target="#content-texto" type="button" role="tab"><i class="bi bi-card-text text-primary me-1"></i> BO PC (Texto)</button>
                                 </li>
                                 <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="tab-pdf" data-bs-toggle="tab" data-bs-target="#content-pdf" type="button" role="tab"><i class="bi bi-file-earmark-pdf text-danger me-1"></i> 📄 Enviar Arquivo PDF</button>
+                                    <button class="nav-link" id="tab-pdf" data-bs-toggle="tab" data-bs-target="#content-pdf" type="button" role="tab"><i class="bi bi-file-earmark-pdf text-danger me-1"></i> BO PC (PDF)</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="tab-texto-pm" data-bs-toggle="tab" data-bs-target="#content-texto-pm" type="button" role="tab" style="color: #198754;"><i class="bi bi-card-text me-1"></i> BO PM (Texto)</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="tab-pdf-pm" data-bs-toggle="tab" data-bs-target="#content-pdf-pm" type="button" role="tab" style="color: #198754;"><i class="bi bi-file-earmark-pdf me-1"></i> BO PM (PDF)</button>
                                 </li>
                             </ul>
                             
                             <div class="tab-content" id="boeImportTabsContent">
-                                <!-- Aba de Texto -->
+                                <!-- Aba de Texto PC -->
                                 <div class="tab-pane fade show active" id="content-texto" role="tabpanel">
                                     <div class="alert alert-info">
-                                        <i class="bi bi-magic me-1"></i> <strong>Extração pelo Sistema:</strong> Copie o texto completo do Histórico do BOE e cole abaixo.
+                                        <i class="bi bi-magic me-1"></i> <strong>Extração BO PC:</strong> Copie o texto completo do Histórico do BO PC e cole abaixo.
                                     </div>
                                     <div class="mb-3">
-                                        <textarea class="form-control" id="textoBoe" rows="11" placeholder="Copie todo o texto do BOE e cole aqui..."></textarea>
+                                        <textarea class="form-control" id="textoBoe" rows="11" placeholder="Copie todo o texto do BO PC e cole aqui..."></textarea>
                                     </div>
                                 </div>
                                 
-                                <!-- Aba de PDF -->
+                                <!-- Aba de PDF PC -->
                                 <div class="tab-pane fade" id="content-pdf" role="tabpanel">
                                     <div class="alert alert-warning">
-                                        <i class="bi bi-cpu me-1"></i> <strong>Processamento Nativo:</strong> O arquivo PDF será aberto internamente e mapeado pela inteligência do sistema.
+                                        <i class="bi bi-cpu me-1"></i> <strong>Processamento Nativo PC:</strong> O arquivo PDF será aberto internamente e mapeado pela inteligência do sistema.
                                     </div>
                                     <div class="mb-3">
-                                        <label for="pdfBoe" class="form-label fw-bold">Selecione o arquivo PDF do BOE:</label>
+                                        <label for="pdfBoe" class="form-label fw-bold">Selecione o arquivo PDF do BO PC:</label>
                                         <input class="form-control form-control-sm" type="file" id="pdfBoe" accept=".pdf">
+                                    </div>
+                                </div>
+
+                                <!-- Aba de Texto PM -->
+                                <div class="tab-pane fade" id="content-texto-pm" role="tabpanel">
+                                    <div class="alert alert-success">
+                                        <i class="bi bi-magic me-1"></i> <strong>Extração BO PM:</strong> Copie o texto completo do BO da Polícia Militar e cole abaixo.
+                                    </div>
+                                    <div class="mb-3">
+                                        <textarea class="form-control" id="textoBoePM" rows="11" placeholder="Copie todo o texto do BO PM e cole aqui..."></textarea>
+                                    </div>
+                                </div>
+                                
+                                <!-- Aba de PDF PM -->
+                                <div class="tab-pane fade" id="content-pdf-pm" role="tabpanel">
+                                    <div class="alert alert-success">
+                                        <i class="bi bi-cpu me-1"></i> <strong>Processamento Nativo PM:</strong> O arquivo PDF do BO PM será aberto internamente e mapeado pela inteligência.
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="pdfBoePM" class="form-label fw-bold">Selecione o arquivo PDF do BO PM:</label>
+                                        <input class="form-control form-control-sm" type="file" id="pdfBoePM" accept=".pdf">
                                     </div>
                                 </div>
                             </div>

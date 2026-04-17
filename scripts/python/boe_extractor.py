@@ -211,7 +211,9 @@ def parse_boe_python(texto: str) -> dict:
     texto = re.sub(r'\d{2}/\d{2}/\d{4},\s*\d{2}:\d{2}\s*\nSecretaria de Defesa Social\s*::\s*INFOPOL\s*\nhttps?://[^\n]+(?:\n\d+/\d+)?', '\n', texto, flags=re.IGNORECASE)
     
     # BOE
-    m_boe = re.search(r'N[^\d]+(\d+[A-Z]\d+)', texto, flags=re.IGNORECASE)
+    m_boe = re.search(r'BOLETIM DE OCORRÊNCIA Nº:\s*(\d{10,})\b', texto, flags=re.IGNORECASE)
+    if not m_boe:
+        m_boe = re.search(r'N[^\d]+(\d+[A-Z]\d+)', texto, flags=re.IGNORECASE)
     if not m_boe:
         # Tenta achar o padrao puro do Boletim de Pernambuco (ex: 26E0257000953)
         m_boe = re.search(r'\b(\d{2,}[A-Z]\d{5,})\b', texto, flags=re.IGNORECASE)
@@ -432,7 +434,7 @@ def parse_boe_python(texto: str) -> dict:
             dados['condutor'].append(condutor_nome)
 
     # --- NOVO: Extração de Objetos (Veículos e Celulares) ---
-    bloco_objetos = re.search(r'Objetos\s*\n(.*?)(?=\nComplemento|\nHistórico|\nNarrativa|\nCondutor da ocorrência:|\Z)', texto, flags=re.DOTALL | re.IGNORECASE)
+    bloco_objetos = re.search(r'Objetos\s*\n(.*?)(?=\nComplemento|\nDados Complementares|\nHistórico|\nNarrativa|\nCondutor da ocorrência:|\Z)', texto, flags=re.DOTALL | re.IGNORECASE)
     if bloco_objetos:
         txt_obj = bloco_objetos.group(1)
         # Identifica cada item (VEICULO, CELULAR, etc)
