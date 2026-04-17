@@ -40,5 +40,7 @@ temp_*
 # Custom Ignored Directories
 /outros_backups
 /documentos_boe_exemplo
+/exemplo_BOE
+/sisdp_prompts
 /cache
 Mapa_do_Sistema_SisDP.docx
