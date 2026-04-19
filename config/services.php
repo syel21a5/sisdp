@@ -40,4 +40,8 @@ return [
         'repo' => env('GITHUB_REPO', 'syel21a5/sisdp'),
     ],
 
+    'deepseek' => [
+        'api_key' => env('DEEPSEEK_API_KEY'),
+    ],
+
 ];

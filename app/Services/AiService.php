@@ -12,7 +12,7 @@ class AiService
      */
     public function gerarTextoDeepSeek(string $prompt): ?string
     {
-        $apiKey = env('DEEPSEEK_API_KEY');
+        $apiKey = config('services.deepseek.api_key');
         if (!$apiKey) {
             Log::warning("DeepSeek API Key não encontrada no .env");
             return null;
