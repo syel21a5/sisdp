@@ -38,7 +38,7 @@ class StatusLogService
      * Registra uma mudança de status no log JSON.
      * Se já existir um registro para o mesmo ID e status, atualiza a data.
      */
-    public static function registrar(int $id, string $boe, string $status): void
+    public static function registrar(int $id, string $boe, string $status, ?string $dataStatus = null): void
     {
         // Só registra se for um dos status rastreados
         if (!self::isStatusRastreado($status)) {
@@ -46,7 +46,17 @@ class StatusLogService
         }
 
         $logs = self::carregarLogs();
-        $agora = now();
+        
+        if ($dataStatus) {
+            try {
+                $agora = \Carbon\Carbon::parse($dataStatus);
+            } catch (\Exception $e) {
+                $agora = now();
+            }
+        } else {
+            $agora = now();
+        }
+
         $statusNorm = self::normalizarStatus($status);
 
         // Remove entrada anterior do mesmo ID + status normalizado (para atualizar)

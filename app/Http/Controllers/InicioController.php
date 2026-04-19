@@ -243,7 +243,7 @@ class InicioController extends Controller
 
             // ✅ Registrar no log de status (Remetido/Concluído)
             if ($request->status && StatusLogService::isStatusRastreado($request->status)) {
-                StatusLogService::registrar($id, $request->boe, $request->status);
+                StatusLogService::registrar($id, $request->boe, $request->status, $request->data_status);
             }
 
             $this->vincularNomesAoBoe($request->boe, $request->vitimas, 'VITIMA');
@@ -394,7 +394,7 @@ class InicioController extends Controller
 
             // Se mudou PARA um status rastreado, registra
             if (StatusLogService::isStatusRastreado($statusNovo)) {
-                StatusLogService::registrar((int) $id, $request->boe, $statusNovo);
+                StatusLogService::registrar((int) $id, $request->boe, $statusNovo, $request->data_status);
             }
 
             // Se SAIU de um status rastreado, remove o log antigo

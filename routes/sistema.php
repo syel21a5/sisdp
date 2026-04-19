@@ -29,6 +29,8 @@ Route::middleware(['auth'])->group(function () {
 
     // ✅ GERADOR DE PROMPTS PARA DEPOIMENTOS
     Route::post('/prompt/gerar', [PromptGeneratorController::class, 'gerarPrompt'])->name('prompt.gerar');
+    Route::post('/prompt/extrair-ia', [PromptGeneratorController::class, 'extrairDadosComIA'])->name('prompt.extrair_ia');
+    Route::post('/prompt/processar-ia', [PromptGeneratorController::class, 'processarComIA'])->name('prompt.processar_ia');
 
     // ✅ REMOVIDO: Estas rotas já estão no web.php
     // Route::get('/', [GeralController::class, 'index'])->name('geral');

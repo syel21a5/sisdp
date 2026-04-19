@@ -8,12 +8,13 @@ use Illuminate\Support\Facades\Log;
 class BoeExtractorService
 {
     /**
-     * Extrai dados de um BOE (PDF ou Texto) usando inteligência artificial via Python.
+     * Extrai dados de um BOE (PDF ou Texto) usando o script Python (Regex nativo).
      * Centraliza a lógica para evitar duplicação nos Controllers.
+     * NÃO USA IA - É 100% local, rápido e gratuito.
      *
      * @param Request $request Acoplado para pegar 'pdfBOE' ou 'textoBOE'
      * @param string $type O tipo de extração ("veiculo", "celular", "administrativo", "intimacao", "apfd")
-     * @return \Illuminate\Http\JsonResponse
+     * @return array
      */
     public function extract(Request $request, string $type): array
     {
@@ -85,7 +86,7 @@ class BoeExtractorService
             $scriptPath = base_path('scripts/python/boe_extractor.py');
             $pythonCmd = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? 'python' : 'python3';
             
-            // Forçamos o type 'apfd' para que a IA extraia tudo de uma vez e salve no cache
+            // Forçamos o type 'apfd' para que o Python extraia tudo de uma vez e salve no cache
             $command = escapeshellcmd($pythonCmd) . " " . escapeshellarg($scriptPath) . " --type apfd " . escapeshellarg($tmpPath) . " 2>&1";
             
             $output = \shell_exec($command);
@@ -124,13 +125,15 @@ class BoeExtractorService
                         'cached' => false
                     ];
                 } else {
+                    // Python não conseguiu extrair, mas retornamos sucesso com dados vazios
+                    // para que o frontend possa notificar o usuário sem travar
                     $msg = $json['error'] ?? 'Erro desconhecido no script Python.';
-                    Log::error("IA retornou erro mapeado (apfd): " . $msg);
+                    Log::warning("Extração nativa parcial (apfd): " . $msg);
                     return [
                         'success' => true, 
                         'dados' => [],
                         'cached' => false,
-                        'obs' => "Falha na extração ($msg). Por favor, preencha manualmente."
+                        'obs' => "Extração nativa não localizou todos os dados. Use a Inteligência Artificial para melhor resultado."
                     ];
                 }
             } else {

@@ -22,6 +22,21 @@
 
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+
+    <style>
+        /* Estilo para abas da PM */
+        .nav-link-pm {
+            color: #198754 !important;
+        }
+        .nav-link-pm.active {
+            color: #fff !important;
+            background-color: #198754 !important;
+            border-color: #198754 !important;
+        }
+        .nav-link-pm:hover:not(.active) {
+            color: #157347 !important;
+        }
+    </style>
 </head>
 
 <body>
@@ -260,8 +275,6 @@
                                         <div class="input-group">
                                             <input type="text" class="form-control" placeholder="BOE PM"
                                                 name="boe_pm" id="inputBOEPM">
-                                            <button class="btn btn-success" type="button" id="btnImportarBoePM"
-                                                title="Importar dados do BO PM"><i class="bi bi-upload"></i></button>
                                         </div>
                                     </div>
                                 </div>
@@ -469,7 +482,7 @@
                                         <label for="inputHoraFato" class="form-label">Hora do Fato</label>
                                         <input type="time" class="form-control" name="hora_fato" id="inputHoraFato">
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-2">
                                         <label for="inputStatus" class="form-label">Status</label>
                                         <select class="form-select" name="status" id="inputStatus">
                                             <option value="">Selecione o status</option>
@@ -479,6 +492,10 @@
                                             <option value="Remetido a Justiça">Remetido a Justiça</option>
                                             <option value="Parado">Parado</option>
                                         </select>
+                                    </div>
+                                    <div class="col-md-2" id="divDataStatus" style="display: none;">
+                                        <label for="inputDataStatus" class="form-label text-primary fw-bold" title="Deixe em branco para usar a data de hoje.">Data do Status</label>
+                                        <input type="date" class="form-control border-primary" name="data_status" id="inputDataStatus" title="Mude essa data apenas se o status ocorreu em um dia diferente de hoje, para contabilizar corretamente nos relatórios.">
                                     </div>
                                 </div>
 
@@ -745,10 +762,10 @@
                                     <button class="nav-link" id="tab-pdf" data-bs-toggle="tab" data-bs-target="#content-pdf" type="button" role="tab"><i class="bi bi-file-earmark-pdf text-danger me-1"></i> BO PC (PDF)</button>
                                 </li>
                                 <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="tab-texto-pm" data-bs-toggle="tab" data-bs-target="#content-texto-pm" type="button" role="tab" style="color: #198754;"><i class="bi bi-card-text me-1"></i> BO PM (Texto)</button>
+                                    <button class="nav-link nav-link-pm" id="tab-texto-pm" data-bs-toggle="tab" data-bs-target="#content-texto-pm" type="button" role="tab"><i class="bi bi-card-text me-1"></i> BO PM (Texto)</button>
                                 </li>
                                 <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="tab-pdf-pm" data-bs-toggle="tab" data-bs-target="#content-pdf-pm" type="button" role="tab" style="color: #198754;"><i class="bi bi-file-earmark-pdf me-1"></i> BO PM (PDF)</button>
+                                    <button class="nav-link nav-link-pm" id="tab-pdf-pm" data-bs-toggle="tab" data-bs-target="#content-pdf-pm" type="button" role="tab"><i class="bi bi-file-earmark-pdf me-1"></i> BO PM (PDF)</button>
                                 </li>
                             </ul>
                             
@@ -808,9 +825,21 @@
                             </div>
                         </div>
 
-                        <div class="modal-footer">
+                        <div class="modal-footer d-flex justify-content-between">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-                            <button type="button" class="btn btn-primary" id="btnProcessarBoe">Processar pelo Sistema</button>
+                            <div class="d-flex gap-2">
+                                @php
+                                    $userAuth = auth()->user();
+                                    $canUseIa = !($userAuth && isset($userAuth->permissions['extracao_boe_ia']) && !$userAuth->permissions['extracao_boe_ia']);
+                                @endphp
+                                
+                                @if($canUseIa)
+                                    <button type="button" class="btn btn-success" id="btnProcessarIA" style="background: linear-gradient(135deg, #198754, #20c997); border: none;" title="Tentar extração por inteligência artificial (Pode demorar um pouco mais)">
+                                        <i class="bi bi-robot"></i> Inteligência Artificial
+                                    </button>
+                                @endif
+                                <button type="button" class="btn btn-primary" id="btnProcessarBoe">Processar pelo Sistema</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1487,6 +1516,29 @@
 
         setInterval(updateDateTime, 1000);
         updateDateTime();
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            function toggleDataStatus() {
+                var val = $('#inputStatus').val();
+                if (val === 'Remetido a Justiça' || val === 'Concluído' || val === 'Remetido à Justiça') {
+                    $('#divDataStatus').fadeIn();
+                } else {
+                    $('#divDataStatus').fadeOut();
+                    $('#inputDataStatus').val('');
+                }
+            }
+
+            $('#inputStatus').on('change', toggleDataStatus);
+            // Executa no load também para caso de edição
+            setTimeout(toggleDataStatus, 500);
+            
+            // Para garantir que recarregue o dado no edit, escuta também customEvent se houver
+            $(document).on('click', '.btn-editar-grid', function() {
+                setTimeout(toggleDataStatus, 1000);
+            });
+        });
     </script>
 
     <script>

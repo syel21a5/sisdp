@@ -2510,7 +2510,7 @@ window.OcorrenciasApp = {
                     $('#inputMotivacao').val(response.data.motivacao || '');
                     $('#inputIncidenciaPenal').val(response.data.incidencia_penal || '');
                     $('#inputComarca').val(response.data.comarca || '');
-                    $('#inputStatus').val(response.data.status || '');
+                    $('#inputStatus').val(response.data.status || '').trigger('change');
                     $('#inputPrioridade').val(response.data.prioridade || ''); // ✅ NOVO: Prioridade
                     // Apreensão
                     $('#inputApreensao').val(response.data.Apreensao || '');

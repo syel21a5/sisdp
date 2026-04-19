@@ -446,6 +446,15 @@ $(document).ready(function () {
         $('#boeProgressBar').css('width', '0%').attr('aria-valuenow', 0);
         $('#boeProgressPercent').text('0%');
 
+        // ✅ Inicializar visibilidade do botão de IA baseado na aba ativa
+        // IA aparece em TEXTO (PC e PM), some apenas em PDF
+        const activeTabId = $('#boeImportTabs .nav-link.active').attr('id');
+        if (activeTabId === 'tab-pdf' || activeTabId === 'tab-pdf-pm') {
+            $('#btnProcessarIA').hide();
+        } else {
+            $('#btnProcessarIA').show();
+        }
+
         console.log('✨ [script_apfd] Limpeza concluída.');
     }
 
@@ -833,6 +842,167 @@ $(document).ready(function () {
                 finalizarProgresso(false);
                 $btn.prop('disabled', false).html(originalHtml);
                 let msgErro = 'Ocorreu um erro ao se comunicar com o servidor. Tente novamente.';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    msgErro = xhr.responseJSON.message;
+                }
+                window.mostrarErro(msgErro);
+            },
+            complete: function () {
+                $btn.prop('disabled', false).html(originalHtml);
+            }
+        });
+    });
+
+    // ✅ NOVO: Alternar visibilidade do botão de IA baseado na aba ativa
+    // IA aparece em TEXTO (PC e PM), some apenas nas abas de PDF
+    $('#boeImportTabs button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+        const targetId = e.target.id;
+        if (targetId === 'tab-pdf' || targetId === 'tab-pdf-pm') {
+            $('#btnProcessarIA').fadeOut(200);
+        } else {
+            $('#btnProcessarIA').fadeIn(200);
+        }
+    });
+
+    // =====================================================
+    // ✅ BOTÃO INTELIGÊNCIA ARTIFICIAL (DeepSeek API)
+    // Endpoint SEPARADO do "Processar pelo Sistema"
+    // =====================================================
+    $('#btnProcessarIA').on('click', function () {
+        const $btn = $(this);
+        const originalHtml = $btn.html();
+
+        // Detectar abas ativas para pegar o texto correto
+        const txtPMAtivo = document.getElementById('tab-texto-pm') && document.getElementById('tab-texto-pm').classList.contains('active');
+        const pdfPCPAtivo = document.getElementById('tab-pdf') && document.getElementById('tab-pdf').classList.contains('active');
+        const pdfPMAtivo = document.getElementById('tab-pdf-pm') && document.getElementById('tab-pdf-pm').classList.contains('active');
+        const isPM = pdfPMAtivo || txtPMAtivo;
+
+        // IA só funciona com TEXTO (não PDF direto)
+        if (pdfPCPAtivo || pdfPMAtivo) {
+            window.mostrarErro('A Inteligência Artificial funciona apenas com texto. Use a aba "BO PC (Texto)" ou "BO PM (Texto)" e cole o conteúdo do BOE.');
+            return;
+        }
+
+        var texto = txtPMAtivo ? $('#textoBoePM').val() : $('#textoBoe').val();
+        if (!texto || texto.trim() === '') {
+            window.mostrarErro('Cole o texto do BOE primeiro para a IA processar.');
+            return;
+        }
+
+        // Helper: progresso suave para IA
+        let _iaProgressInterval = null;
+        function iniciarProgressoIA() {
+            let pct = 0;
+            $('#boeProgressWrapper').show();
+            $('#boeProgressLabel').text('🤖 Inteligência Artificial analisando o documento...');
+            $('#boeProgressBar').css('width', '0%').attr('aria-valuenow', 0).removeClass('bg-success bg-danger').addClass('bg-primary progress-bar-striped progress-bar-animated');
+            $('#boeProgressPercent').text('0%');
+            _iaProgressInterval = setInterval(function () {
+                const acelerador = pct < 30 ? 2 : pct < 60 ? 1 : 0.3;
+                pct = Math.min(pct + acelerador, 90);
+                $('#boeProgressBar').css('width', pct + '%').attr('aria-valuenow', Math.round(pct));
+                $('#boeProgressPercent').text(Math.round(pct) + '%');
+            }, 500);
+        }
+        function finalizarProgressoIA(sucesso) {
+            clearInterval(_iaProgressInterval);
+            const cor = sucesso ? 'bg-success' : 'bg-danger';
+            const label = sucesso ? '✅ IA extraiu os dados com sucesso!' : '❌ Erro na extração via IA.';
+            $('#boeProgressBar').removeClass('progress-bar-animated progress-bar-striped bg-primary bg-danger bg-success').addClass(cor).css('width', '100%').attr('aria-valuenow', 100);
+            $('#boeProgressLabel').text(label);
+            $('#boeProgressPercent').text('100%');
+            setTimeout(function () {
+                $('#boeProgressWrapper').hide();
+                if (sucesso) {
+                    $('#textoBoe').val('');
+                    $('#textoBoePM').val('');
+                    $('#boeProgressBar').css('width', '0%').attr('aria-valuenow', 0);
+                    $('#boeProgressPercent').text('0%');
+                }
+            }, 2500);
+        }
+
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> IA processando...');
+        iniciarProgressoIA();
+
+        $.ajax({
+            url: '/prompt/extrair-ia',
+            method: 'POST',
+            data: {
+                _token: $('meta[name="csrf-token"]').attr('content'),
+                texto: texto
+            },
+            success: function (response) {
+                finalizarProgressoIA(response.success);
+
+                if (response.success) {
+                    const dados = response.dados;
+
+                    // Armazena detalhes para o modal de edição
+                    if (dados.envolvidos_detalhes) {
+                        OcorrenciasApp.dadosImportados = {
+                            ...(OcorrenciasApp.dadosImportados || {}),
+                            ...dados.envolvidos_detalhes
+                        };
+                    } else if (!OcorrenciasApp.dadosImportados) {
+                        OcorrenciasApp.dadosImportados = {};
+                    }
+
+                    // Preenche campos do formulário
+                    if (isPM) {
+                        if (dados.boe) $('#inputBOEPM').val(dados.boe);
+                    } else {
+                        if (dados.boe) $('#inputBOE').val(dados.boe);
+                    }
+                    if (dados.ip) $('#inputIP').val(dados.ip);
+                    if (dados.data_fato) $('#inputDataFato').val(dados.data_fato);
+                    if (dados.hora_fato) $('#inputHoraFato').val(dados.hora_fato);
+                    if (dados.end_fato) $('#inputEndFato').val(dados.end_fato);
+                    if (dados.natureza) $('#inputIncidenciaPenal').val(dados.natureza);
+                    if (dados.incidencia_penal) $('#inputIncidenciaPenal').val(dados.incidencia_penal);
+                    if (dados.delegado) {/* não auto-preenche a pedido do usuário */}
+                    if (dados.objetos_apreendidos) {
+                        $('#inputApreensao').val(dados.objetos_apreendidos);
+                        if (typeof atualizarContadorItens === 'function') atualizarContadorItens(dados.objetos_apreendidos);
+                        if (typeof autoResizeApreensao === 'function') setTimeout(autoResizeApreensao, 100);
+                    }
+
+                    // Popula envolvidos (condutor, vitimas, autores, testemunhas, outros)
+                    ['condutor', 'vitimas', 'autores', 'testemunhas', 'outros'].forEach(function(tipo) {
+                        const tipoPlural = tipo === 'condutor' ? 'condutores' : tipo;
+                        const arr = dados[tipo] || dados[tipoPlural] || [];
+                        if (arr.length > 0) {
+                            if (!OcorrenciasApp.envolvidos[tipoPlural]) OcorrenciasApp.envolvidos[tipoPlural] = [];
+                            arr.forEach(function(nome) {
+                                if (!OcorrenciasApp.envolvidos[tipoPlural].some(p => OcorrenciasApp.normalizarNome(p) === OcorrenciasApp.normalizarNome(nome))) {
+                                    OcorrenciasApp.envolvidos[tipoPlural].push(nome);
+                                }
+                            });
+                            OcorrenciasApp.atualizarChips(tipoPlural);
+                        }
+                    });
+
+                    // Armazena dados pendentes para celulares/veículos
+                    window.pendentesIA_Celulares = dados.celulares || [];
+                    window.pendentesIA_Veiculos = dados.veiculos || [];
+
+                    // Concilia com BD
+                    if (typeof OcorrenciasApp.conciliarEnvolvidosBD === 'function') {
+                        OcorrenciasApp.conciliarEnvolvidosBD(['vitimas', 'autores', 'testemunhas', 'condutores', 'outros']);
+                    }
+
+                    window.mostrarSucesso('🤖 Dados extraídos com sucesso pela Inteligência Artificial!');
+                    var modal = bootstrap.Modal.getInstance(document.getElementById('modalImportarBoe'));
+                    if (modal) modal.hide();
+                } else {
+                    window.mostrarErro(response.message || 'Falha ao processar com IA.');
+                }
+            },
+            error: function (xhr) {
+                finalizarProgressoIA(false);
+                $btn.prop('disabled', false).html(originalHtml);
+                let msgErro = 'Erro ao comunicar com a IA. Verifique a chave DeepSeek no .env.';
                 if (xhr.responseJSON && xhr.responseJSON.message) {
                     msgErro = xhr.responseJSON.message;
                 }

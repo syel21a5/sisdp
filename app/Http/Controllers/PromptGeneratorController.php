@@ -4,10 +4,17 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Services\AiService;
 use Illuminate\Support\Facades\Log;
 
 class PromptGeneratorController extends Controller
 {
+    protected $aiService;
+
+    public function __construct(AiService $aiService)
+    {
+        $this->aiService = $aiService;
+    }
     /**
      * Gera um prompt montado com base no papel do envolvido,
      * dados do procedimento e texto bruto do BOE.
@@ -148,19 +155,23 @@ class PromptGeneratorController extends Controller
     private function buscarTextoBoeCache(string $boe): ?string
     {
         $boeLimpo = preg_replace('/[^A-Za-z0-9]/', '', $boe);
-        $cacheFile = storage_path("app/boe_cache/boe_{$boeLimpo}_apfd.json");
 
-        if (file_exists($cacheFile)) {
-            $dados = json_decode(file_get_contents($cacheFile), true);
-            if ($dados && !empty($dados['texto_raw'])) {
-                return $dados['texto_raw'];
+        // Procura em TODOS os tipos de cache (apfd e ia)
+        $sufixos = ['apfd', 'ia'];
+        foreach ($sufixos as $sufixo) {
+            $cacheFile = storage_path("app/boe_cache/boe_{$boeLimpo}_{$sufixo}.json");
+            if (file_exists($cacheFile)) {
+                $dados = json_decode(file_get_contents($cacheFile), true);
+                if ($dados && !empty($dados['texto_raw'])) {
+                    return $dados['texto_raw'];
+                }
             }
         }
 
-        // Tenta também por hash
+        // Tenta também por hash (apfd e ia)
         $cacheDir = storage_path('app/boe_cache');
         if (is_dir($cacheDir)) {
-            $files = glob($cacheDir . '/hash_*_apfd.json');
+            $files = glob($cacheDir . '/hash_*_*.json');
             foreach ($files as $file) {
                 $dados = json_decode(file_get_contents($file), true);
                 if ($dados && !empty($dados['boe']) && $dados['boe'] === $boe && !empty($dados['texto_raw'])) {
@@ -230,14 +241,12 @@ class PromptGeneratorController extends Controller
 
     /**
      * Detecta se a pessoa é um Policial Militar.
-     * Verifica pelo nome nos campos policial_1/policial_2 e por patentes no nome.
      */
     private function detectarPM(string $nome, $cadprincipal): bool
     {
         $nomeUpper = mb_strtoupper(trim($nome), 'UTF-8');
 
         if ($cadprincipal) {
-            // Verifica se o nome bate com policial_1 ou policial_2
             $pol1 = mb_strtoupper(trim($cadprincipal->policial_1 ?? ''), 'UTF-8');
             $pol2 = mb_strtoupper(trim($cadprincipal->policial_2 ?? ''), 'UTF-8');
 
@@ -247,7 +256,6 @@ class PromptGeneratorController extends Controller
             if ($pol2 && strpos($nomeUpper, $pol2) !== false) return true;
         }
 
-        // Verifica por patentes militares no nome
         $patentes = ['SD ', 'CB ', 'SGT ', '1SGT ', '2SGT ', '3SGT ',
                      'ST ', 'TEN ', '1TEN ', '2TEN ', 'CAP ', 'MAJ ',
                      'TC ', 'CEL ', 'SOLDADO ', 'CABO ', 'SARGENTO ',
@@ -260,6 +268,134 @@ class PromptGeneratorController extends Controller
         }
 
         return false;
+    }
+
+    /**
+     * ✅ EXTRAÇÃO VIA INTELIGÊNCIA ARTIFICIAL (DeepSeek API)
+     * Endpoint SEPARADO do "Processar pelo Sistema". 
+     * Este método usa a API do DeepSeek para extrair dados estruturados.
+     */
+    public function extrairDadosComIA(Request $request)
+    {
+        $request->validate([
+            'texto' => 'required|string'
+        ]);
+
+        // Verifica permissão
+        $user = auth()->user();
+        if ($user && isset($user->permissions['extracao_boe_ia']) && !$user->permissions['extracao_boe_ia']) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Acesso Negado: Apenas administradores habilitados podem usar a Inteligência Artificial.'
+            ], 403);
+        }
+
+        try {
+            $texto = $request->texto;
+            $contentHash = md5($texto);
+            $cacheDir = storage_path('app/boe_cache');
+            if (!file_exists($cacheDir)) {
+                mkdir($cacheDir, 0755, true);
+            }
+
+            // 1. Verificar Cache por HASH (texto exatamente igual)
+            $cacheFileHash = $cacheDir . "/hash_{$contentHash}_ia.json";
+            if (file_exists($cacheFileHash)) {
+                $cachedData = json_decode(file_get_contents($cacheFileHash), true);
+                if ($cachedData) {
+                    Log::info("Extração via IA: Retornando dados do CACHE (Hash).");
+                    return response()->json([
+                        'success' => true,
+                        'dados' => $cachedData,
+                        'cached' => true
+                    ]);
+                }
+            }
+
+            // 1.5 Verificar Cache por NÚMERO DO BOE (texto diferente mas mesmo BOE)
+            if (preg_match('/\b(\d{2,}[A-Z]\d{5,})\b/i', $texto, $boeMatch)) {
+                $boeLimpo = preg_replace('/[^A-Za-z0-9]/', '', $boeMatch[1]);
+                $cacheFileBoe = $cacheDir . "/boe_{$boeLimpo}_ia.json";
+                if (file_exists($cacheFileBoe)) {
+                    $cachedData = json_decode(file_get_contents($cacheFileBoe), true);
+                    if ($cachedData) {
+                        Log::info("Extração via IA: Retornando dados do CACHE (Número BOE: {$boeMatch[1]}).");
+                        return response()->json([
+                            'success' => true,
+                            'dados' => $cachedData,
+                            'cached' => true
+                        ]);
+                    }
+                }
+            }
+
+            // 2. Processar via IA (DeepSeek)
+            $dados = $this->aiService->extrairDados($texto);
+
+            if (!$dados) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'A IA não conseguiu estruturar os dados deste documento. Verifique se a API DeepSeek está configurada no .env.'
+                ], 422);
+            }
+
+            // 3. Salvar no Cache (incluindo texto_raw para o gerador de prompts)
+            Log::info("Extração via IA: Salvando novos dados no CACHE.");
+            $dados['texto_raw'] = $texto;
+            file_put_contents($cacheFileHash, json_encode($dados));
+
+            if (!empty($dados['boe'])) {
+                $boeLimpo = preg_replace('/[^A-Za-z0-9]/', '', $dados['boe']);
+                $cacheFileBoe = $cacheDir . "/boe_{$boeLimpo}_ia.json";
+                file_put_contents($cacheFileBoe, json_encode($dados));
+            }
+
+            return response()->json([
+                'success' => true,
+                'dados' => $dados,
+                'cached' => false
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error("Erro na extração com IA: " . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro interno ao processar extração com IA: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Envia o prompt gerado diretamente para a API do DeepSeek e retorna a resposta.
+     */
+    public function processarComIA(Request $request)
+    {
+        $request->validate([
+            'prompt' => 'required|string',
+        ]);
+
+        try {
+            $resposta = $this->aiService->gerarTextoDeepSeek($request->prompt);
+
+            if (!$resposta) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'A API DeepSeek não retornou uma resposta válida.'
+                ], 500);
+            }
+
+            return response()->json([
+                'success' => true,
+                'resposta' => $resposta
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error("Erro ao processar com DeepSeek: " . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro interno ao processar com IA (DeepSeek).'
+            ], 500);
+        }
     }
 
     /**
@@ -284,7 +420,7 @@ class PromptGeneratorController extends Controller
                 return $isTransito ? 'transito_interrogatorio' : 'interrogatorio_autor';
 
             default:
-                return 'testemunha_civil'; // Fallback para OUTRO/NOTICIANTE
+                return 'testemunha_civil';
         }
     }
 }
