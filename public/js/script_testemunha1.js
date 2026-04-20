@@ -542,6 +542,7 @@ $(document).ready(function () {
             "TERMO DE REPRESENTACAO",
             "TERMO DE COMPROMISSO",
             "TERMO DE LIBERACAO DE MENOR - INFRATOR",
+            "LAUDO TRAUMATOLOGICO",
             "LAUDO TRAUMATOLOGICO IML",
             "CERTIDAO DE ASSINATURA INDIVIDUAL"
         ];
@@ -660,13 +661,8 @@ $(document).ready(function () {
 
         console.log('✅ Rota encontrada:', rotasImpressaoTestemunha1[documentoSelecionado]);
 
-        const dadosCodificados = btoa(unescape(encodeURIComponent(JSON.stringify(dados))));
-        const url = rotasImpressaoTestemunha1[documentoSelecionado].replace('--DADOS--', dadosCodificados);
-
-        console.log('🌐 URL final:', url);
-        console.log('=== FIM DEBUG ===');
-
-        window.open(url, "_blank");
+        // ✅ USANDO O NOVO SERVIÇO CENTRALIZADO (EVITA URLs LONGAS)
+        DocumentoService.gerar(rotasImpressaoTestemunha1[documentoSelecionado], dados);
     });
 
 
@@ -684,6 +680,7 @@ $(document).ready(function () {
             "TERMO DE REPRESENTACAO",
             "TERMO DE COMPROMISSO",
             "TERMO DE LIBERACAO DE MENOR - INFRATOR",
+            "LAUDO TRAUMATOLOGICO",
             "LAUDO TRAUMATOLOGICO IML",
             "CERTIDAO DE ASSINATURA INDIVIDUAL"
         ];

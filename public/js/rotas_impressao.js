@@ -36,6 +36,7 @@ var rotasImpressaoCondutor = {
     'TERMO DE RENUNCIA E DESISTENCIA DE REPRESENTACAO': "/documentos/termo-renuncia-representacao/--DADOS--",
     'TERMO DE REPRESENTACAO': "/documentos/termo-representacao/--DADOS--",
     'TERMO DE COMPROMISSO': "/documentos/termo-compromisso-juizo/--DADOS--",
+    "LAUDO TRAUMATOLOGICO": "/pericia-traumatologico/--DADOS--",
     "LAUDO TRAUMATOLOGICO IML": "/termo-traumatologico-iml/--DADOS--",
     "CERTIDAO DE ASSINATURA INDIVIDUAL": "/certidao-assinaturas-individual/--DADOS--",
     "CERTIDAO DE ASSINATURA APFD": "/certidao-assinaturas-apfd/--DADOS--",
@@ -55,6 +56,7 @@ var rotasImpressaoVitima1 = {
     'TERMO DE REPRESENTACAO': "/documentos/termo-representacao/--DADOS--",
     'TERMO DE COMPROMISSO': "/documentos/termo-compromisso-juizo/--DADOS--",
     'TERMO DE LIBERACAO DE MENOR - INFRATOR': "/liberacao-infrator/--DADOS--",
+    "LAUDO TRAUMATOLOGICO": "/pericia-traumatologico/--DADOS--",
     "LAUDO TRAUMATOLOGICO IML": "/termo-traumatologico-iml/--DADOS--",
     "CERTIDAO DE ASSINATURA INDIVIDUAL": "/certidao-assinaturas-individual/--DADOS--",
     'PERICIA EM LOCAL DE CRIME': '/pericia-local-de-crime/--DADOS--'
@@ -75,6 +77,7 @@ var rotasImpressaoTestemunha1 = {
     'TERMO DE REPRESENTACAO': "/documentos/termo-representacao/--DADOS--",
     'TERMO DE COMPROMISSO': "/documentos/termo-compromisso-juizo/--DADOS--",
     'TERMO DE LIBERACAO DE MENOR - INFRATOR': "/liberacao-infrator/--DADOS--",
+    "LAUDO TRAUMATOLOGICO": "/pericia-traumatologico/--DADOS--",
     "LAUDO TRAUMATOLOGICO IML": "/termo-traumatologico-iml/--DADOS--",
     "CERTIDAO DE ASSINATURA INDIVIDUAL": "/certidao-assinaturas-individual/--DADOS--"
 };
@@ -92,6 +95,7 @@ var rotasImpressaoOutro = {
     'TERMO DE REPRESENTACAO': "/documentos/termo-representacao/--DADOS--",
     'TERMO DE COMPROMISSO': "/documentos/termo-compromisso-juizo/--DADOS--",
     'TERMO DE LIBERACAO DE MENOR - INFRATOR': "/liberacao-infrator/--DADOS--",
+    "LAUDO TRAUMATOLOGICO": "/pericia-traumatologico/--DADOS--",
     "LAUDO TRAUMATOLOGICO IML": "/termo-traumatologico-iml/--DADOS--",
     "CERTIDAO DE ASSINATURA INDIVIDUAL": "/certidao-assinaturas-individual/--DADOS--"
 };
@@ -116,6 +120,7 @@ var rotasImpressaoAutor1 = {
     'TERMO DE REPRESENTACAO': "/documentos/termo-representacao/--DADOS--",
     'TERMO DE COMPROMISSO': "/documentos/termo-compromisso-juizo/--DADOS--",
     'TERMO DE LIBERACAO DE MENOR - INFRATOR': "/liberacao-infrator/--DADOS--",
+    "LAUDO TRAUMATOLOGICO": "/pericia-traumatologico/--DADOS--",
     "LAUDO TRAUMATOLOGICO IML": "/termo-traumatologico-iml/--DADOS--",
     "CERTIDAO DE ASSINATURA INDIVIDUAL": "/certidao-assinaturas-individual/--DADOS--",
     'AUTO CIRCUNSTACIADO - AUTOR 1': "/autocircunstanciado/--DADOS--",

@@ -98,6 +98,47 @@ window.limparCamposEnvolvido = function(tipo) {
  * Adiciona uma vítima como chip
 
  */
+window.salvarVinculoAutomatico = function(tipoEnum, tipoArray, pessoa_id, nome) {
+    const boeSelecionado = $('#inputBOE').val() ? $('#inputBOE').val().trim() : null;
+
+    if (!window.OcorrenciasApp.envolvidos[tipoArray].includes(nome)) {
+        window.OcorrenciasApp.envolvidos[tipoArray].push(nome);
+        window.OcorrenciasApp.vinculos = window.OcorrenciasApp.vinculos || {};
+        window.OcorrenciasApp.vinculos[tipoArray] = window.OcorrenciasApp.vinculos[tipoArray] || [];
+        
+        // Inserção temporária (otimista) no frontend
+        const statusInicial = window.OcorrenciasApp.isOwner === false ? 'pendente' : 'aprovado';
+        window.OcorrenciasApp.vinculos[tipoArray].push({ 
+            nome: nome, 
+            pessoa_id: pessoa_id,
+            status_aprovacao: statusInicial 
+        });
+
+        // SALVAMENTO IMEDIATO no banco de dados!
+        if (boeSelecionado && boeSelecionado !== 'N/A' && pessoa_id && parseInt(pessoa_id) < 1000000000000) {
+            console.log('🔄 Salvando vínculo automaticamente do botão + Add...', tipoEnum);
+            $.ajax({
+                url: '/boe/vinculos/adicionar',
+                method: 'POST',
+                data: {
+                    boe: boeSelecionado,
+                    pessoa_id: pessoa_id,
+                    tipo: tipoEnum,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function (res) {
+                    if (res.success) {
+                        console.log('✅ Vínculo salvo automático. Recarregando vinculações...');
+                        window.OcorrenciasApp.carregarVinculosDoBoe(boeSelecionado);
+                    }
+                }
+            });
+        }
+    }
+    window.OcorrenciasApp.atualizarChips(tipoArray);
+    sugerirVinculoEmTempoReal(nome, tipoArray);
+};
+
 window.adicionarVitimaChip = function () {
     const nome = $('#inputNomeVitima1').val().trim();
     const id = $('#vitima1_id').val();
@@ -125,23 +166,9 @@ window.adicionarVitimaChip = function () {
 
     window.envolvidosChips.vitimas.push(vitima);
 
-    // Sincroniza com OcorrenciasApp e delega a renderização para evitar conflitos
+    // Sincroniza com OcorrenciasApp e salva vínculo automaticamente se tiver ID de banco
     if (window.OcorrenciasApp && window.OcorrenciasApp.envolvidos) {
-        if (!window.OcorrenciasApp.envolvidos.vitimas.includes(vitima.nome)) {
-            window.OcorrenciasApp.envolvidos.vitimas.push(vitima.nome);
-            // Sincroniza vínculos
-            window.OcorrenciasApp.vinculos = window.OcorrenciasApp.vinculos || {};
-            window.OcorrenciasApp.vinculos.vitimas = window.OcorrenciasApp.vinculos.vitimas || [];
-            // Adiciona vínculo preservando ID se existir
-            const statusInicial = window.OcorrenciasApp.isOwner === false ? 'pendente' : 'aprovado';
-            window.OcorrenciasApp.vinculos.vitimas.push({ 
-                nome: vitima.nome, 
-                pessoa_id: id,
-                status_aprovacao: statusInicial 
-            });
-        }
-        window.OcorrenciasApp.atualizarChips('vitimas');
-        sugerirVinculoEmTempoReal(vitima.nome, 'vitimas'); // ✅ Colaboração em tempo real
+        window.salvarVinculoAutomatico('VITIMA', 'vitimas', id, vitima.nome);
     } else {
         // Fallback
         criarChip('vitima', vitima.nome, vitima.id);
@@ -187,22 +214,11 @@ window.adicionarAutorChip = function () {
 
     window.envolvidosChips.autores.push(autor);
 
-    // Sincroniza com OcorrenciasApp e delega a renderização
+    // Sincroniza com OcorrenciasApp e salva vínculo automaticamente se tiver ID de banco
     if (window.OcorrenciasApp && window.OcorrenciasApp.envolvidos) {
-        if (!window.OcorrenciasApp.envolvidos.autores.includes(autor.nome)) {
-            window.OcorrenciasApp.envolvidos.autores.push(autor.nome);
-            window.OcorrenciasApp.vinculos = window.OcorrenciasApp.vinculos || {};
-            window.OcorrenciasApp.vinculos.autores = window.OcorrenciasApp.vinculos.autores || [];
-            const statusInicial = window.OcorrenciasApp.isOwner === false ? 'pendente' : 'aprovado';
-            window.OcorrenciasApp.vinculos.autores.push({ 
-                nome: autor.nome, 
-                pessoa_id: id,
-                status_aprovacao: statusInicial 
-            });
-        }
-        window.OcorrenciasApp.atualizarChips('autores');
-        sugerirVinculoEmTempoReal(autor.nome, 'autores'); // ✅ Colaboração em tempo real
+        window.salvarVinculoAutomatico('AUTOR', 'autores', id, autor.nome);
     } else {
+        // Fallback
         criarChip('autor', autor.nome, autor.id);
     }
 
@@ -244,23 +260,11 @@ window.adicionarTestemunhaChip = function () {
         dados: $('#formTestemunha1').serializeArray()
     };
 
-    // Sincroniza com OcorrenciasApp e delega a renderização
+    // Sincroniza com OcorrenciasApp e salva vínculo automaticamente se tiver ID de banco
     if (window.OcorrenciasApp && window.OcorrenciasApp.envolvidos) {
-        if (!window.OcorrenciasApp.envolvidos.testemunhas.includes(testemunha.nome)) {
-            window.OcorrenciasApp.envolvidos.testemunhas.push(testemunha.nome);
-            window.OcorrenciasApp.vinculos = window.OcorrenciasApp.vinculos || {};
-            window.OcorrenciasApp.vinculos.testemunhas = window.OcorrenciasApp.vinculos.testemunhas || [];
-            const statusInicial = window.OcorrenciasApp.isOwner === false ? 'pendente' : 'aprovado';
-            window.OcorrenciasApp.vinculos.testemunhas.push({ 
-                nome: testemunha.nome, 
-                pessoa_id: id,
-                status_aprovacao: statusInicial 
-            });
-        }
-        window.OcorrenciasApp.atualizarChips('testemunhas');
-        sugerirVinculoEmTempoReal(testemunha.nome, 'testemunhas'); // ✅ Colaboração em tempo real
+        window.salvarVinculoAutomatico('TESTEMUNHA', 'testemunhas', id, testemunha.nome);
     } else {
-        // Cria o chip
+        // Fallback
         criarChip('testemunha', testemunha.nome, testemunha.id);
     }
 
@@ -302,23 +306,11 @@ window.adicionarCondutorChip = function () {
         dados: $('#formCondutor').serializeArray()
     };
 
-    // Sincroniza com OcorrenciasApp e delega a renderização
+    // Sincroniza com OcorrenciasApp e salva vínculo automaticamente se tiver ID de banco
     if (window.OcorrenciasApp && window.OcorrenciasApp.envolvidos) {
-        if (!window.OcorrenciasApp.envolvidos.condutores.includes(condutor.nome)) {
-            window.OcorrenciasApp.envolvidos.condutores.push(condutor.nome);
-            window.OcorrenciasApp.vinculos = window.OcorrenciasApp.vinculos || {};
-            window.OcorrenciasApp.vinculos.condutores = window.OcorrenciasApp.vinculos.condutores || [];
-            const statusInicial = window.OcorrenciasApp.isOwner === false ? 'pendente' : 'aprovado';
-            window.OcorrenciasApp.vinculos.condutores.push({ 
-                nome: condutor.nome, 
-                pessoa_id: id,
-                status_aprovacao: statusInicial 
-            });
-        }
-        window.OcorrenciasApp.atualizarChips('condutores');
-        sugerirVinculoEmTempoReal(condutor.nome, 'condutores'); // ✅ Colaboração em tempo real
+        window.salvarVinculoAutomatico('CONDUTOR', 'condutores', id, condutor.nome);
     } else {
-        // Cria o chip
+        // Fallback
         criarChip('condutor', condutor.nome, condutor.id);
     }
 
@@ -362,22 +354,11 @@ window.adicionarOutroChip = function () {
 
     window.envolvidosChips.outros.push(outro);
 
-    // Sincroniza com OcorrenciasApp e delega a renderização
+    // Sincroniza com OcorrenciasApp e salva vínculo automaticamente se tiver ID de banco
     if (window.OcorrenciasApp && window.OcorrenciasApp.envolvidos) {
-        if (!window.OcorrenciasApp.envolvidos.outros.includes(outro.nome)) {
-            window.OcorrenciasApp.envolvidos.outros.push(outro.nome);
-            window.OcorrenciasApp.vinculos = window.OcorrenciasApp.vinculos || {};
-            window.OcorrenciasApp.vinculos.outros = window.OcorrenciasApp.vinculos.outros || [];
-            const statusInicial = window.OcorrenciasApp.isOwner === false ? 'pendente' : 'aprovado';
-            window.OcorrenciasApp.vinculos.outros.push({ 
-                nome: outro.nome, 
-                pessoa_id: id,
-                status_aprovacao: statusInicial 
-            });
-        }
-        window.OcorrenciasApp.atualizarChips('outros');
-        sugerirVinculoEmTempoReal(outro.nome, 'outros'); // ✅ Colaboração em tempo real
+        window.salvarVinculoAutomatico('OUTRO', 'outros', id, outro.nome);
     } else {
+        // Fallback
         criarChip('outro', outro.nome, outro.id);
     }
 
@@ -399,18 +380,28 @@ window.adicionarOutroChip = function () {
  * Cria um chip visual
  */
 function criarChip(tipo, nome, id) {
+    // Verifica se o ID é temporário gerado pelo Date.now() (maior que 13 dígitos numéricos)
+    const isTemp = (id && !isNaN(id) && parseInt(id) > 1000000000000);
+    
+    const bgClass = isTemp ? 'bg-warning text-dark' : 'bg-primary text-white';
+    const alertIcon = isTemp ? '<i class="fas fa-exclamation-triangle text-danger me-1"></i>' : '';
+    const spanText = isTemp ? `${nome.toUpperCase()} <span style="font-size:0.65rem; font-weight:bold; color: #d32f2f;">(NÃO SALVO)</span>` : nome.toUpperCase();
+    const closeBtnClass = isTemp ? 'btn-close' : 'btn-close btn-close-white';
+    const tooltipText = isTemp ? 'title="Este envolvido ainda não foi salvo. Clique para editar e salvá-lo no banco."' : '';
+
     const chip = $(`
-        <div class="badge bg-primary d-inline-flex align-items-center gap-1 px-2 py-1 me-1 mb-1 shadow-sm" 
-             data-tipo="${tipo}" data-id="${id}" style="font-size: 0.8rem; font-weight: 500;">
-            <span>${nome.toUpperCase()}</span>
-            <button type="button" class="btn-close btn-close-white" 
-                    style="font-size: 0.6rem; opacity: 0.8;" 
+        <div class="badge ${bgClass} d-inline-flex align-items-center gap-1 px-2 py-1 me-1 mb-1 shadow-sm border border-secondary" 
+             data-tipo="${tipo}" data-id="${id}" style="font-size: 0.8rem; font-weight: 500;" ${tooltipText}>
+            ${alertIcon}
+            <span>${spanText}</span>
+            <button type="button" class="${closeBtnClass}" 
+                    style="font-size: 0.6rem; opacity: 0.8; margin-left: 5px;" 
                     onclick="removerChip('${tipo}', ${id})"></button>
             <button type="button" class="btn btn-sm btn-light border-0" 
                     style="padding: 0px 4px; font-size: 0.6rem; line-height: 1.2; opacity: 0.9;" 
                     onclick="editarChip('${tipo}', ${id})" 
-                    title="Editar">
-                <i class="bi bi-pencil"></i>
+                    title="Editar e Salvar">
+                <i class="fas fa-pencil-alt"></i>
             </button>
         </div>
     `);

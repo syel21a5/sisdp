@@ -20,58 +20,40 @@ Route::middleware(['auth', 'permission:oitivas'])->group(function () {
     Route::post('/intimacao', [GerarIntimacaoEditorController::class, 'gerarPdfIntimacao'])->name('intimacao.pdf');
 
     // =============================================
-    // ROTAS GET PARA VISUALIZAÇÃO/EDIÇÃO
+    // ROTAS GET PARA VISUALIZAÇÃO/EDIÇÃO - PADRONIZADAS
     // =============================================
-    Route::get('/interrogatorio/{dados?}', function($dados = null) {
+    
+    // Função auxiliar para processar dados de Oitivas
+    $processarOitiva = function($dados, $view) {
         $dadosArray = [];
         if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
+            // Suporte a UUID (Cache) ou Base64 (Antigo)
+            if (preg_match('/^[a-f\d]{8}(-[a-f\d]{4}){3}-[a-f\d]{12}$/i', $dados)) {
+                $dadosArray = \Illuminate\Support\Facades\Cache::get('doc_sessao_' . $dados, []);
+            } else {
+                try {
+                    $dadosArray = json_decode(base64_decode($dados), true) ?? [];
+                } catch (\Exception $e) { $dadosArray = []; }
             }
         }
-        return view('oitivas.Termo_de_Interrogatorio', compact('dadosArray'));
+        return view($view, compact('dadosArray'));
+    };
+
+    Route::get('/interrogatorio/{dados?}', function($dados = null) use ($processarOitiva) {
+        return $processarOitiva($dados, 'oitivas.Termo_de_Interrogatorio');
     })->name('interrogatorio');
 
-
-    Route::get('/declaracao/{dados?}', function($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('oitivas.Termo_de_Declaracao', compact('dadosArray'));
+    Route::get('/declaracao/{dados?}', function($dados = null) use ($processarOitiva) {
+        return $processarOitiva($dados, 'oitivas.Termo_de_Declaracao');
     })->name('declaracao');
 
-
-    Route::get('/depoimento/{dados?}', function($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('oitivas.Termo_de_Depoimento', compact('dadosArray'));
+    Route::get('/depoimento/{dados?}', function($dados = null) use ($processarOitiva) {
+        return $processarOitiva($dados, 'oitivas.Termo_de_Depoimento');
     })->name('depoimento');
 
-
-    // ✅ ROTA GET PARA EDITOR DE INTIMAÇÃO
-    Route::get('/intimacao/{dados?}', function($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('intimacao.intimacao_editor', compact('dadosArray'));
+    // ✅ ROTA GET PARA EDITOR DE INTIMAÇÃO PADRONIZADA
+    Route::get('/intimacao/{dados?}', function($dados = null) use ($processarOitiva) {
+        return $processarOitiva($dados, 'intimacao.intimacao_editor');
     })->name('intimacao.editor');
 
 });

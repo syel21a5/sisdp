@@ -554,6 +554,7 @@ $(document).ready(function () {
             "TERMO DE REPRESENTACAO",
             "TERMO DE COMPROMISSO",
             "TERMO DE LIBERACAO DE MENOR - INFRATOR",
+            "LAUDO TRAUMATOLOGICO",
             "LAUDO TRAUMATOLOGICO IML",
             "PERICIA EM LOCAL DE CRIME"
         ];
@@ -675,13 +676,9 @@ $(document).ready(function () {
 
         console.log('✅ Rota encontrada:', rotasImpressaoVitima1[documentoSelecionado]);
 
-        const dadosCodificados = btoa(unescape(encodeURIComponent(JSON.stringify(dados))));
-        const url = rotasImpressaoVitima1[documentoSelecionado].replace('--DADOS--', dadosCodificados);
-
-        console.log('🌐 URL final:', url);
+        // ✅ USANDO O NOVO SERVIÇO CENTRALIZADO (EVITA URLs LONGAS)
+        DocumentoService.gerar(rotasImpressaoVitima1[documentoSelecionado], dados);
         console.log('=== FIM DEBUG ===');
-
-        window.open(url, "_blank");
     });
 
 
@@ -699,6 +696,7 @@ $(document).ready(function () {
             "TERMO DE REPRESENTACAO",
             "TERMO DE COMPROMISSO",
             "TERMO DE LIBERACAO DE MENOR - INFRATOR",
+            "LAUDO TRAUMATOLOGICO",
             "LAUDO TRAUMATOLOGICO IML",
             "CERTIDAO DE ASSINATURA INDIVIDUAL",
             "PERICIA EM LOCAL DE CRIME"

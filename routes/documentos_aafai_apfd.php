@@ -22,10 +22,14 @@ use App\Http\Controllers\Documentos\apfd\GerarPdfAPFDAutor1Controller;
 use App\Http\Controllers\Documentos\apfd\GerarPdfAPFDAutor2Controller;
 use App\Http\Controllers\Documentos\apfd\GerarPdfAPFDAutor3Controller;
 use App\Http\Controllers\Documentos\apfd\pecas\GerarPdfNotadeCulpa_1AutorController;
+use App\Http\Controllers\Documentos\DocumentoSessionController;
+use Illuminate\Support\Facades\Cache;
 // Removidos: GerarPdfNotadeCulpa_2AutorController e GerarPdfNotadeCulpa_3AutorController
 
 
 Route::middleware(['auth', 'permission:apfd'])->group(function () {
+    // ✅ ROTA GERAL PARA SALVAR SESSÃO DE DADOS (EVITAR O ERRO 414 URL TOO LONG)
+    Route::post('/documentos/salvar-sessao', [DocumentoSessionController::class, 'salvarDadosSessao'])->name('documentos.sessao.salvar');
 
     // 🔽 ROTA POST DO PDF AAFAI (EXISTENTES)
     Route::post('/aafai-condutor', [GerarPdfAAFAICondutorController::class, 'gerarPdfAAFAICondutor'])->name('termo.aafai.condutor.pdf');
@@ -63,339 +67,162 @@ Route::middleware(['auth', 'permission:apfd'])->group(function () {
     Route::post('/termo-apfd-autor2-sem-fianca', [GerarPdfAPFDAutor2Controller::class, 'gerarPdfAPFDAutor2SemFianca'])->name('termo.apfd.autor2.sem.fianca.pdf');
     Route::post('/termo-apfd-autor3-sem-fianca', [GerarPdfAPFDAutor3Controller::class, 'gerarPdfAPFDAutor3SemFianca'])->name('termo.apfd.autor3.sem.fianca.pdf');
 
-    // 🔽 ROTAS GET PARA VISUALIZAÇÃO AAFAI/APFD (TODAS AS QUE ESTAVAM NO WEB.PHP)
-    Route::get('/aafai-condutor/{dados?}', function ($dados = null) {
+    // 🛠️ FUNÇÃO AUXILIAR PARA TRATAMENTO UNIVERSAL DE DADOS DE DOCUMENTOS
+    $processarDocumento = function($dados, $view, $tipoDoc = '') {
         $dadosArray = [];
         if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
+            // 1. Recuperar dados (Cache UUID ou Base64 Antigo)
+            if (preg_match('/^[a-f\d]{8}(-[a-f\d]{4}){3}-[a-f\d]{12}$/i', $dados)) {
+                $dadosArray = Cache::get('doc_sessao_' . $dados, []);
+            } else {
+                try {
+                    $dadosArray = json_decode(base64_decode($dados), true) ?? [];
+                } catch (\Exception $e) { $dadosArray = []; }
+            }
+
+            // 2. Normalização Universal (Condutor, Víitimas, Testemunhas, Autores)
+            if (!empty($dadosArray)) {
+                // Se for um tipo específico de documento, podemos aplicar filtros aqui
+                
+                // Normalizar Condutor
+                if (!isset($dadosArray['condutor']) && isset($dadosArray['nome'])) {
+                    $dadosArray['condutor'] = array_merge(['nome' => 'NÃO INFORMADO'], $dadosArray);
+                }
+
+                // Normalizar Vítimas, Testemunhas e Autores dinamicamente
+                $pessoas = ['vitima', 'testemunha', 'autor'];
+                foreach ($pessoas as $p) {
+                    for ($i = 1; $i <= 3; $i++) {
+                        $chave = $p . $i;
+                        if (!isset($dadosArray[$chave]) || !is_array($dadosArray[$chave])) {
+                            $plural = $p . 's'; // ex: vitimas
+                            if (isset($dadosArray[$plural][$i - 1])) {
+                                $dadosArray[$chave] = $dadosArray[$plural][$i - 1];
+                            } else {
+                                $dadosArray[$chave] = ['nome' => strtoupper($p) . ' ' . $i];
+                            }
+                        }
+                    }
+                }
             }
         }
-        return view('aafai.aafai_condutor', compact('dadosArray'));
+        return view($view, compact('dadosArray'));
+    };
+
+    // 🔽 ROTA GET DO AAFAI - CONDUTOR
+    Route::get('/aafai-condutor/{dados?}', function ($dados = null) use ($processarDocumento) {
+        return $processarDocumento($dados, 'aafai.aafai_condutor');
     })->name('aafai.condutor');
 
-    Route::get('/apfd-vitima1/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('apfd.apfd_vitima1', compact('dadosArray'));
+    // 🔽 ROTA GET DO APFD - VITIMA 1
+    Route::get('/apfd-vitima1/{dados?}', function ($dados = null) use ($processarDocumento) {
+        return $processarDocumento($dados, 'apfd.apfd_vitima1');
     })->name('apfd.vitima1');
 
     // 🔽 ROTA GET DO APFD - CONDUTOR
-    Route::get('/apfd-condutor/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('apfd.apfd_condutor', compact('dadosArray'));
+    Route::get('/apfd-condutor/{dados?}', function ($dados = null) use ($processarDocumento) {
+        return $processarDocumento($dados, 'apfd.apfd_condutor');
     })->name('apfd.condutor');
 
-    Route::get('/aafai-vitima2/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('aafai.aafai_vitima2', compact('dadosArray'));
+    Route::get('/aafai-vitima2/{dados?}', function ($dados = null) use ($processarDocumento) {
+        return $processarDocumento($dados, 'aafai.aafai_vitima2');
     })->name('aafai.vitima2');
 
-    Route::get('/apfd-vitima2/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('apfd.apfd_vitima2', compact('dadosArray'));
+    Route::get('/apfd-vitima2/{dados?}', function ($dados = null) use ($processarDocumento) {
+        return $processarDocumento($dados, 'apfd.apfd_vitima2');
     })->name('apfd.vitima2');
 
-    Route::get('/aafai-vitima3/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('aafai.aafai_vitima3', compact('dadosArray'));
+    Route::get('/aafai-vitima3/{dados?}', function ($dados = null) use ($processarDocumento) {
+        return $processarDocumento($dados, 'aafai.aafai_vitima3');
     })->name('aafai.vitima3');
 
-    Route::get('/apfd-vitima3/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('apfd.apfd_vitima3', compact('dadosArray'));
+    Route::get('/apfd-vitima3/{dados?}', function ($dados = null) use ($processarDocumento) {
+        return $processarDocumento($dados, 'apfd.apfd_vitima3');
     })->name('apfd.vitima3');
 
     // 🔽 ROTA GET DO AAFAI - AUTOR 1
-    Route::get('/aafai-autor1/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('aafai.aafai_autor1', compact('dadosArray'));
+    Route::get('/aafai-autor1/{dados?}', function ($dados = null) use ($processarDocumento) {
+        return $processarDocumento($dados, 'aafai.aafai_autor1');
     })->name('aafai.autor1');
 
     // 🔽 ROTA GET DO APFD - AUTOR 1
-    Route::get('/apfd-autor1/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('apfd.apfd_autor1', compact('dadosArray'));
+    Route::get('/apfd-autor1/{dados?}', function ($dados = null) use ($processarDocumento) {
+        return $processarDocumento($dados, 'apfd.apfd_autor1');
     })->name('apfd.autor1');
 
-    Route::get('/notadeculpa-apfd-1autor/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('apfd.pecas.notadeculpa_dinamica', compact('dadosArray'));
+    Route::get('/notadeculpa-apfd-1autor/{dados?}', function ($dados = null) use ($processarDocumento) {
+        return $processarDocumento($dados, 'apfd.pecas.notadeculpa_dinamica');
     })->name('apfd.notadeculpa.1autor');
 
-    Route::get('/notadeculpa-dinamica/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('apfd.pecas.notadeculpa_dinamica', compact('dadosArray'));
+    Route::get('/notadeculpa-dinamica/{dados?}', function ($dados = null) use ($processarDocumento) {
+        return $processarDocumento($dados, 'apfd.pecas.notadeculpa_dinamica');
     })->name('apfd.notadeculpa.dinamica');
 
-    Route::get('/aafai-autor2/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('aafai.aafai_autor2', compact('dadosArray'));
+    Route::get('/aafai-autor2/{dados?}', function ($dados = null) use ($processarDocumento) {
+        return $processarDocumento($dados, 'aafai.aafai_autor2');
     })->name('aafai.autor2');
 
-    // 🔽 ROTA GET DO APFD - AUTOR 2
-    Route::get('/apfd-autor2/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('apfd.apfd_autor2', compact('dadosArray'));
+    Route::get('/apfd-autor2/{dados?}', function ($dados = null) use ($processarDocumento) {
+        return $processarDocumento($dados, 'apfd.apfd_autor2');
     })->name('apfd.autor2');
 
-    Route::get('/aafai-autor3/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('aafai.aafai_autor3', compact('dadosArray'));
+    Route::get('/aafai-autor3/{dados?}', function ($dados = null) use ($processarDocumento) {
+        return $processarDocumento($dados, 'aafai.aafai_autor3');
     })->name('aafai.autor3');
 
-    // 🔽 ROTA GET DO APFD - AUTOR 3
-    Route::get('/apfd-autor3/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('apfd.apfd_autor3', compact('dadosArray'));
+    Route::get('/apfd-autor3/{dados?}', function ($dados = null) use ($processarDocumento) {
+        return $processarDocumento($dados, 'apfd.apfd_autor3');
     })->name('apfd.autor3');
 
     // 🔽 ROTA GET DO AAFAI - TESTEMUNHA 1
-    Route::get('/aafai-testemunha1/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('aafai.aafai_testemunha1', compact('dadosArray'));
+    Route::get('/aafai-testemunha1/{dados?}', function ($dados = null) use ($processarDocumento) {
+        return $processarDocumento($dados, 'aafai.aafai_testemunha1');
     })->name('aafai.testemunha1');
 
     // 🔽 ROTA GET DO APFD - TESTEMUNHA 1
-    Route::get('/apfd-testemunha1/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('apfd.apfd_testemunha1', compact('dadosArray'));
+    Route::get('/apfd-testemunha1/{dados?}', function ($dados = null) use ($processarDocumento) {
+        return $processarDocumento($dados, 'apfd.apfd_testemunha1');
     })->name('apfd.testemunha1');
 
-    Route::get('/aafai-testemunha2/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('aafai.aafai_testemunha2', compact('dadosArray'));
+    Route::get('/aafai-testemunha2/{dados?}', function ($dados = null) use ($processarDocumento) {
+        return $processarDocumento($dados, 'aafai.aafai_testemunha2');
     })->name('aafai.testemunha2');
 
-    // 🔽 ROTA GET DO APFD - TESTEMUNHA 2
-    Route::get('/apfd-testemunha2/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('apfd.apfd_testemunha2', compact('dadosArray'));
+    Route::get('/apfd-testemunha2/{dados?}', function ($dados = null) use ($processarDocumento) {
+        return $processarDocumento($dados, 'apfd.apfd_testemunha2');
     })->name('apfd.testemunha2');
 
-    Route::get('/aafai-testemunha3/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('aafai.aafai_testemunha3', compact('dadosArray'));
+    Route::get('/aafai-testemunha3/{dados?}', function ($dados = null) use ($processarDocumento) {
+        return $processarDocumento($dados, 'aafai.aafai_testemunha3');
     })->name('aafai.testemunha3');
 
-    // 🔽 ROTA GET DO APFD - TESTEMUNHA 3
-    Route::get('/apfd-testemunha3/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('apfd.apfd_testemunha3', compact('dadosArray'));
+    Route::get('/apfd-testemunha3/{dados?}', function ($dados = null) use ($processarDocumento) {
+        return $processarDocumento($dados, 'apfd.apfd_testemunha3');
     })->name('apfd.testemunha3');
 
     // ✅ NOVAS ROTAS GET PARA AS VERSÕES COM/SEM FIANÇA
-    Route::get('/apfd-autor1-com-fianca/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('apfd.apfd_autor1_com_fianca', compact('dadosArray'));
+    Route::get('/apfd-autor1-com-fianca/{dados?}', function ($dados = null) use ($processarDocumento) {
+        return $processarDocumento($dados, 'apfd.apfd_autor1_com_fianca');
     })->name('apfd.autor1.com.fianca');
 
-    Route::get('/apfd-autor1-sem-fianca/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('apfd.apfd_autor1_sem_fianca', compact('dadosArray'));
+    Route::get('/apfd-autor1-sem-fianca/{dados?}', function ($dados = null) use ($processarDocumento) {
+        return $processarDocumento($dados, 'apfd.apfd_autor1_sem_fianca');
     })->name('apfd.autor1.sem.fianca');
 
-    Route::get('/apfd-autor2-com-fianca/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('apfd.apfd_autor2_com_fianca', compact('dadosArray'));
+    Route::get('/apfd-autor2-com-fianca/{dados?}', function ($dados = null) use ($processarDocumento) {
+        return $processarDocumento($dados, 'apfd.apfd_autor2_com_fianca');
     })->name('apfd.autor2.com.fianca');
 
-    Route::get('/apfd-autor2-sem-fianca/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('apfd.apfd_autor2_sem_fianca', compact('dadosArray'));
+    Route::get('/apfd-autor2-sem-fianca/{dados?}', function ($dados = null) use ($processarDocumento) {
+        return $processarDocumento($dados, 'apfd.apfd_autor2_sem_fianca');
     })->name('apfd.autor2.sem.fianca');
 
-    Route::get('/apfd-autor3-com-fianca/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('apfd.apfd_autor3_com_fianca', compact('dadosArray'));
+    Route::get('/apfd-autor3-com-fianca/{dados?}', function ($dados = null) use ($processarDocumento) {
+        return $processarDocumento($dados, 'apfd.apfd_autor3_com_fianca');
     })->name('apfd.autor3.com.fianca');
 
-    Route::get('/apfd-autor3-sem-fianca/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('apfd.apfd_autor3_sem_fianca', compact('dadosArray'));
+    Route::get('/apfd-autor3-sem-fianca/{dados?}', function ($dados = null) use ($processarDocumento) {
+        return $processarDocumento($dados, 'apfd.apfd_autor3_sem_fianca');
     })->name('apfd.autor3.sem.fianca');
 
 });

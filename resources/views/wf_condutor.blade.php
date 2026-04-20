@@ -206,6 +206,6 @@
         "LAUDO TRAUMATOLOGICO IML": "{{ route('termo.traumatologico.iml', ['dados' => '--DADOS--']) }}",
 
         // DEFINIAR AS ROTAS DE IMPRESSAO ( MANDADO DE PRISAO ) AQUI ABAIXO
-        'OFICIOS MANDADO DE PRISAO': "{{ route('numoficio.gerar', ['tipo' => 'mpoficios']) }}"
+        'OFICIOS MANDADO DE PRISAO': "{{ route('numoficio.mp', ['dados' => '--DADOS--']) }}"
     };
 </script>

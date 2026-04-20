@@ -603,6 +603,7 @@ $(document).ready(function () {
             "TERMO DE RENUNCIA E DESISTENCIA DE REPRESENTACAO",
             "TERMO DE REPRESENTACAO",
             "TERMO DE COMPROMISSO",
+            "LAUDO TRAUMATOLOGICO",
             "LAUDO TRAUMATOLOGICO IML",
             "CERTIDAO DE ASSINATURA INDIVIDUAL",
             "PERICIA EM LOCAL DE CRIME"
@@ -795,46 +796,10 @@ $(document).ready(function () {
             };
         }
 
-        console.log('📦 Dados para impressão:', dados);
+        console.log('📦 Dados originais para o DocumentoService:', dados);
 
-        try {
-            const dadosCodificados = btoa(unescape(encodeURIComponent(JSON.stringify(dados))));
-            console.log('📏 Tamanho dos dados codificados:', dadosCodificados.length, 'caracteres');
-
-            if (dadosCodificados.length > 2000) {
-                console.warn('⚠️ Dados muito grandes, tentando compactar mais...');
-
-                // ✅ COMPACTAÇÃO ESTRATÉGICA - Remove campos menos críticos
-                const dadosCompactados = { ...dados };
-
-                // Remove campos opcionais dos arrays de envolvidos que não são autores
-                ['vitimas', 'testemunhas'].forEach(tipo => {
-                    if (Array.isArray(dadosCompactados[tipo])) {
-                        dadosCompactados[tipo] = dadosCompactados[tipo].map(pessoa => {
-                            // Mantém apenas nome, rg e cpf para não-autores
-                            return {
-                                nome: pessoa.nome || '',
-                                rg: pessoa.rg || '',
-                                cpf: pessoa.cpf || ''
-                            };
-                        });
-                    }
-                });
-
-
-                const dadosFinais = btoa(unescape(encodeURIComponent(JSON.stringify(dadosCompactados))));
-                console.log('📏 Tamanho após compactação:', dadosFinais.length, 'caracteres');
-
-                const url = rotasImpressaoCondutor[documentoSelecionado].replace('--DADOS--', dadosFinais);
-                window.open(url, "_blank");
-            } else {
-                const url = rotasImpressaoCondutor[documentoSelecionado].replace('--DADOS--', dadosCodificados);
-                window.open(url, "_blank");
-            }
-        } catch (error) {
-            console.error('❌ Erro ao codificar dados:', error);
-            mostrarErro('Erro ao preparar dados para impressão. Tente novamente.');
-        }
+        // ✅ USANDO O NOVO SERVIÇO CENTRALIZADO (EVITA URLs LONGAS EM TODO O SISTEMA)
+        DocumentoService.gerar(rotasImpressaoCondutor[documentoSelecionado], dados);
     });
 
     // === AUTOCOMPLETE PARA DOCUMENTOS ===
@@ -848,6 +813,7 @@ $(document).ready(function () {
             "TERMO DE RENUNCIA E DESISTENCIA DE REPRESENTACAO",
             "TERMO DE REPRESENTACAO",
             "TERMO DE COMPROMISSO",
+            "LAUDO TRAUMATOLOGICO",
             "LAUDO TRAUMATOLOGICO IML",
             "CERTIDAO DE ASSINATURA INDIVIDUAL",
             "CERTIDAO DE ASSINATURA APFD",

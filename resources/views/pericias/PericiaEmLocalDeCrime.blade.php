@@ -6,7 +6,6 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Ofício de Perícia em Local de Crime - Editor Profissional</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="{{ asset('css/formularios.css') }}" rel="stylesheet">
 </head>
@@ -19,7 +18,7 @@
             </h1>
         </div>
 
-        <!-- CABEÇALHO DO DOCUMENTO -->
+                <!-- CABEÇALHO DO DOCUMENTO -->
         <div class="document-container">
             <div class="document-header">
                 <div class="header-content">
@@ -39,132 +38,73 @@
             </div>
         </div>
 
-        <!-- TOOLBAR DE FERRAMENTAS -->
-        <div class="toolbar-container">
-            <div class="toolbar-main">
-                <div class="toolbar-left" style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-                    <div id="toolbar">
-                        <span class="ql-formats">
-                            <button class="ql-bold" title="Negrito (Ctrl+B)"></button>
-                            <button class="ql-italic" title="Itálico (Ctrl+I)"></button>
-                            <button class="ql-underline" title="Sublinhado (Ctrl+U)"></button>
-                            <button class="ql-strike" title="Tachado"></button>
-                        </span>
-                        <span class="ql-formats">
-                            <select class="ql-color" title="Cor do texto"></select>
-                            <select class="ql-background" title="Cor de fundo"></select>
-                        </span>
-                        <span class="ql-formats">
-                            <button class="ql-list" value="ordered" title="Lista ordenada"></button>
-                            <button class="ql-list" value="bullet" title="Lista com marcadores"></button>
-                            <button class="ql-indent" value="-1" title="Diminuir recuo"></button>
-                            <button class="ql-indent" value="+1" title="Aumentar recuo"></button>
-                        </span>
-                        <span class="ql-formats">
-                            <select class="ql-align" title="Alinhamento"></select>
-                        </span>
-                        <span class="ql-formats">
-                            <button class="ql-link" title="Inserir link"></button>
-                            <button class="ql-image" title="Inserir imagem"></button>
-                        </span>
-                        <!-- BOTÕES PERSONALIZADOS -->
-                        <span class="ql-formats">
-                            <button class="ql-page-break" title="Quebra de Página (Ctrl+Enter)">
-                                <i class="fas fa-file-alt"></i>
-                            </button>
-                            <button class="ql-text-case" title="Alternar Maiúsculas/Minúsculas (Shift+F3)">
-                                <i class="fas fa-text-height"></i>
-                            </button>
-                        </span>
-                        <span class="ql-formats">
-                            <button class="ql-clean" title="Limpar formatação"></button>
-                        </span>
-                    </div>
-                </div>
-
-                <div class="toolbar-right">
-                    <button class="btn-custom">
-                        <i class="fas fa-file-pdf"></i>
-                        Gerar PDF
-                    </button>
-                </div>
-            </div>
-        </div>
-
         <!-- ÁREA DO EDITOR -->
+
         <div class="editor-area">
             <div id="editor" class="preservar-espacamento">
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px; text-align: right;">
-                    {{ !empty($dadosArray['cidade']) ? $dadosArray['cidade'] : 'NÃO INFORMADO' }}, {{ !empty($dadosArray['data_comp']) ? $dadosArray['data_comp'] : 'NÃO INFORMADO' }}
+                <p style="text-align: right;">
+                    {{ $dadosArray['cidade'] ?? 'NÃO INFORMADO' }}, 
+                    {{ $dadosArray['data_comp'] ?? ($dadosArray['data_ext'] ?? 'NÃO INFORMADO') }}
                 </p>
 
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px; text-align: left;">
-                    <b>Ofício nº</b> {{ $numeroOficio ?? '____' }}
-                </p>
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px; text-align: left;">
-                    <b>BOE:</b> {{ !empty($dadosArray['boe']) ? $dadosArray['boe'] : '____' }}
-                </p>
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px; text-align: left;">
-                    <b>SEI nº.:</b> {{ !empty($dadosArray['sei']) ? $dadosArray['sei'] : '____' }}
+                <p><br /></p>
+
+                <p>
+                    <strong>Ofício nº {{ $numeroOficio ?? '____' }}</strong><br/>
+                    <strong>BOE:</strong> {{ $dadosArray['boe'] ?? '____' }}<br/>
+                    <strong>SEI nº.:</strong> {{ $dadosArray['sei'] ?? '____' }}
                 </p>
 
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px;">&nbsp;</p>
+                <p><br /></p>
 
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px; text-align: left;">
-                    <b>ILMO. SR. GESTOR<br/>UNIDADE REGIONAL DE POLÍCIA CIENTÍFICA DO SERTÃO DO PAJEÚ – URPOC<br/>AFOGADOS DA INGAZEIRA (SDS - GGPOC - GURPOCSP)</b>
+                <p>
+                    <strong>ILMO. SR. GESTOR<br/>UNIDADE REGIONAL DE POLÍCIA CIENTÍFICA DO SERTÃO DO PAJEÚ – URPOC<br/>AFOGADOS DA INGAZEIRA (SDS - GGPOC - GURPOCSP)</strong>
                 </p>
 
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px;">&nbsp;</p>
+                <p><br /></p>
 
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px; text-align: justify;">
-                    Senhor(a) Gestor,
-                </p>
+                <p>Senhor(a) Gestor,</p>
+
+                <p><br /></p>
 
                 @if(!empty($dadosArray['lista_vitimas']) && count($dadosArray['lista_vitimas']) > 1)
-                    {{-- LAYOUT PARA MÚLTIPLAS VÍTIMAS (LISTA) --}}
-                    <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px; text-align: justify;">
-                        Sirvo-me do presente para solicitar os bons préstimos de V.S.ª no sentido de proceder a <b>PERÍCIA EM LOCAL DE CRIME</b>, figurando como vítimas as pessoas abaixo relacionadas:
+                    <p style="text-align: justify; text-indent: 50px;">
+                        Sirvo-me do presente para solicitar os bons préstimos de V.S.ª no sentido de proceder a <strong>PERÍCIA EM LOCAL DE CRIME</strong>, figurando como vítimas as pessoas abaixo relacionadas:
                     </p>
 
-                    <ol style="margin: 10px 0 10px 20px; padding-left: 20px;">
+                    <ol>
                         @foreach($dadosArray['lista_vitimas'] as $vitima)
-                            <li style="line-height: 1.6; text-align: justify; margin-bottom: 5px; padding-left: 5px;">
-                                “<b>{{ !empty($vitima['nome']) ? $vitima['nome'] : '[NOME]' }}</b>”, NASCIMENTO: “<b>{{ !empty($vitima['nascimento']) ? $vitima['nascimento'] : '[NASCIMENTO]' }}</b>”, IDADE: “<b>{{ !empty($vitima['idade']) ? $vitima['idade'] : '[IDADE]' }}</b>” ANOS, RG: “<b>{{ !empty($vitima['rg']) ? $vitima['rg'] : '[RG]' }}</b>”, CPF: “<b>{{ !empty($vitima['cpf']) ? $vitima['cpf'] : '[CPF]' }}</b>”, MÃE: “<b>{{ !empty($vitima['mae']) ? $vitima['mae'] : '[FILIAÇÃO]' }}</b>”, PAI: “<b>{{ !empty($vitima['pai']) ? $vitima['pai'] : '[FILIAÇÃO]' }}</b>”, END. RESIDENCIAL: “<b>{{ !empty($vitima['endereco']) ? $vitima['endereco'] : '[ENDEREÇO]' }}</b>”;
+                            <li style="text-align: justify; margin-bottom: 5px;">
+                                <strong>{{ $vitima['nome'] ?? '[NOME]' }}</strong>, NASCIMENTO: <strong>{{ $vitima['nascimento'] ?? '[NASCIMENTO]' }}</strong>, IDADE: <strong>{{ $vitima['idade'] ?? '[IDADE]' }}</strong> ANOS, RG: <strong>{{ $vitima['rg'] ?? '[RG]' }}</strong>, CPF: <strong>{{ $vitima['cpf'] ?? '[CPF]' }}</strong>, MÃE: <strong>{{ $vitima['mae'] ?? '[FILIAÇÃO]' }}</strong>, PAI: <strong>{{ $vitima['pai'] ?? '[FILIAÇÃO]' }}</strong>, END. RESIDENCIAL: <strong>{{ $vitima['endereco'] ?? '[ENDEREÇO]' }}</strong>;
                             </li>
                         @endforeach
                     </ol>
 
-                    <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px; text-align: justify;">
-                        Fato ocorrido n(o)a <b>{{ !empty($dadosArray['local_fato']) ? $dadosArray['local_fato'] : '[DESCREVER LOCAL DO FATO]' }}</b>, no dia de <b>{{ !empty($dadosArray['data_fato']) ? $dadosArray['data_fato'] : '[DATA_FATO]' }}</b>.
+                    <p style="text-align: justify; text-indent: 50px;">
+                        Fato ocorrido n(o)a <strong>{{ $dadosArray['local_fato'] ?? '[DESCREVER LOCAL DO FATO]' }}</strong>, no dia de <strong>{{ $dadosArray['data_fato'] ?? '[DATA_FATO]' }}</strong>.
                     </p>
                 @else
-                    {{-- LAYOUT PARA VÍTIMA ÚNICA (PADRÃO) --}}
-                    <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px; text-align: justify;">
-                        Sirvo-me do presente para solicitar os bons préstimos de V.S.ª no sentido de proceder a <b>PERÍCIA EM LOCAL DE CRIME</b>, figurando como vítima(s) a(s) pessoa(s) de “<b>{{ !empty($dadosArray['nome']) ? $dadosArray['nome'] : '[NOME]' }}</b>”, NASCIMENTO: “<b>{{ !empty($dadosArray['nascimento']) ? $dadosArray['nascimento'] : '[NASCIMENTO]' }}</b>”, IDADE: “<b>{{ !empty($dadosArray['idade']) ? $dadosArray['idade'] : '[IDADE]' }}</b>” ANOS, RG: “<b>{{ !empty($dadosArray['rg']) ? $dadosArray['rg'] : '[RG]' }}</b>”, CPF: “<b>{{ !empty($dadosArray['cpf']) ? $dadosArray['cpf'] : '[CPF]' }}</b>”, MÃE: “<b>{{ !empty($dadosArray['mae']) ? $dadosArray['mae'] : '[FILIAÇÃO]' }}</b>”, PAI: “<b>{{ !empty($dadosArray['pai']) ? $dadosArray['pai'] : '[FILIAÇÃO]' }}</b>”, END. RESIDENCIAL: “<b>{{ !empty($dadosArray['endereco']) ? $dadosArray['endereco'] : '[ENDEREÇO]' }}</b>”; fato ocorrido n(o)a <b>{{ !empty($dadosArray['local_fato']) ? $dadosArray['local_fato'] : '[DESCREVER LOCAL DO FATO]' }}</b>, no dia de <b>{{ !empty($dadosArray['data_fato']) ? $dadosArray['data_fato'] : '[DATA_FATO]' }}</b>.
+                    <p style="text-align: justify; text-indent: 50px;">
+                        Sirvo-me do presente para solicitar os bons préstimos de V.S.ª no sentido de proceder a <strong>PERÍCIA EM LOCAL DE CRIME</strong>, figurando como vítima(s) a(s) pessoa(s) de <strong>{{ $dadosArray['nome'] ?? '[NOME]' }}</strong>, NASCIMENTO: <strong>{{ $dadosArray['nascimento'] ?? '[NASCIMENTO]' }}</strong>, IDADE: <strong>{{ $dadosArray['idade'] ?? '[IDADE]' }}</strong> ANOS, RG: <strong>{{ $dadosArray['rg'] ?? '[RG]' }}</strong>, CPF: <strong>{{ $dadosArray['cpf'] ?? '[CPF]' }}</strong>, MÃE: <strong>{{ $dadosArray['mae'] ?? '[FILIAÇÃO]' }}</strong>, PAI: <strong>{{ $dadosArray['pai'] ?? '[FILIAÇÃO]' }}</strong>, END. RESIDENCIAL: <strong>{{ $dadosArray['endereco'] ?? '[ENDEREÇO]' }}</strong>; fato ocorrido n(o)a <strong>{{ $dadosArray['local_fato'] ?? '[DESCREVER LOCAL DO FATO]' }}</strong>, no dia de <strong>{{ $dadosArray['data_fato'] ?? '[DATA_FATO]' }}</strong>.
                     </p>
                 @endif
 
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px; text-align: justify;">
-                    Encaminhe-se o laudo à {{ !empty($dadosArray['delegacia']) ? $dadosArray['delegacia'] : 'NÃO INFORMADO' }}.
+                <p style="text-align: justify; text-indent: 50px;">
+                    Encaminhe-se o laudo à {{ $dadosArray['delegacia'] ?? 'NÃO INFORMADO' }}.
                 </p>
 
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px;">&nbsp;</p>
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px;">&nbsp;</p>
+                <p><br /></p>
 
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px; text-align: center;">
-                    Atenciosamente,
-                </p>
+                <p style="text-align: center;">Atenciosamente,</p>
 
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px;">&nbsp;</p>
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px;">&nbsp;</p>
+                <p><br /></p>
 
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px; text-align: center;">
-                    <strong>{{ !empty($dadosArray['delegado']) ? $dadosArray['delegado'] : 'NÃO INFORMADO' }}</strong>
-                </p>
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px; text-align: center;">
+                <p style="text-align: center;">
+                    <strong>{{ $dadosArray['delegado'] ?? 'NÃO INFORMADO' }}</strong><br />
                     Delegado(a) de Polícia
                 </p>
             </div>
+
             <div class="editor-stats">
                 <div class="stat-item">
                     <i class="fas fa-keyboard"></i>
@@ -182,46 +122,24 @@
         </div>
     </div>
 
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.3/tinymce.min.js" referrerpolicy="origin"></script>
+    <script src="{{ asset('js/DocumentoService.js') }}"></script>
 
     <!-- Dados para JavaScript -->
-    @php
-        $dadosImpressao = [
-            'delegacia' => $dadosArray['delegacia'] ?? 'NÃO INFORMADO',
-            'cidade' => $dadosArray['cidade'] ?? 'NÃO INFORMADO',
-            'delegado' => $dadosArray['delegado'] ?? '',
-            'escrivao' => $dadosArray['escrivao'] ?? '',
-            'data_comp' => $dadosArray['data_comp'] ?? 'NÃO INFORMADO',
-            'boe' => $dadosArray['boe'] ?? '',
-            'ip' => $dadosArray['ip'] ?? '',
-            'tombamento' => $dadosArray['tombamento'] ?? '',
-            'sei' => $dadosArray['sei'] ?? '',
-            'local_fato' => $dadosArray['local_fato'] ?? 'NÃO INFORMADO',
-            'data_fato' => $dadosArray['data_fato'] ?? 'NÃO INFORMADO'
-        ];
-    @endphp
-
-    <!-- Elemento oculto para transferir dados para o JS sem erros de linter -->
-    <div id="dados-impressao-json" data-json="{{ json_encode($dadosImpressao) }}" style="display: none;"></div>
-
     <script>
-        // Ler dados do atributo HTML para evitar conflitos de sintaxe Blade/JS
-        var dadosElement = document.getElementById('dados-impressao-json');
-        if (dadosElement) {
-            try {
-                window.dadosParaImpressao = JSON.parse(dadosElement.getAttribute('data-json'));
-            } catch (e) {
-                console.error('Erro ao fazer parse dos dados de impressão:', e);
-                window.dadosParaImpressao = {};
-            }
-        } else {
-            window.dadosParaImpressao = {};
-        }
+        window.dadosParaImpressao = @json($dadosArray);
     </script>
 
     <!-- Script Principal -->
     <script src="{{ asset('js/pages/pericias/PericiaEmLocalDeCrime.js') }}"></script>
 </body>
 </html>
+
+    <!-- Script Principal -->
+    <script src="{{ asset('js/pages/pericias/PericiaEmLocalDeCrime.js') }}"></script>
+</body>
+</html>
+
+

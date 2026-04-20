@@ -14,6 +14,32 @@ use App\Http\Controllers\NumOficioController;
 
 Route::middleware(['auth', 'permission:pecas'])->group(function () {
 
+    // Função auxiliar para processar dados de peças (Cache ou Base64)
+    $processarPeca = function ($dados, $view, $isOficio = false) {
+        $dadosArray = [];
+        if ($dados) {
+            // 1. Verificar se é UUID (Cache)
+            if (strlen($dados) === 36 || strpos($dados, 'session_') === 0) {
+                $key = str_replace('session_', '', $dados);
+                $dadosArray = \Illuminate\Support\Facades\Cache::get('doc_sessao_' . $key, []);
+            } else {
+                // 2. Fallback Base64
+                try {
+                    $dadosArray = json_decode(base64_decode($dados), true);
+                } catch (\Exception $e) {
+                    $dadosArray = [];
+                }
+            }
+        }
+
+        if ($isOficio) {
+            $numeroOficio = app(\App\Services\NumeroOficioService::class)->gerarProximo();
+            return view($view, compact('dadosArray', 'numeroOficio'));
+        }
+
+        return view($view, compact('dadosArray'));
+    };
+
     // 🔽 ROTA DO PDF PEÇAS (POST)
     Route::post('/termo-de-compromisso', [GerarPdfController::class, 'gerarPdfCompromisso'])->name('termo.compromisso.pdf');
     Route::post('/termo-de-restituicao', [GerarPdfRestituicaoController::class, 'gerarPdfRestituicao'])->name('termo.restituicao.pdf');
@@ -27,115 +53,65 @@ Route::middleware(['auth', 'permission:pecas'])->group(function () {
     Route::post('/certidao-assinaturas-compartilhadas', [GerarPdf_AssinaturasCompartilhadas::class, 'gerarPdfAssinaturasCompartilhadas'])->name('certidao.assinaturas.compartilhadas.pdf');
     Route::post('/certidao-assinaturas-individual', [GerarPdf_AssinaturasIndividual::class, 'gerarPdfAssinaturasIndividual'])->name('certidao.assinaturas.individual.pdf');
 
-
     // ✅ ROTA POST PARA GERAR PDF (ROL DE TESTEMUNHAS)
     Route::post('/rol-de-testemunhas-', [App\Http\Controllers\Documentos\PecasController\GerarPdf_RoldeTestemunhas_Controller::class, 'gerarPdfRoldeTestemunhas'])->name('rol.testemunhas.pdf');
-
 
     // =======================================================
     // 🔥 ROTAS PARA DOCUMENTOS COM NÚMERO DE OFÍCIO (GET)
     // =======================================================
 
-    // Rota ESPECÍFICA para Auto de Apreensão
-    Route::get('/auto-apreensao/{dados?}', [NumOficioController::class, 'gerarAutoApreensao'])->name('auto.apreensao');
+    Route::get('/auto-apreensao/{dados?}', function($dados = null) use ($processarPeca) {
+        return $processarPeca($dados, 'pecas.auto_de_apreensao', true);
+    })->name('auto.apreensao');
 
-    // Rota para pegar apenas o número (AJAX)
     Route::get('/numero-oficio/gerar', [NumOficioController::class, 'gerarNumero'])->name('numoficio.apenas.numero');
 
-    // Rotas para Documentos (Agrupadas)
-    Route::prefix('documentos')->group(function () {
-        Route::get('/termo-restituicao/{dados?}', [NumOficioController::class, 'gerarTermoRestituicao'])->name('termo.restituicao');
-        Route::get('/termo-renuncia-representacao/{dados?}', [NumOficioController::class, 'gerarTermoRenuncia'])->name('termo.renuncia.representacao');
-        Route::get('/termo-representacao/{dados?}', [NumOficioController::class, 'gerarTermoRepresentacao'])->name('termo.representacao');
-        Route::get('/termo-compromisso-juizo/{dados?}', [NumOficioController::class, 'gerarTermoCompromisso'])->name('termo.compromisso.juizo');
+    Route::prefix('documentos')->group(function () use ($processarPeca) {
+        Route::get('/termo-restituicao/{dados?}', function($dados = null) use ($processarPeca) {
+            return $processarPeca($dados, 'pecas.termo_de_restituicao', true);
+        })->name('termo.restituicao');
+
+        Route::get('/termo-renuncia-representacao/{dados?}', function($dados = null) use ($processarPeca) {
+            return $processarPeca($dados, 'pecas.termo_de_renuncia_representacao', true);
+        })->name('termo.renuncia.representacao');
+
+        Route::get('/termo-representacao/{dados?}', function($dados = null) use ($processarPeca) {
+            return $processarPeca($dados, 'pecas.termo_de_representacao', true);
+        })->name('termo.representacao');
+
+        Route::get('/termo-compromisso-juizo/{dados?}', function($dados = null) use ($processarPeca) {
+            return $processarPeca($dados, 'pecas.termo_de_compromisso_juizo', true);
+        })->name('termo.compromisso.juizo');
     });
 
-    // Rota universal para documentos
-    Route::get('/documento/{tipo}', [NumOficioController::class, 'gerarDocumento'])->name('numoficio.gerar');
-
-    // 🔽 ROTA ESPECÍFICA PARA LIBERAÇÃO DO INFRATOR (SEM NUMERO OFÍCIO)
-    Route::get('/liberacao-infrator/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('pecas.Termo_Liberacao_Infrator', compact('dadosArray'));
+    Route::get('/liberacao-infrator/{dados?}', function ($dados = null) use ($processarPeca) {
+        return $processarPeca($dados, 'pecas.Termo_Liberacao_Infrator');
     })->name('liberacao.infrator');
 
-    // ✅ ROTA GET PARA DESPACHO DE CONCLUSÃO (EDITOR)
-    Route::get('/despacho-conclusao/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('pecas.despachoconclusao', compact('dadosArray'));
+    Route::get('/despacho-conclusao/{dados?}', function ($dados = null) use ($processarPeca) {
+        return $processarPeca($dados, 'pecas.despachoconclusao');
     })->where('dados', '.*')->name('despacho.conclusao');
 
-    // ✅ ROTA GET PARA CERTIDÃO DE ASSINATURAS INDIVIDUAL
-    Route::get('/certidao-assinaturas-individual/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('certidaoassinaturas.Certidao_Assinaturas_Individual', compact('dadosArray'));
+    Route::get('/certidao-assinaturas-individual/{dados?}', function ($dados = null) use ($processarPeca) {
+        return $processarPeca($dados, 'certidaoassinaturas.Certidao_Assinaturas_Individual');
     })->name('certidao.assinaturas.individual');
 
-    // ✅ ROTA GET PARA CERTIDÃO DE ASSINATURAS APFD
-    Route::get('/certidao-assinaturas-apfd/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-        if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
-            }
-        }
-        return view('certidaoassinaturas.Certidao_Assinaturas_Apfd', compact('dadosArray'));
+    Route::get('/certidao-assinaturas-apfd/{dados?}', function ($dados = null) use ($processarPeca) {
+        return $processarPeca($dados, 'certidaoassinaturas.Certidao_Assinaturas_Apfd');
     })->name('certidao.assinaturas.apfd');
 
-    // ✅ ROTA GET PARA ROL DE TESTEMUNHAS
-    Route::get('/rol-de-testemunhas/{dados?}', function ($dados = null) {
-        $dadosArray = [];
-
-        if ($dados) {
-            // Se os dados começarem com 'session_', buscamos na sessão (evita URI Too Long e Resubmission Error)
-            if (strpos($dados, 'session_') === 0) {
-                $key = str_replace('session_', '', $dados);
-                $dadosArray = session()->get('rol_data_' . $key, []);
-            } else {
-                try {
-                    $dadosArray = json_decode(base64_decode($dados), true);
-                } catch (\Exception $e) {
-                    $dadosArray = [];
-                }
-            }
-        }
-
-        return view('pecas.roldetestemunhas', compact('dadosArray'));
+    Route::get('/rol-de-testemunhas/{dados?}', function ($dados = null) use ($processarPeca) {
+        return $processarPeca($dados, 'pecas.roldetestemunhas');
     })->name('rol.testemunhas');
 
-    // ✅ ROTA POST PARA ROL DE TESTEMUNHAS (PRG Pattern para evitar erro de reenvio)
+    // ✅ ROTA POST PARA ROL DE TESTEMUNHAS (PRG Pattern)
     Route::post('/rol-de-testemunhas-gerar', function (\Illuminate\Http\Request $request) {
-        $dadosRaw = $request->input('dados', []);
-        $dadosArray = is_string($dadosRaw) ? json_decode($dadosRaw, true) : $dadosRaw;
-
-        $key = substr(md5(json_encode($dadosArray)), 0, 10);
-        session()->put('rol_data_' . $key, $dadosArray);
-        session()->save();
-
-        return redirect()->to('/rol-de-testemunhas/session_' . $key);
+        $dadosArray = $request->input('dados', []);
+        $dadosArray = is_string($dadosArray) ? json_decode($dadosArray, true) : $dadosArray;
+        $key = 'rol_' . substr(md5(json_encode($dadosArray)), 0, 10);
+        \Illuminate\Support\Facades\Cache::put($key, $dadosArray, 3600);
+        return redirect()->to('/rol-de-testemunhas/' . $key);
     })->name('rol.testemunhas.view.post');
 
 });
+

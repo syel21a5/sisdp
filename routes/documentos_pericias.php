@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Documentos\Pericias\GerarTraumatologicoIMLController;
+use App\Http\Controllers\Documentos\Pericias\GerarTraumatologicoHospitalarController;
 use App\Http\Controllers\Documentos\Pericias\GerarPdf_PericiaEmVeiculo_Controller;
 use App\Http\Controllers\Documentos\Pericias\GerarPdf_PericiaEmLocalDeCrime_Controller;
 use App\Http\Controllers\NumOficioController;
@@ -10,9 +11,11 @@ Route::middleware(['auth', 'permission:pericias'])->group(function () {
 
     // ✅ ROTA GET PARA VISUALIZAR O FORMULÁRIO
     Route::get('/termo-traumatologico-iml/{dados?}', [NumOficioController::class, 'gerarTermoTraumatologicoIML'])->name('termo.traumatologico.iml');
+    Route::get('/pericia-traumatologico/{dados?}', [NumOficioController::class, 'gerarTermoTraumatologico'])->name('pericia.traumatologico');
 
     // ✅ ROTA POST PARA GERAR O PDF
     Route::post('/termo-traumatologico-iml', [GerarTraumatologicoIMLController::class, 'gerarPdfTraumatologicoIML'])->name('termo.traumatologico.iml.pdf');
+    Route::post('/pericia-traumatologico', [GerarTraumatologicoHospitalarController::class, 'gerarPdf'])->name('pericia.traumatologico.pdf');
 
     // ==========================================
     // ✅ PERÍCIA EM VEÍCULO (NOVO MÓDULO)

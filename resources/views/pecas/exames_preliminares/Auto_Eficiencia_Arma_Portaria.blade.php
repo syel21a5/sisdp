@@ -4,14 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Portaria - Eficiência de Arma de Fogo - Editor Profissional</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <title>Portaria - Eficiência de Arma de Fogo - Editor Profissional</title>    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="{{ asset('css/formularios.css') }}" rel="stylesheet">
 </head>
 <body class="body-declaracao">
-    <!-- MENSAGENS DE ERRO -->
     @if ($errors->any())
         <div class="alert alert-danger alert-dismissible fade show" role="alert" style="margin: 20px;">
             <ul style="margin-bottom: 0;">
@@ -31,7 +28,7 @@
             </h1>
         </div>
 
-        <!-- CABEÇALHO DO DOCUMENTO -->
+                <!-- CABEÇALHO DO DOCUMENTO -->
         <div class="document-container">
             <div class="document-header">
                 <div class="header-content">
@@ -51,137 +48,64 @@
             </div>
         </div>
 
-        <!-- TOOLBAR DE FERRAMENTAS -->
-        <div class="toolbar-container">
-            <div class="toolbar-main">
-                <div class="toolbar-left" style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-                    <div id="toolbar">
-                        <span class="ql-formats">
-                            <button class="ql-bold" title="Negrito (Ctrl+B)"></button>
-                            <button class="ql-italic" title="Itálico (Ctrl+I)"></button>
-                            <button class="ql-underline" title="Sublinhado (Ctrl+U)"></button>
-                            <button class="ql-strike" title="Tachado"></button>
-                        </span>
-                        <span class="ql-formats">
-                            <select class="ql-color" title="Cor do texto"></select>
-                            <select class="ql-background" title="Cor de fundo"></select>
-                        </span>
-                        <span class="ql-formats">
-                            <button class="ql-list" value="ordered" title="Lista ordenada"></button>
-                            <button class="ql-list" value="bullet" title="Lista com marcadores"></button>
-                            <button class="ql-indent" value="-1" title="Diminuir recuo"></button>
-                            <button class="ql-indent" value="+1" title="Aumentar recuo"></button>
-                        </span>
-                        <span class="ql-formats">
-                            <select class="ql-align" title="Alinhamento"></select>
-                        </span>
-                        <span class="ql-formats">
-                            <button class="ql-link" title="Inserir link"></button>
-                            <button class="ql-image" title="Inserir imagem"></button>
-                        </span>
-                        <!-- BOTÕES PERSONALIZADOS -->
-                        <span class="ql-formats">
-                            <button class="ql-page-break" title="Quebra de Página (Ctrl+Enter)">
-                                <i class="fas fa-file-alt"></i>
-                            </button>
-                            <button class="ql-text-case" title="Alternar Maiúsculas/Minúsculas (Shift+F3)">
-                                <i class="fas fa-text-height"></i>
-                            </button>
-                        </span>
-                        <span class="ql-formats">
-                            <button class="ql-clean" title="Limpar formatação"></button>
-                        </span>
-                    </div>
-                </div>
-
-                <div class="toolbar-right">
-                    <button class="btn-custom">
-                        <i class="fas fa-file-pdf"></i>
-                        Gerar PDF
-                    </button>
-                </div>
-            </div>
-        </div>
-
         <!-- ÁREA DO EDITOR -->
+
         <div class="editor-area">
             <div id="editor" class="preservar-espacamento">
                 <!-- PORTARIA -->
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px; text-align: center;">
+                <p style="text-align: center; line-height: 1.6; margin: 0.2em 0; padding: 0;">
                     <strong style="font-size: 20pt;">P O R T A R I A</strong>
                 </p>
 
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px;">&nbsp;</p>
+                <p><br></p>
 
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px; text-align: justify;">
-                    O(A) Bel(a). <strong>{{ !empty($dadosArray['delegado']) ? $dadosArray['delegado'] : 'NÃO INFORMADO' }}</strong>, Delegado(a) de Polícia da <strong>{{ !empty($dadosArray['delegacia']) ? $dadosArray['delegacia'] : 'NÃO INFORMADO' }}</strong>, no uso de suas atribuições legais e, havendo necessidade de se proceder a EXAME DE CONSTATAÇÃO PRELIMINAR, nomeia como Peritos Criminais ad hoc: <strong>{{ !empty($dadosArray['policial_1']) ? $dadosArray['policial_1'] : 'NÃO INFORMADO' }}</strong> e <strong>{{ !empty($dadosArray['policial_2']) ? $dadosArray['policial_2'] : 'NÃO INFORMADO' }}</strong>, ambos policiais civis, os quais, aceitando o encargo, deverão prestar o compromisso legal de bem e fielmente desempenharem a missão.
+                <p style="text-align: justify;">
+                    O(A) Bel(a). <strong>{{ $dadosArray['delegado'] ?? 'NÃO INFORMADO' }}</strong>, Delegado(a) de Polícia da <strong>{{ $dadosArray['delegacia'] ?? 'NÃO INFORMADO' }}</strong>, no uso de suas atribuições legais e, havendo necessidade de se proceder a EXAME DE CONSTATAÇÃO PRELIMINAR, nomeia como Peritos Criminais ad hoc: <strong>{{ $dadosArray['policial_1'] ?? 'NÃO INFORMADO' }}</strong> e <strong>{{ $dadosArray['policial_2'] ?? 'NÃO INFORMADO' }}</strong>, ambos policiais civis, os quais, aceitando o encargo, deverão prestar o compromisso legal de bem e fielmente desempenharem a missão.
                 </p>
 
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px;">&nbsp;</p>
+                <p style="text-align: center;">C u m p r a – s e</p>
 
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px; text-align: center;">
-                    C u m p r a – s e
+                <p style="text-align: center;">
+                    {{ $dadosArray['cidade'] ?? 'Afogados da Ingazeira' }}, <strong>{{ $dadosArray['data_comp'] ?? ($dadosArray['data_ext'] ?? 'DATA') }}</strong>.
                 </p>
 
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px;">&nbsp;</p>
+                <p><br></p>
 
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px; text-align: center;">
-                    {{ !empty($dadosArray['cidade']) ? $dadosArray['cidade'] : 'Afogados da Ingazeira' }}, <strong>{{ !empty($dadosArray['data_comp']) ? $dadosArray['data_comp'] : 'DATA DO FATO' }}</strong>.
-                </p>
-
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px;">&nbsp;</p>
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px;">&nbsp;</p>
-
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px; text-align: center;">
-                    <strong>{{ !empty($dadosArray['delegado']) ? $dadosArray['delegado'] : 'NÃO INFORMADO' }}</strong>
-                </p>
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px; text-align: center;">
+                <p style="text-align: center;">
+                    <strong>{{ $dadosArray['delegado'] ?? 'NÃO INFORMADO' }}</strong><br>
                     Delegado(a) de Polícia
                 </p>
 
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px;">&nbsp;</p>
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px;">&nbsp;</p>
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px;">&nbsp;</p>
+                <p><br></p>
 
                 <!-- TERMO DE COMPROMISSO -->
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px; text-align: center;">
+                <p style="text-align: center; line-height: 1.6; margin: 0.2em 0; padding: 0;">
                     <strong style="font-size: 20pt;">TERMO DE COMPROMISSO</strong>
                 </p>
 
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px;">&nbsp;</p>
+                <p><br></p>
 
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px; text-align: justify;">
-                    Aos <strong>{{ !empty($dadosArray['data_ext']) ? $dadosArray['data_ext'] : 'DATA POR EXTENSO' }}</strong>, nesta cidade de {{ !empty($dadosArray['cidade']) ? $dadosArray['cidade'] : 'Afogados da Ingazeira' }}, e no Cartório desta Delegacia de Polícia, onde presente se encontrava o(a) Bel(a). <strong>{{ !empty($dadosArray['delegado']) ? $dadosArray['delegado'] : 'NÃO INFORMADO' }}</strong>, Delegado(a) de Polícia, comigo Escrivão de Polícia ao final assinado, aí compareceram os Peritos Criminais ad hoc nomeados: <strong>{{ !empty($dadosArray['policial_1']) ? $dadosArray['policial_1'] : 'NÃO INFORMADO' }}</strong> e <strong>{{ !empty($dadosArray['policial_2']) ? $dadosArray['policial_2'] : 'NÃO INFORMADO' }}</strong>, a quem a Autoridade deferiu o compromisso legal de bem e fielmente desempenharem o encargo, descrevendo com a verdade e sem dolo ou malícia o que encontrarem e observarem. E como aceitassem o encargo, mandou a Autoridade lavrar este Termo, que lido e achado conforme, assina com os compromissados e comigo, Escrivão de Polícia que o digitei.
+                <p style="text-align: justify;">
+                    Aos <strong>{{ $dadosArray['data_ext'] ?? 'DATA POR EXTENSO' }}</strong>, nesta cidade de {{ $dadosArray['cidade'] ?? 'Afogados da Ingazeira' }}, e no Cartório desta Delegacia de Polícia, onde presente se encontrava o(a) Bel(a). <strong>{{ $dadosArray['delegado'] ?? 'NÃO INFORMADO' }}</strong>, Delegado(a) de Polícia, comigo Escrivão de Polícia ao final assinado, aí compareceram os Peritos Criminais ad hoc nomeados: <strong>{{ $dadosArray['policial_1'] ?? 'NÃO INFORMADO' }}</strong> e <strong>{{ $dadosArray['policial_2'] ?? 'NÃO INFORMADO' }}</strong>, a quem a Autoridade deferiu o compromisso legal de bem e fielmente desempenharem the encargo, descrevendo com a verdade e sem dolo ou malícia o que encontrarem e observarem. E como aceitassem o encargo, mandou a Autoridade lavrar este Termo, que lido e achado conforme, assina com os compromissados e comigo, Escrivão de Polícia que o digitei.
                 </p>
 
-                <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px;">&nbsp;</p>
+                <p><br></p>
 
-                <!-- Área de assinaturas -->
                 <div class="assinatura-area">
-                    <p style="border-top: 1px solid rgb(0, 0, 0); line-height: 1.4; margin: 0.1em 0px; padding-top: 5px; margin-top: 40px; text-align: center;">
-                        <strong>{{ !empty($dadosArray['delegado']) ? $dadosArray['delegado'] : 'NÃO INFORMADO' }}</strong><br>
-                        Autoridade Policial
-                    </p>
-                    <p style="line-height: 1.4; margin: 0.1em 0; padding: 0;">&nbsp;</p>
-                    
-                    <p style="border-top: 1px solid rgb(0, 0, 0); line-height: 1.4; margin: 0.1em 0px; padding-top: 5px; margin-top: 40px; text-align: center;">
-                        <strong>{{ !empty($dadosArray['escrivao']) ? $dadosArray['escrivao'] : 'NÃO INFORMADO' }}</strong><br>
-                        Escrivão de Polícia
-                    </p>
-                    <p style="line-height: 1.4; margin: 0.1em 0; padding: 0;">&nbsp;</p>
-
-                    <p style="border-top: 1px solid rgb(0, 0, 0); line-height: 1.4; margin: 0.1em 0px; padding-top: 5px; margin-top: 40px; text-align: center;">
-                        <strong>{{ !empty($dadosArray['policial_1']) ? $dadosArray['policial_1'] : 'NÃO INFORMADO' }}</strong><br>
-                        Perito
-                    </p>
-                    <p style="line-height: 1.4; margin: 0.1em 0; padding: 0;">&nbsp;</p>
-
-                    <p style="border-top: 1px solid rgb(0, 0, 0); line-height: 1.4; margin: 0.1em 0px; padding-top: 5px; margin-top: 40px; text-align: center;">
-                        <strong>{{ !empty($dadosArray['policial_2']) ? $dadosArray['policial_2'] : 'NÃO INFORMADO' }}</strong><br>
-                        Perito
-                    </p>
+                    <p style="border-top: 1px solid #000; padding-top: 5px;"><strong>{{ $dadosArray['delegado'] ?? 'NÃO INFORMADO' }}</strong></p>
+                    <p>Autoridade Policial</p>
+                    <p><br></p>
+                    <p>ESCRIVÃO DE POLÍCIA</p>
+                    <p style="border-top: 1px solid #000; padding-top: 5px;"><strong>{{ $dadosArray['escrivao'] ?? 'NÃO INFORMADO' }}</strong></p>
+                    <p><br></p>
+                    <p>PERITO</p>
+                    <p style="border-top: 1px solid #000; padding-top: 5px;"><strong>{{ $dadosArray['policial_1'] ?? 'NÃO INFORMADO' }}</strong></p>
+                    <p><br></p>
+                    <p>PERITO</p>
+                    <p style="border-top: 1px solid #000; padding-top: 5px;"><strong>{{ $dadosArray['policial_2'] ?? 'NÃO INFORMADO' }}</strong></p>
                 </div>
             </div>
+
             <div class="editor-stats">
                 <div class="stat-item">
                     <i class="fas fa-keyboard"></i>
@@ -199,33 +123,20 @@
         </div>
     </div>
 
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.3/tinymce.min.js" referrerpolicy="origin"></script>
+    <script src="{{ asset('js/DocumentoService.js') }}"></script>
 
     <!-- Dados para JavaScript -->
-    @php
-        $dadosJson = [
-            'delegacia' => $dadosArray['delegacia'] ?? 'NÃO INFORMADO',
-            'cidade' => $dadosArray['cidade'] ?? 'NÃO INFORMADO',
-            'delegado' => $dadosArray['delegado'] ?? '',
-            'escrivao' => $dadosArray['escrivao'] ?? '',
-            'policial_1' => $dadosArray['policial_1'] ?? 'NÃO INFORMADO',
-            'policial_2' => $dadosArray['policial_2'] ?? 'NÃO INFORMADO',
-            'data_comp' => $dadosArray['data_comp'] ?? 'NÃO INFORMADO',
-            'nome' => $dadosArray['nome'] ?? '',
-            'boe' => $dadosArray['boe'] ?? '',
-            'apreensao' => $dadosArray['apreensao'] ?? '',
-            'data_ext' => $dadosArray['data_ext'] ?? 'NÃO INFORMADO',
-        ];
-    @endphp
-    <input type="hidden" id="dados-impressao-json" value="{{ json_encode($dadosJson) }}">
-
     <script>
-        try {
-            window.dadosParaImpressao = JSON.parse(document.getElementById('dados-impressao-json').value);
-        } catch (e) {
-            console.error('Erro ao processar dados de impressão:', e);
+        window.dadosParaImpressao = @json($dadosArray);
+    </script>
+
+    <!-- JavaScript principal -->
+    <script src="{{ asset('js/pages/pecas/EficienciaArma.js') }}"></script>
+</body>
+</html>, e);
             window.dadosParaImpressao = {};
         }
     </script>
@@ -234,3 +145,4 @@
     <script src="{{ asset('js/pages/pecas/EficienciaArma.js') }}"></script>
 </body>
 </html>
+

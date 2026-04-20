@@ -6,23 +6,19 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Termo - Constatação Indireta - Editor Profissional</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="{{ asset('css/formularios.css') }}" rel="stylesheet">
-    <style>
-        .blue-highlight { background-color: #01ffff; font-weight: bold; }
-    </style>
 </head>
 <body class="body-declaracao">
     <div class="editor-wrapper">
         <div class="editor-header">
             <h1 class="editor-title">
                 <i class="fas fa-file-contract"></i>
-                Editor do TERMO de CONSTATAÇÃO INDIRETA
+                Editor do AUTO do TERMO DE CONSTATAÇÃO INDIRETA
             </h1>
         </div>
 
-        <!-- CABEÇALHO DO DOCUMENTO -->
+                <!-- CABEÇALHO DO DOCUMENTO -->
         <div class="document-container">
             <div class="document-header">
                 <div class="header-content">
@@ -42,102 +38,44 @@
             </div>
         </div>
 
-        <!-- TOOLBAR DE FERRAMENTAS -->
-        <div class="toolbar-container">
-            <div class="toolbar-main">
-                <div class="toolbar-left" style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-                    <div id="toolbar">
-                        <span class="ql-formats">
-                            <button class="ql-bold" title="Negrito (Ctrl+B)"></button>
-                            <button class="ql-italic" title="Itálico (Ctrl+I)"></button>
-                            <button class="ql-underline" title="Sublinhado (Ctrl+U)"></button>
-                            <button class="ql-strike" title="Tachado"></button>
-                        </span>
-                        <span class="ql-formats">
-                            <select class="ql-color" title="Cor do texto"></select>
-                            <select class="ql-background" title="Cor de fundo"></select>
-                        </span>
-                        <span class="ql-formats">
-                            <button class="ql-list" value="ordered" title="Lista ordenada"></button>
-                            <button class="ql-list" value="bullet" title="Lista com marcadores"></button>
-                            <button class="ql-indent" value="-1" title="Diminuir recuo"></button>
-                            <button class="ql-indent" value="+1" title="Aumentar recuo"></button>
-                        </span>
-                        <span class="ql-formats">
-                            <select class="ql-align" title="Alinhamento"></select>
-                        </span>
-                        <span class="ql-formats">
-                            <button class="ql-link" title="Inserir link"></button>
-                            <button class="ql-image" title="Inserir imagem"></button>
-                        </span>
-                        <!-- BOTÕES PERSONALIZADOS -->
-                        <span class="ql-formats">
-                            <button class="ql-page-break" title="Quebra de Página (Ctrl+Enter)">
-                                <i class="fas fa-file-alt"></i>
-                            </button>
-                            <button class="ql-text-case" title="Alternar Maiúsculas/Minúsculas (Shift+F3)">
-                                <i class="fas fa-text-height"></i>
-                            </button>
-                        </span>
-                        <span class="ql-formats">
-                            <button class="ql-clean" title="Limpar formatação"></button>
-                        </span>
-                    </div>
-                </div>
-
-                <div class="toolbar-right">
-                    <button class="btn-custom">
-                        <i class="fas fa-file-pdf"></i>
-                        Gerar PDF
-                    </button>
-                </div>
-            </div>
-        </div>
-
         <!-- ÁREA DO EDITOR -->
+
         <div class="editor-area">
             <div id="editor" class="preservar-espacamento">
-
-                <p style="text-align: center; font-weight: bold; font-size: 14pt;">AUTO DE CONSTATAÇÃO DE DANOS E AVALIAÇÃO INDIRETA DOS OBJETOS</p>
-                <p>&nbsp;</p>
-
-                <p style="text-align: justify;">
-                    Ao(s) <strong>{{ !empty($dadosArray['data_ext']) ? $dadosArray['data_ext'] : 'DATA POR EXTENSO' }}</strong>, nesta cidade de Afogados da Ingazeira, e no Cartório da Delegacia de Polícia, onde presente achava-se o(a) Bel(a). <strong>{{ !empty($dadosArray['delegado']) ? $dadosArray['delegado'] : 'NÃO INFORMADO' }}</strong>, Delegado(a) de Polícia, comigo escrivão ao final assinado, tendo a autoridade policial nomeado como Peritos as pessoas de <strong>{{ !empty($dadosArray['policial_1']) ? $dadosArray['policial_1'] : 'NÃO INFORMADO' }}</strong> e <strong>{{ !empty($dadosArray['policial_2']) ? $dadosArray['policial_2'] : 'NÃO INFORMADO' }}</strong>, ambos policiais civis, deferindo-lhes o compromisso legal, de bem e fielmente, sem dolo nem malícia, desempenharem a missão, determinado os exames necessários a fim de que procedam ao EXAME DE CONSTATAÇÃO DE DANOS E AVALIAÇÃO INDIRETA DOS OBJETOS, referidos nos autos, conforme boletim de ocorrência nº <strong>{{ !empty($dadosArray['boe']) ? $dadosArray['boe'] : '[BOE]' }}</strong>.
+                <p style="text-align: center; line-height: 1.6; margin: 0.2em 0; padding: 0;">
+                    <strong style="font-size: 20pt;">AUTO DE CONSTATAÇÃO INDIRETA</strong>
                 </p>
 
-                <p>&nbsp;</p>
-                <p style="text-align: center; font-weight: bold;">DESCREVER LOCAL E OBJETOS A SER AVALIADO INDIRETAMENTE</p>
-                <p>&nbsp;</p>
+                <p><br></p>
 
                 <p style="text-align: justify;">
-                    Os peritos se dirigiram até o local indicado, onde constataram que EXEMPLO: a mala do referido veículo, constataram que se encontrava danificado: as portas do guarda roupas do quarto do casal se encontrava quebradas e caídas no quarto e o aparelho celular apresentava a tela e a capa com grandes arranhões, estando, porém, o aparelho funcionando normalmente. QUE, o dano foi avaliado no valor aproximado de R$ 150,00 (cento e cinquenta reais).
+                    Ao(s) <strong>{{ $dadosArray['data_ext'] ?? 'NÃO INFORMADO' }}</strong>, nesta cidade de {{ $dadosArray['cidade'] ?? 'Afogados da Ingazeira' }}, e no Cartório da Delegacia de Polícia, onde presente achava-se o(a) Bel(a). <strong>{{ $dadosArray['delegado'] ?? 'NÃO INFORMADO' }}</strong>, Delegado(a) de Polícia, comigo escrivão ao final assinado, <strong>tendo a autoridade policial nomeado como Peritos as pessoas de <strong>{{ $dadosArray['policial_1'] ?? 'NÃO INFORMADO' }}</strong> e <strong>{{ $dadosArray['policial_2'] ?? 'NÃO INFORMADO' }}</strong>, ambos policiais civis</strong>, deferindo-lhes o compromisso legal, de bem e fielmente, sem dolo nem malícia, desempenharem a missão, determinado os exames necessários a fim de que os mesmos possam <span style="background-color: #ffff00;">CONSTATAR INDIRETAMENTE OS DANOS</span>, referidos nos autos, conforme boletim de ocorrência nº <strong>{{ $dadosArray['boe'] ?? 'NÃO INFORMADO' }}</strong>.
                 </p>
-                <p>&nbsp;</p>
 
-                <p style="text-align: justify;">
-                    Nada mais havendo a acrescentar, mandou a Autoridade, encerrar o presente auto, o qual depois de lido e achado conforme, segue devidamente assinado, pela Autoridade, pelos peritos e por mim Escrivão, que o digitei.
+                <p><br></p>
+
+                <p style="text-align: justify; background-color: #ffff00;">
+                    <strong>DESCREVER OS DANOS CONSTATADOS INDIRETAMENTE;</strong>
                 </p>
-                <p>&nbsp;</p>
 
-                 <!-- Assinaturas do Termo (Layout Vertical) -->
-                 <div class="assinatura-area">
-                    <p style="border-top: 1px solid rgb(0, 0, 0); line-height: 1.4; margin: 0.1em 0px; padding-top: 40px; padding: 40px 0px 0px;">
-                        <strong>{{ !empty($dadosArray['delegado']) ? $dadosArray['delegado'] : 'NÃO INFORMADO' }}</strong>
-                    </p>
-                    <p style="line-height: 1.4; margin: 0.1em 0; padding: 0;">AUTORIDADE POLICIAL:</p>
-                    <p style="line-height: 1.4; margin: 0.1em 0; padding: 0;">&nbsp;</p>
-                    <p style="line-height: 1.4; margin: 0.1em 0; padding: 0;">PERITO:</p>
-                    <p style="line-height: 1.4; margin: 0.1em 0; padding: 0;">&nbsp;</p>
-                    <p style="line-height: 1.4; margin: 0.1em 0; padding: 0;">PERITO:</p>
-                    <p style="line-height: 1.4; margin: 0.1em 0; padding: 0;">&nbsp;</p>
-                    <p style="line-height: 1.4; margin: 0.1em 0; padding: 0;">ESCRIVÃO(Ã):</p>
-                    <p style="border-top: 1px solid rgb(0, 0, 0); line-height: 1.4; margin: 0.1em 0px; padding-top: 40px; padding: 40px 0px 0px;">
-                        <strong>{{ !empty($dadosArray['escrivao']) ? $dadosArray['escrivao'] : 'NÃO INFORMADO' }}</strong>
-                    </p>
+                <p><br></p>
+
+                <div class="assinatura-area">
+                    <p style="border-top: 1px solid #000; padding-top: 5px;"><strong>{{ $dadosArray['delegado'] ?? 'NÃO INFORMADO' }}</strong></p>
+                    <p>Autoridade Policial</p>
+                    <p><br></p>
+                    <p>ESCRIVÃO DE POLÍCIA</p>
+                    <p style="border-top: 1px solid #000; padding-top: 5px;"><strong>{{ $dadosArray['escrivao'] ?? 'NÃO INFORMADO' }}</strong></p>
+                    <p><br></p>
+                    <p>PERITO</p>
+                    <p style="border-top: 1px solid #000; padding-top: 5px;"><strong>{{ $dadosArray['policial_1'] ?? 'NÃO INFORMADO' }}</strong></p>
+                    <p><br></p>
+                    <p>PERITO</p>
+                    <p style="border-top: 1px solid #000; padding-top: 5px;"><strong>{{ $dadosArray['policial_2'] ?? 'NÃO INFORMADO' }}</strong></p>
                 </div>
             </div>
 
-             <div class="editor-stats">
+            <div class="editor-stats">
                 <div class="stat-item">
                     <i class="fas fa-keyboard"></i>
                     <span id="char-count">0 caracteres</span>
@@ -154,20 +92,16 @@
         </div>
     </div>
 
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.3/tinymce.min.js" referrerpolicy="origin"></script>
+    <script src="{{ asset('js/DocumentoService.js') }}"></script>
 
     <!-- Dados para JavaScript -->
     <script>
-        // ✅ DEFINIR ROTA E TIPO PARA O JAVASCRIPT
-        // Essa variável sobrescreve a lógica padrão do ExameDanos.js
+        window.dadosParaImpressao = @json($dadosArray);
         window.rotaPdf = "{{ route('constatacao.indireta.termo.pdf') }}";
         window.tipoDocumentoGlobal = 'termo';
-
-        var dadosDelegacia = '{!! isset($dadosArray["delegacia"]) ? addslashes($dadosArray["delegacia"]) : "NÃO INFORMADO" !!}';
-        var dadosCidade = '{!! isset($dadosArray["cidade"]) ? addslashes($dadosArray["cidade"]) : "NÃO INFORMADO" !!}';
-        var dadosDelegado = '{!! isset($dadosArray["delegado"]) ? addslashes($dadosArray["delegado"]) : "NÃO INFORMADO" !!}';
         var dadosEscrivao = '{!! isset($dadosArray["escrivao"]) ? addslashes($dadosArray["escrivao"]) : "NÃO INFORMADO" !!}';
         var dadosPolicial1 = '{!! isset($dadosArray["policial_1"]) ? addslashes($dadosArray["policial_1"]) : "NÃO INFORMADO" !!}';
         var dadosPolicial2 = '{!! isset($dadosArray["policial_2"]) ? addslashes($dadosArray["policial_2"]) : "NÃO INFORMADO" !!}';
@@ -198,3 +132,5 @@
     <script src="{{ asset('js/pages/pecas/ExameDanos.js') }}"></script>
 </body>
 </html>
+
+

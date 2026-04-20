@@ -738,6 +738,7 @@ $(document).ready(function () {
                 "TERMO DE REPRESENTACAO",
                 "TERMO DE COMPROMISSO",
                 "TERMO DE LIBERACAO DE MENOR - INFRATOR",
+                "LAUDO TRAUMATOLOGICO",
                 "LAUDO TRAUMATOLOGICO IML",
                 "CERTIDAO DE ASSINATURA INDIVIDUAL",
                 "AUTO CIRCUNSTACIADO - AUTOR 1",
@@ -961,9 +962,8 @@ $(document).ready(function () {
                 };
             }
 
-            const dadosCodificados = btoa(unescape(encodeURIComponent(JSON.stringify(dados))));
-            const url = rotasImpressaoAutor1[documentoSelecionado].replace('--DADOS--', dadosCodificados);
-            window.open(url, "_blank");
+            // ✅ USANDO O NOVO SERVIÇO CENTRALIZADO (EVITA URLs LONGAS)
+            DocumentoService.gerar(rotasImpressaoAutor1[documentoSelecionado], dados);
 
         } catch (error) {
             console.error(error);
@@ -989,6 +989,7 @@ $(document).ready(function () {
             "TERMO DE REPRESENTACAO",
             "TERMO DE COMPROMISSO",
             "TERMO DE LIBERACAO DE MENOR - INFRATOR",
+            "LAUDO TRAUMATOLOGICO",
             "LAUDO TRAUMATOLOGICO IML",
             "CERTIDAO DE ASSINATURA INDIVIDUAL",
             "AUTO CIRCUNSTACIADO - AUTOR 1",

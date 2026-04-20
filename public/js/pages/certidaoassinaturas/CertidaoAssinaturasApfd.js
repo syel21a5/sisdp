@@ -1,37 +1,29 @@
 /**
- * JS para Eficiência de Arma de Fogo utilizando TinyMCE 6 e DocumentoService
+ * JS para Certidão de Assinaturas APFD utilizando TinyMCE 6 e DocumentoService
  */
 
 function printDocument() {
-    console.log('🟢 GERANDO PDF DE EFICIÊNCIA DE ARMA...');
+    console.log('🟢 GERANDO PDF DE CERTIDÃO DE ASSINATURA APFD...');
     
     const dados = window.dadosParaImpressao || {};
     const content = tinymce.activeEditor.getContent();
 
-    // Detectar se é Portaria ou Termo baseando-se na URL
-    const isPortaria = window.location.pathname.includes('portaria');
-    const endpoint = isPortaria ? '/eficiencia-arma-portaria' : '/eficiencia-arma-termo';
-
     // Dados para envio via POST
     const dadosParaEnviar = {
-        'orgao_emissor': 'EFICIENCIA_ARMA',
+        'orgao_emissor': 'CERTIDÃO DE ASSINATURA APFD',
         'cidade': dados.cidade || 'Afogados da Ingazeira',
         'delegacia': dados.delegacia || '',
         'delegado': dados.delegado || '',
         'escrivao': dados.escrivao || '',
-        'policial_1': dados.policial_1 || 'NÃO INFORMADO',
-        'policial_2': dados.policial_2 || 'NÃO INFORMADO',
-        'data_comp': dados.data_comp || '',
-        'nome': dados.nome || '',
         'boe': dados.boe || '',
-        'apreensao': dados.apreensao || '',
+        'ip': dados.ip || '',
         'data_ext': dados.data_ext || '',
-        'conteudo': content,
-        'tipo_documento': isPortaria ? 'portaria' : 'termo'
+        'conteudo': content
     };
 
     // Usar DocumentoService para envio seguro via POST
-    DocumentoService.gerar(endpoint, dadosParaEnviar);
+    // Nota: O endpoint no controller é /certidao-assinaturas-compartilhadas
+    DocumentoService.gerar('/certidao-assinaturas-compartilhadas', dadosParaEnviar);
 }
 
 document.addEventListener('DOMContentLoaded', function() {

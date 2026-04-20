@@ -563,6 +563,7 @@ window.OcorrenciasApp = {
 
             // ✅ Cores baseadas no status
             let classeBadge = 'chip-premium ';
+            
             if (isPendenteParaMim) {
                 classeBadge += 'chip-orange'; // Laranja para pendente (para não-donos)
             } else if (temVinculo) {
