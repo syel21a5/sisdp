@@ -177,7 +177,7 @@ Route::middleware(['auth'])->group(function () {
     // ✅ ROTAS UNIFICADAS PARA VÍNCULOS (COMPLETAS)
     Route::prefix('boe/vinculos')->group(function () {
         // ✅ NOVAS ROTAS DINÂMICAS
-        Route::get('/listar/{boe}', [BoeVincularController::class, 'listarVinculos']);
+        Route::get('/listar/{boe}', [BoeVincularController::class, 'listarVinculos'])->where('boe', '.*');
         Route::get('/sugestoes-pendentes', [BoeVincularController::class, 'listarSugestoesPendentes']);
         Route::post('/adicionar', [BoeVincularController::class, 'adicionarVinculo']);
         Route::delete('/remover/{id}', [BoeVincularController::class, 'removerVinculo']);
@@ -187,30 +187,30 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/rejeitar/{id}', [BoeVincularController::class, 'rejeitarVinculo']);
 
         // ROTAS DE EXCLUSÃO ESPECÍFICAS
-        Route::delete('/excluir-todos/{boe}', [BoeVincularController::class, 'excluirTodosVinculos'])->name('boe.vinculos.excluir-todos');
-        Route::delete('/excluir-condutor/{boe}', [BoeVincularController::class, 'excluirVinculoCondutor'])->name('boe.vinculos.excluir-condutor');
-        Route::delete('/excluir-vitima1/{boe}', [BoeVincularController::class, 'excluirVinculoVitima1'])->name('boe.vinculos.excluir-vitima1');
-        Route::delete('/excluir-vitima2/{boe}', [BoeVincularController::class, 'excluirVinculoVitima2'])->name('boe.vinculos.excluir-vitima2');
-        Route::delete('/excluir-vitima3/{boe}', [BoeVincularController::class, 'excluirVinculoVitima3'])->name('boe.vinculos.excluir-vitima3');
-        Route::delete('/excluir-testemunha1/{boe}', [BoeVincularController::class, 'excluirVinculoTestemunha1'])->name('boe.vinculos.excluir-testemunha1');
-        Route::delete('/excluir-outro/{boe}', [BoeVincularController::class, 'excluirVinculoOutro'])->name('boe.vinculos.excluir-outro');
-        Route::delete('/excluir-testemunha2/{boe}', [BoeVincularController::class, 'excluirVinculoTestemunha2'])->name('boe.vinculos.excluir-testemunha2');
-        Route::delete('/excluir-testemunha3/{boe}', [BoeVincularController::class, 'excluirVinculoTestemunha3'])->name('boe.vinculos.excluir-testemunha3');
-        Route::delete('/excluir-autor1/{boe}', [BoeVincularController::class, 'excluirVinculoAutor1'])->name('boe.vinculos.excluir-autor1');
-        Route::delete('/excluir-autor2/{boe}', [BoeVincularController::class, 'excluirVinculoAutor2'])->name('boe.vinculos.excluir-autor2');
-        Route::delete('/excluir-autor3/{boe}', [BoeVincularController::class, 'excluirVinculoAutor3'])->name('boe.vinculos.excluir-autor3');
+        Route::delete('/excluir-todos/{boe}', [BoeVincularController::class, 'excluirTodosVinculos'])->name('boe.vinculos.excluir-todos')->where('boe', '.*');
+        Route::delete('/excluir-condutor/{boe}', [BoeVincularController::class, 'excluirVinculoCondutor'])->name('boe.vinculos.excluir-condutor')->where('boe', '.*');
+        Route::delete('/excluir-vitima1/{boe}', [BoeVincularController::class, 'excluirVinculoVitima1'])->name('boe.vinculos.excluir-vitima1')->where('boe', '.*');
+        Route::delete('/excluir-vitima2/{boe}', [BoeVincularController::class, 'excluirVinculoVitima2'])->name('boe.vinculos.excluir-vitima2')->where('boe', '.*');
+        Route::delete('/excluir-vitima3/{boe}', [BoeVincularController::class, 'excluirVinculoVitima3'])->name('boe.vinculos.excluir-vitima3')->where('boe', '.*');
+        Route::delete('/excluir-testemunha1/{boe}', [BoeVincularController::class, 'excluirVinculoTestemunha1'])->name('boe.vinculos.excluir-testemunha1')->where('boe', '.*');
+        Route::delete('/excluir-outro/{boe}', [BoeVincularController::class, 'excluirVinculoOutro'])->name('boe.vinculos.excluir-outro')->where('boe', '.*');
+        Route::delete('/excluir-testemunha2/{boe}', [BoeVincularController::class, 'excluirVinculoTestemunha2'])->name('boe.vinculos.excluir-testemunha2')->where('boe', '.*');
+        Route::delete('/excluir-testemunha3/{boe}', [BoeVincularController::class, 'excluirVinculoTestemunha3'])->name('boe.vinculos.excluir-testemunha3')->where('boe', '.*');
+        Route::delete('/excluir-autor1/{boe}', [BoeVincularController::class, 'excluirVinculoAutor1'])->name('boe.vinculos.excluir-autor1')->where('boe', '.*');
+        Route::delete('/excluir-autor2/{boe}', [BoeVincularController::class, 'excluirVinculoAutor2'])->name('boe.vinculos.excluir-autor2')->where('boe', '.*');
+        Route::delete('/excluir-autor3/{boe}', [BoeVincularController::class, 'excluirVinculoAutor3'])->name('boe.vinculos.excluir-autor3')->where('boe', '.*');
 
         // Rotas de busca
-        Route::get('/buscar-condutor/{boe}', [BoeVincularController::class, 'buscarCondutorPorBoe']);
-        Route::get('/buscar-vitima1/{boe}', [BoeVincularController::class, 'buscarVitima1PorBoe']);
-        Route::get('/buscar-vitima2/{boe}', [BoeVincularController::class, 'buscarVitima2PorBoe']);
-        Route::get('/buscar-vitima3/{boe}', [BoeVincularController::class, 'buscarVitima3PorBoe']);
-        Route::get('/buscar-testemunha1/{boe}', [BoeVincularController::class, 'buscarTestemunha1PorBoe']);
-        Route::get('/buscar-testemunha2/{boe}', [BoeVincularController::class, 'buscarTestemunha2PorBoe']);
-        Route::get('/buscar-testemunha3/{boe}', [BoeVincularController::class, 'buscarTestemunha3PorBoe']);
-        Route::get('/buscar-autor1/{boe}', [BoeVincularController::class, 'buscarAutor1PorBoe']);
-        Route::get('/buscar-autor2/{boe}', [BoeVincularController::class, 'buscarAutor2PorBoe']);
-        Route::get('/buscar-autor3/{boe}', [BoeVincularController::class, 'buscarAutor3PorBoe']);
+        Route::get('/buscar-condutor/{boe}', [BoeVincularController::class, 'buscarCondutorPorBoe'])->where('boe', '.*');
+        Route::get('/buscar-vitima1/{boe}', [BoeVincularController::class, 'buscarVitima1PorBoe'])->where('boe', '.*');
+        Route::get('/buscar-vitima2/{boe}', [BoeVincularController::class, 'buscarVitima2PorBoe'])->where('boe', '.*');
+        Route::get('/buscar-vitima3/{boe}', [BoeVincularController::class, 'buscarVitima3PorBoe'])->where('boe', '.*');
+        Route::get('/buscar-testemunha1/{boe}', [BoeVincularController::class, 'buscarTestemunha1PorBoe'])->where('boe', '.*');
+        Route::get('/buscar-testemunha2/{boe}', [BoeVincularController::class, 'buscarTestemunha2PorBoe'])->where('boe', '.*');
+        Route::get('/buscar-testemunha3/{boe}', [BoeVincularController::class, 'buscarTestemunha3PorBoe'])->where('boe', '.*');
+        Route::get('/buscar-autor1/{boe}', [BoeVincularController::class, 'buscarAutor1PorBoe'])->where('boe', '.*');
+        Route::get('/buscar-autor2/{boe}', [BoeVincularController::class, 'buscarAutor2PorBoe'])->where('boe', '.*');
+        Route::get('/buscar-autor3/{boe}', [BoeVincularController::class, 'buscarAutor3PorBoe'])->where('boe', '.*');
     });
 
     // Rotas para detalhes APFD por pessoa

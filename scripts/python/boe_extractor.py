@@ -434,12 +434,14 @@ def parse_boe_python(texto: str) -> dict:
             dados['condutor'].append(condutor_nome)
 
     # --- NOVO: Extração de Objetos (Veículos e Celulares) ---
-    bloco_objetos = re.search(r'Objetos\s*\n(.*?)(?=\nComplemento|\nDados Complementares|\nHistórico|\nNarrativa|\nCondutor da ocorrência:|\Z)', texto, flags=re.DOTALL | re.IGNORECASE)
+    # Regex relaxada para capturar o bloco de objetos mesmo com variações de quebra de linha ou símbolos
+    bloco_objetos = re.search(r'Objetos:?\s*[\r\n]+(.*?)(?=[\r\n]+(?:Complemento|Dados Complementares|Histórico|Narrativa|Condutor da ocorrência:|Dados da ocorrência:)|$)', texto, flags=re.DOTALL | re.IGNORECASE)
     if bloco_objetos:
         txt_obj = bloco_objetos.group(1)
         # Identifica cada item (VEICULO, CELULAR, etc)
         # O cabeçalho costuma ser algo como "NOME DO OBJETO (CATEGORIA)"
-        itens = re.split(r'\n(?=[^:\n]+ \([^()\n]+\)\n)', "\n" + txt_obj)
+        # Melhoria: Split mais flexível que não exige quebra de linha após a categoria
+        itens = re.split(r'[\r\n]+(?=[A-ZÀ-ÿ0-9/.\-\s]{3,} \([^()]+\))', "\n" + txt_obj)
         
         obj_list_text = []
         for item in itens:
@@ -458,23 +460,29 @@ def parse_boe_python(texto: str) -> dict:
             if 'VEICULO' in categoria or 'VEÍCULO' in categoria or 'VEICULO' in nome_obj:
                 v = {"marca_modelo": "", "placa": "", "chassi": "", "cor": ""}
                 
-                # Marca/Modelo
-                m_v_mod = re.search(r'Categoria/Marca/Modelo:\s*([^/-]+)', item)
-                if m_v_mod: v['marca_modelo'] = m_v_mod.group(1).replace('NÃO INFORMADO', '').strip(' /').strip()
+                # Marca/Modelo (Suporta Categoria/Marca/Modelo ou apenas Marca/Modelo)
+                m_v_mod = re.search(r'(?:Marca/Modelo|Modelo):\s*([^\n\r]+)', item, re.IGNORECASE)
+                if m_v_mod: 
+                    v['marca_modelo'] = m_v_mod.group(1).replace('NÃO INFORMADO', '').strip(' /').strip()
+                else: 
+                    # Tenta pegar do próprio nome do objeto se não achou label específica
+                    v['marca_modelo'] = nome_obj
                 
                 # Cor
-                m_v_cor = re.search(r'Cor:\s*([A-ZÀ-ÿ]+)', item, re.IGNORECASE)
+                m_v_cor = re.search(r'Cor(?:\s*Predominante)?:\s*([A-ZÀ-ÿ\s]+?)(?=[\r\n]|$)', item, re.IGNORECASE)
                 if m_v_cor: v['cor'] = m_v_cor.group(1).strip()
                 
-                # Placa
-                m_v_placa = re.search(r'Placa:\s*([A-Z0-9]{7})', item, re.IGNORECASE)
-                if m_v_placa: v['placa'] = m_v_placa.group(1).strip()
+                # Placa (suporta modelos novos Mercosul ou antigos)
+                m_v_placa = re.search(r'Placa:\s*([A-Z0-9\-\s]{7,8})', item, re.IGNORECASE)
+                if m_v_placa: 
+                    v['placa'] = re.sub(r'[^A-Z0-9]', '', m_v_placa.group(1).upper()).strip()
                 
                 # Chassi
                 m_v_chassi = re.search(r'Chassi:\s*([A-Z0-9]{17})', item, re.IGNORECASE)
                 if m_v_chassi: v['chassi'] = m_v_chassi.group(1).strip()
                 
                 if v['placa'] or v['marca_modelo'] or v['chassi']:
+                    if v['marca_modelo'] == 'NÃO INFORMADO': v['marca_modelo'] = nome_obj
                     dados['veiculos'].append(v)
 
             # --- Se for CELULAR ---
@@ -495,6 +503,18 @@ def parse_boe_python(texto: str) -> dict:
 
         if obj_list_text:
             dados['objetos_apreendidos'] = " / ".join(obj_list_text)
+
+    # --- FALLBACK: Se não detectou veículos na seção Objetos, busca no texto todo se a natureza sugerir ---
+    natureza_full = (dados['natureza'] or '').upper()
+    if not dados['veiculos'] and ('VEICULO' in natureza_full or 'VEÍCULO' in natureza_full or 'AUTO' in natureza_full):
+        # Busca placa no formato Mercosul ou antigo em qualquer lugar
+        placas_soltas = re.findall(r'Placa:\s*([A-Z]{3}[0-9][A-Z0-9][0-9]{2})', texto, re.I)
+        for p in placas_soltas:
+            p_upper = p.upper()
+            if not any(v['placa'] == p_upper for v in dados['veiculos']):
+                dados['veiculos'].append({"marca_modelo": "VEÍCULO DETECTADO (NATUREZA)", "placa": p_upper, "chassi": "", "cor": ""})
+                if "VEÍCULO" not in (dados['objetos_apreendidos'] or ''):
+                    dados['objetos_apreendidos'] = (dados['objetos_apreendidos'] or "") + (" / " if dados['objetos_apreendidos'] else "") + "VEÍCULO (DETECTADO)"
 
     # Deduplicacao e Filtragem de Categorias (Hierarquia: Autores > Vitimas > Condutor > Testemunhas > Outros)
     for k in ['autores', 'vitimas', 'condutor', 'testemunhas', 'outros']:

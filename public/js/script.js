@@ -491,6 +491,38 @@ window.OcorrenciasApp = {
         this.pendingSwitch = null;
     },
 
+    sincronizarComChipsModule: function () {
+        if (!window.envolvidosChips) return;
+
+        ['vitimas', 'autores', 'testemunhas', 'condutores', 'outros'].forEach(tipo => {
+            const arr = this.envolvidos[tipo] || [];
+            
+            // Adiciona quem tá no app mas não tá no chips
+            arr.forEach((nome, index) => {
+                const vinc = (this.vinculos[tipo] && this.vinculos[tipo][index]) ? this.vinculos[tipo][index] : null;
+                const pessoa_id = vinc ? (vinc.pessoa_id || null) : null;
+                const detalhes = vinc ? (vinc.detalhes || null) : null;
+
+                const existente = window.envolvidosChips[tipo].find(c => c.nome === nome);
+                if (!existente) {
+                    window.envolvidosChips[tipo].push({
+                        id: pessoa_id || Date.now() + Math.random(),
+                        nome: nome,
+                        dados: { id: pessoa_id, Nome: nome, ...detalhes }
+                    });
+                } else if (pessoa_id && !existente.id) {
+                    existente.id = pessoa_id;
+                    if (!existente.dados) existente.dados = {};
+                    existente.dados.id = pessoa_id;
+                }
+            });
+            
+            // Remove quem tá no chips mas não tá no app
+            window.envolvidosChips[tipo] = window.envolvidosChips[tipo].filter(c => arr.includes(c.nome));
+        });
+        console.log('🔄 Sincronizado OcorrenciasApp -> window.envolvidosChips', window.envolvidosChips);
+    },
+
     atualizarChips: function (tipo) {
         const container = $(`#chips${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`);
         container.empty();
@@ -1562,11 +1594,16 @@ window.OcorrenciasApp = {
                         });
                     });
 
+                    // Sincronizar com window.envolvidosChips ANTES de atualizar a UI
+                    // Isso garante que qualquer lógica dependente de window.envolvidosChips tenha os dados prontos
+                    this.sincronizarComChipsModule();
+
                     this.atualizarChips('vitimas');
                     this.atualizarChips('autores');
                     this.atualizarChips('testemunhas');
                     this.atualizarChips('condutores');
                     this.atualizarChips('outros');
+
 
                     // ✅ NOVO: Se for o dono, inicia monitoramento de novas sugestões
                     if (this.isOwner) {
@@ -1578,48 +1615,8 @@ window.OcorrenciasApp = {
                     // ✅ NOVO: Mostrar banner de propriedade se não for dono
                     this.mostrarBannerPropriedade();
 
-                    // Sincronizar com window.envolvidosChips para garantir salvamento correto
-                    if (window.envolvidosChips) {
-                        window.envolvidosChips.vitimas = (data.vitimas || []).map(p => ({
-                            id: p.IdCad || p.id || Date.now(),
-                            nome: p.Nome || p.nome || '',
-                            dados: p
-                        }));
-                        window.envolvidosChips.autores = (data.autores || []).map(p => ({
-                            id: p.IdCad || p.id || Date.now(),
-                            nome: p.Nome || p.nome || '',
-                            dados: p
-                        }));
-                        window.envolvidosChips.testemunhas = (data.testemunhas || []).map(p => ({
-                            id: p.IdCad || p.id || Date.now(),
-                            nome: p.Nome || p.nome || '',
-                            dados: p,
-                            rg: p.RG || p.rg || '',
-                            cpf: p.CPF || p.cpf || ''
-                        }));
-                        window.envolvidosChips.condutores = (data.condutor || []).map(p => ({
-                            id: p.IdCad || p.id || Date.now(),
-                            nome: p.Nome || p.nome || '',
-                            dados: p
-                        }));
-                        window.envolvidosChips.outros = (data.outros || []).map(p => ({
-                            id: p.IdCad || p.id || Date.now(),
-                            nome: p.Nome || p.nome || '',
-                            dados: p
-                        }));
-
-                        // ✅ MERGE CHIPS LAB/FORMS: Restaurar arrays inteiros das abas manuais sem perder os dados dos inputs
-                        ['vitimas', 'autores', 'testemunhas', 'condutores', 'outros'].forEach(tipo => {
-                            backupManuais[tipo].forEach(itemManual => {
-                                if (itemManual.chipCompleto && itemManual.nome && !window.envolvidosChips[tipo].find(c => c.nome === itemManual.nome)) {
-                                    window.envolvidosChips[tipo].push(itemManual.chipCompleto);
-                                }
-                            });
-                        });
-
-                        console.log('✅ Chips sincronizados com dados do banco (preservados manuais combinados):', window.envolvidosChips);
-                    }
-
+                    console.log('✅ Carregamento de vínculos concluído.');
+                    
                     if (this.currentId) {
                         $.ajax({
                             url: `/apfd/detalhes/listar/${this.currentId}`,
@@ -1757,6 +1754,7 @@ window.OcorrenciasApp = {
         });
 
         $.when.apply($, tarefas).always(() => {
+            self.sincronizarComChipsModule();
             self.atualizarChips('vitimas');
             self.atualizarChips('autores');
             self.atualizarChips('testemunhas');
