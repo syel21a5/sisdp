@@ -2825,10 +2825,9 @@ window.OcorrenciasApp = {
         let hfEditar = $('#inputHoraFato').val();
         if (hfEditar && hfEditar.length >= 5) { $('#inputHoraFato').val(hfEditar.substring(0, 5)); }
         const formData = $('#formInicio').serializeArray();
-        const formDocumentos = $('#documentos form').serializeArray();
-        const formDadosComplementares = $('#dados-complementares form').serializeArray();
-        const formApreensao = $('#apreensao form').serializeArray();
-        const allData = formData.concat(formDocumentos, formDadosComplementares, formApreensao);
+        const formDocumentos = $('#formDocumentos').serializeArray();
+        const formApreensao = $('#formApreensao').serializeArray();
+        const allData = formData.concat(formDocumentos, formApreensao);
 
         $.ajax({
             url: rotas.inicio.salvar,
@@ -2935,10 +2934,9 @@ window.OcorrenciasApp = {
         this.prepararDadosEnvolvidos();
 
         const formData = $('#formInicio').serializeArray();
-        const formDocumentos = $('#documentos form').serializeArray();
-        const formDadosComplementares = $('#dados-complementares form').serializeArray();
-        const formApreensao = $('#apreensao form').serializeArray();
-        const allData = formData.concat(formDocumentos, formDadosComplementares, formApreensao);
+        const formDocumentos = $('#formDocumentos').serializeArray();
+        const formApreensao = $('#formApreensao').serializeArray();
+        const allData = formData.concat(formDocumentos, formApreensao);
 
         $.ajax({
             url: `${rotas.inicio.atualizar}/${this.currentId}`,
