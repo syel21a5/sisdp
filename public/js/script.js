@@ -119,7 +119,10 @@ window.OcorrenciasApp = {
     },
 
     normalizarNome: function (nome) {
-        return (nome || '')
+        if (!nome) return '';
+        // Remove prefixos comuns do BOE PMPE antes de normalizar acentos
+        let n = nome.replace(/^(?:FISICA\s+PESSOA|JURIDICA\s+PESSOA|FISICA|JURIDICA):\s*/i, '');
+        return n
             .normalize('NFD')
             .replace(/[\u0300-\u036f]/g, '')
             .toUpperCase()
@@ -203,18 +206,10 @@ window.OcorrenciasApp = {
                 })(),
 
                 idade: cap(/Idade(?:\s+aparente)?:\s*(\d+)/i),
-                estado_civil: cap(/Estado\s+Civil:\s*([^;\n]+)/i),
+                // estado_civil: cap(/Estado\s+Civil:\s*([^;\n]+)/i),
 
-                // Naturalidade: Pega apenas a cidade (parte antes da primeira barra)
-                naturalidade: (function () {
-                    // Regex mais permissiva: aceita : ou . e quebras de linha
-                    const m = cap(/Naturalidade\s*[:\.]\s*([^;\n]+)/i, true);
-                    console.log('🌍 Debug Naturalidade Match:', m);
-                    if (m && m[1]) {
-                        return m[1].split('/')[0].trim();
-                    }
-                    return '';
-                })(),
+                // Naturalidade: Removido - fallback causava sobreposição de dados (Python é preciso nisso)
+                // naturalidade: ...
 
                 instrucao: cap(/(?:Grau\s+de\s+Instru[çc][ãa]o|Escolaridade):\s*([^;\n]+)/i),
                 profissao: cap(/(?:Profiss[ãa]o|Ocupa[çc][ãa]o):\s*([^;\n]+)/i),

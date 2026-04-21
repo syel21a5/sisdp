@@ -841,7 +841,7 @@
                                         <i class="bi bi-robot"></i> Inteligência Artificial
                                     </button>
                                 @endif
-                                <button type="button" class="btn btn-primary" id="btnProcessarBoe">Processar pelo Sistema</button>
+                                <button type="button" class="btn btn-primary" id="btnProcessarBoe" style="display: none;">Processar pelo Sistema</button>
                             </div>
                         </div>
                     </div>

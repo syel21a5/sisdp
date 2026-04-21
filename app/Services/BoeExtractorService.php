@@ -7,6 +7,78 @@ use Illuminate\Support\Facades\Log;
 
 class BoeExtractorService
 {
+    private function shouldBypassCache(array $dados, string $type): bool
+    {
+        // Evita reaproveitar cache antigo/incompleto para o tipo solicitado.
+        if ($type === 'veiculo') {
+            return empty($dados['veiculos']) || !is_array($dados['veiculos']);
+        }
+
+        if ($type === 'celular') {
+            return empty($dados['celulares']) || !is_array($dados['celulares']);
+        }
+
+        if ($type === 'apfd' || $type === 'administrativo' || $type === 'intimacao') {
+            // Se objetos apreendidos usar o formato velho (separado apenas por " / "), forçar bypass
+            if (!empty($dados['objetos_apreendidos']) && strpos($dados['objetos_apreendidos'], "\n") === false && strpos($dados['objetos_apreendidos'], " / ") !== false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function enrichObjetosProprietario(array $dados): array
+    {
+        $pickFirst = function (array $arr): ?string {
+            foreach ($arr as $v) {
+                if (is_string($v) && trim($v) !== '') {
+                    return trim($v);
+                }
+            }
+            return null;
+        };
+
+        $proprietarioPadrao =
+            $pickFirst($dados['autores'] ?? []) ??
+            $pickFirst($dados['condutor'] ?? []) ??
+            $pickFirst($dados['vitimas'] ?? []) ??
+            $pickFirst($dados['testemunhas'] ?? []) ??
+            $pickFirst($dados['outros'] ?? []);
+
+        if (!$proprietarioPadrao) {
+            return $dados;
+        }
+
+        if (!empty($dados['veiculos']) && is_array($dados['veiculos'])) {
+            foreach ($dados['veiculos'] as $i => $v) {
+                if (!is_array($v)) {
+                    continue;
+                }
+                $has = !empty($v['proprietario']) || !empty($v['pessoa']);
+                if (!$has) {
+                    $v['proprietario'] = $proprietarioPadrao;
+                    $dados['veiculos'][$i] = $v;
+                }
+            }
+        }
+
+        if (!empty($dados['celulares']) && is_array($dados['celulares'])) {
+            foreach ($dados['celulares'] as $i => $c) {
+                if (!is_array($c)) {
+                    continue;
+                }
+                $has = !empty($c['proprietario']) || !empty($c['pessoa']);
+                if (!$has) {
+                    $c['proprietario'] = $proprietarioPadrao;
+                    $dados['celulares'][$i] = $c;
+                }
+            }
+        }
+
+        return $dados;
+    }
+
     /**
      * Extrai dados de um BOE (PDF ou Texto) usando o script Python (Regex nativo).
      * Centraliza a lógica para evitar duplicação nos Controllers.
@@ -51,8 +123,9 @@ class BoeExtractorService
             // Se o arquivo idêntico já foi processado no modo COMPLETO, usa ele
             if (file_exists($cacheFileHashComplete)) {
                 $cachedData = json_decode(file_get_contents($cacheFileHashComplete), true);
-                if ($cachedData) {
-                    @unlink($tmpPath); 
+                if ($cachedData && !$this->shouldBypassCache($cachedData, $type)) {
+                    $cachedData = $this->enrichObjetosProprietario($cachedData);
+                    @unlink($tmpPath);
                     return [
                         'success' => true,
                         'dados' => $cachedData,
@@ -67,10 +140,21 @@ class BoeExtractorService
             $boeFromFile = $this->quickExtractBoeNumber($tmpPath);
             if ($boeFromFile) {
                 $boeLimpo = preg_replace('/[^A-Za-z0-9]/', '', $boeFromFile);
-                $cacheFileBoe = $cacheDir . "/boe_{$boeLimpo}_apfd.json";
-                if (file_exists($cacheFileBoe)) {
-                    $cachedData = json_decode(file_get_contents($cacheFileBoe), true);
-                    if ($cachedData) {
+                
+                $cacheFileBoePC = $cacheDir . "/boe_pcpe_{$boeLimpo}_apfd.json";
+                $cacheFileBoePM = $cacheDir . "/boe_pm_{$boeLimpo}_apfd.json";
+                // Retrocompatibilidade
+                $cacheFileBoeAntigo = $cacheDir . "/boe_{$boeLimpo}_apfd.json";
+                
+                $cacheTarget = null;
+                if (file_exists($cacheFileBoePC)) $cacheTarget = $cacheFileBoePC;
+                elseif (file_exists($cacheFileBoePM)) $cacheTarget = $cacheFileBoePM;
+                elseif (file_exists($cacheFileBoeAntigo)) $cacheTarget = $cacheFileBoeAntigo;
+
+                if ($cacheTarget) {
+                    $cachedData = json_decode(file_get_contents($cacheTarget), true);
+                    if ($cachedData && !$this->shouldBypassCache($cachedData, $type)) {
+                        $cachedData = $this->enrichObjetosProprietario($cachedData);
                         @unlink($tmpPath);
                         return [
                             'success' => true,
@@ -108,15 +192,21 @@ class BoeExtractorService
             if (is_array($json) && isset($json['success'])) {
 
                 if ($json['success']) {
-                    $dados = $json['dados'] ?? [];
+                    $dados = $this->enrichObjetosProprietario($json['dados'] ?? []);
                     
                     // ✅ SALVAR NO CACHE (Sempre como apfd para ser o mestre)
                     file_put_contents($cacheFileHashComplete, json_encode($dados));
                     
                     if (!empty($dados['boe'])) {
                         $boeLimpo = preg_replace('/[^A-Za-z0-9]/', '', $dados['boe']);
-                        $cacheFileBoe = $cacheDir . "/boe_{$boeLimpo}_apfd.json";
+                        $cacheFileBoe = $cacheDir . "/boe_pcpe_{$boeLimpo}_apfd.json";
                         file_put_contents($cacheFileBoe, json_encode($dados));
+                    }
+                    
+                    if (!empty($dados['boe_pm'])) {
+                        $boeLimpoPM = preg_replace('/[^A-Za-z0-9]/', '', $dados['boe_pm']);
+                        $cacheFileBoePM = $cacheDir . "/boe_pm_{$boeLimpoPM}_apfd.json";
+                        file_put_contents($cacheFileBoePM, json_encode($dados));
                     }
 
                     return [
@@ -164,7 +254,7 @@ class BoeExtractorService
             if ($ext === 'txt') {
                 // Para texto, lê direto com PHP (instantâneo)
                 $content = file_get_contents($filePath);
-                if (preg_match('/N[^\d]+(\d+[A-Z]\d+)/i', $content, $m) || preg_match('/\b(\d{2,}[A-Z]\d{5,})\b/i', $content, $m)) {
+                if (preg_match('/N[^\d]+(\d+[A-Z]\d+)/i', $content, $m) || preg_match('/\b(\d{2,}[A-Z]\d{5,})\b/i', $content, $m) || preg_match('/BOLETIM DE OCORR[ÊE]NCIA N[ºO]?:\s*(\d{10,})\b/i', $content, $m)) {
                     return $m[1];
                 }
                 return null;
@@ -172,10 +262,10 @@ class BoeExtractorService
             
             // Para PDF, usa Python para ler só a primeira página (ultra-rápido ~200ms)
             $pythonCmd = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? 'python' : 'python3';
-            $pyCode = 'import fitz,re,sys;doc=fitz.open(sys.argv[1]);t=doc[0].get_text();m=re.search(r"N[^\d]+(\d+[A-Z]\d+)",t,re.I);m=m if m else re.search(r"\b(\d{2,}[A-Z]\d{5,})\b",t,re.I);print(m.group(1) if m else "")';
+            $pyCode = 'import fitz,re,sys;doc=fitz.open(sys.argv[1]);t=doc[0].get_text();m=re.search(r"N[^\d]+(\d+[A-Z]\d+)",t,re.I);m=m if m else re.search(r"\b(\d{2,}[A-Z]\d{5,})\b",t,re.I);m=m if m else re.search(r"BOLETIM DE OCORR[ÊE]NCIA N[ºO]?:\s*(\d{10,})\b",t,re.I);print(m.group(1) if m else "")';
             $cmd = escapeshellcmd($pythonCmd) . ' -c ' . escapeshellarg($pyCode) . ' ' . escapeshellarg($filePath) . ' 2>/dev/null';
             
-            $result = trim(shell_exec($cmd) ?? '');
+            $result = trim(\shell_exec($cmd) ?? '');
             return $result ?: null;
         } catch (\Exception $e) {
             Log::warning("quickExtractBoeNumber falhou: " . $e->getMessage());

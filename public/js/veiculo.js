@@ -564,6 +564,8 @@ $(document).ready(function () {
         $('#veiculoProgressWrapper').hide();
         $('#veiculoProgressBar').css('width', '0%');
         $('#veiculoProgressPercent').text('0%');
+        $('#textoBoeVeiculo').val('');
+        $('#pdfBoeVeiculo').val('');
 
         console.log('✅ Formulário veículo limpo');
     }

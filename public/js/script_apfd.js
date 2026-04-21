@@ -451,8 +451,10 @@ $(document).ready(function () {
         const activeTabId = $('#boeImportTabs .nav-link.active').attr('id');
         if (activeTabId === 'tab-pdf' || activeTabId === 'tab-pdf-pm') {
             $('#btnProcessarIA').hide();
+            $('#btnProcessarBoe').show();
         } else {
             $('#btnProcessarIA').show();
+            $('#btnProcessarBoe').hide();
         }
 
         console.log('✨ [script_apfd] Limpeza concluída.');
@@ -589,6 +591,10 @@ $(document).ready(function () {
         // Força abrir a aba PC (Texto)
         const tabTexto = document.getElementById('tab-texto');
         if (tabTexto) new bootstrap.Tab(tabTexto).show();
+        
+        $('#btnProcessarBoe').hide();
+        $('#btnProcessarIA').show();
+
         // Abre o modal
         var modal = new bootstrap.Modal(document.getElementById('modalImportarBoe'));
         modal.show();
@@ -600,6 +606,10 @@ $(document).ready(function () {
         // Força abrir a aba PM (Texto)
         const tabTextoPM = document.getElementById('tab-texto-pm');
         if (tabTextoPM) new bootstrap.Tab(tabTextoPM).show();
+        
+        $('#btnProcessarBoe').hide();
+        $('#btnProcessarIA').show();
+
         // Abre o modal
         var modal = new bootstrap.Modal(document.getElementById('modalImportarBoe'));
         modal.show();
@@ -713,6 +723,8 @@ $(document).ready(function () {
                         if (dados.boe) $('#inputBOEPM').val(dados.boe);
                     } else {
                         if (dados.boe) $('#inputBOE').val(dados.boe);
+                        // ✅ NOVO: Se o BO PC tiver extraído o BO PM complementar, preenche o campo BO PM
+                        if (dados.boe_pm) $('#inputBOEPM').val(dados.boe_pm);
                     }
                     if (dados.ip) $('#inputIP').val(dados.ip);
                     if (dados.data_fato) $('#inputDataFato').val(dados.data_fato);
@@ -858,9 +870,11 @@ $(document).ready(function () {
     $('#boeImportTabs button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
         const targetId = e.target.id;
         if (targetId === 'tab-pdf' || targetId === 'tab-pdf-pm') {
-            $('#btnProcessarIA').fadeOut(200);
+            $('#btnProcessarIA').hide();
+            $('#btnProcessarBoe').show();
         } else {
-            $('#btnProcessarIA').fadeIn(200);
+            $('#btnProcessarIA').show();
+            $('#btnProcessarBoe').hide();
         }
     });
 
@@ -954,6 +968,7 @@ $(document).ready(function () {
                         if (dados.boe) $('#inputBOEPM').val(dados.boe);
                     } else {
                         if (dados.boe) $('#inputBOE').val(dados.boe);
+                        if (dados.boe_pm) $('#inputBOEPM').val(dados.boe_pm);
                     }
                     if (dados.ip) $('#inputIP').val(dados.ip);
                     if (dados.data_fato) $('#inputDataFato').val(dados.data_fato);

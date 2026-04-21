@@ -10,7 +10,7 @@ class AiService
     /**
      * Envia um prompt para a API do DeepSeek (Externo - Rápido)
      */
-    public function gerarTextoDeepSeek(string $prompt): ?string
+    public function gerarTextoDeepSeek(string $userPrompt, string $systemPrompt = 'Você é um assistente útil.'): ?string
     {
         $apiKey = config('services.deepseek.api_key');
         if (!$apiKey) {
@@ -19,7 +19,7 @@ class AiService
         }
 
         try {
-            Log::info("Enviando prompt para DeepSeek API...");
+            Log::info("Enviando prompt para DeepSeek API com Context Caching...");
             
             $response = Http::timeout(60)->withHeaders([
                 'Authorization' => "Bearer {$apiKey}",
@@ -27,8 +27,8 @@ class AiService
             ])->post("https://api.deepseek.com/chat/completions", [
                 'model' => 'deepseek-chat',
                 'messages' => [
-                    ['role' => 'system', 'content' => 'Você é um extrator de dados de BOE preciso que retorna apenas JSON.'],
-                    ['role' => 'user', 'content' => $prompt]
+                    ['role' => 'system', 'content' => $systemPrompt],
+                    ['role' => 'user', 'content' => $userPrompt]
                 ],
                 'stream' => false
             ]);
@@ -54,7 +54,16 @@ class AiService
      */
     public function extrairDados(string $texto): ?array
     {
-        $prompt = "Você é um excelente extrator de dados de Boletim de Ocorrência Policial. Leia o texto e extraia os dados estritamente no seguinte formato JSON. Não adicione textos, explicações ou markdown, apenas o JSON.
+        $systemMessage = "Você é um excelente extrator de dados de Boletim de Ocorrência Policial. Leia o texto e extraia os dados estritamente no seguinte formato JSON. Não adicione textos, explicações ou markdown, apenas o JSON.
+
+IMPORTANTE SOBRE OBJETOS APREENDIDOS:
+1. Localize a seção \"Objetos\" e extraia TODOS os itens listados.
+2. NÃO resuma nem agrupe itens diferentes.
+3. Para cada objeto, inclua: [Tipo/Nome] - Marca: [Marca], Mod: [Modelo], Cor: [Cor], Qtd: [Quantidade], Desc: [Descrição completa].
+4. Se for um celular, inclua também o IMEI ou Número de Série na descrição.
+5. Separe cada objeto por uma quebra de linha (\\n) dentro da string \"objetos_apreendidos\".
+6. ATENÇÃO: Em BOs da Polícia Militar, os itens aparecem como \"OBJETO Nº 1\", \"OBJETO Nº 2\" e usam \"Caracteristicas Adicionais\". Trate-os da mesma forma e extraia todos os detalhes.
+
 Formato esperado:
 {
   \"boe\": \"12345\",
@@ -65,7 +74,7 @@ Formato esperado:
   \"escrivao\": \"nome\",
   \"delegacia\": \"nome\",
   \"natureza\": \"crime\",
-  \"objetos_apreendidos\": \"lista separada por barra\",
+  \"objetos_apreendidos\": \"Item 1\\nItem 2\\nItem 3...\",
   \"vitimas\": [\"NOME1\", \"NOME2\"],
   \"autores\": [\"NOME1\"],
   \"testemunhas\": [\"NOME1\"],
@@ -100,14 +109,13 @@ REGRAS IMPORTANTES DE FORMATAÇÃO:
   - Converta o nome do estado para sigla (PERNAMBUCO → PE, PARAIBA → PB, etc).
 - Nomes de pessoas devem ser em MAIÚSCULAS e sem acentos.
 - Se qualquer campo não constar no texto, use string vazia \"\".
-- JAMAIS extraia o policial que registrou o BO como envolvido.
+- JAMAIS extraia o policial que registrou o BO como envolvido.";
 
-Texto do BOE: 
-{$texto}";
+        $userMessage = "Texto do BOE para extração: \n{$texto}";
 
-        // API do DeepSeek - Processamento em Segundos com Alta Inteligência
-        Log::info("Iniciando extração ultrarrápida via DeepSeek API...");
-        $resposta = $this->gerarTextoDeepSeek($prompt);
+        // API do DeepSeek - Processamento em Segundos com Alta Inteligência e Caching
+        Log::info("Iniciando extração ultrarrápida via DeepSeek API (com cache)...");
+        $resposta = $this->gerarTextoDeepSeek($userMessage, $systemMessage);
 
         if (!$resposta) {
             Log::error("Falha ao comunicar com DeepSeek. Falha na extração.");

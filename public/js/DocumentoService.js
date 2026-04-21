@@ -133,20 +133,40 @@ const DocumentoService = {
             promotion: false,
             branding: false,
             min_height: 800,
-            plugins: 'advlist autolink lists link image charmap preview anchor pagebreak searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media table code help wordcount',
-            toolbar: 'undo redo | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | table bullist numlist outdent indent | link image | pagebreak chars fullscreen | gerarpdf',
+            plugins: 'advlist autolink lists link image charmap preview anchor pagebreak searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media table help',
+            toolbar: 'undo redo | pastetext removeformat | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | table bullist numlist outdent indent | link image | pagebreak charmap fullscreen | gerarpdf',
             menubar: 'file edit view insert format tools table help',
             font_size_formats: '8pt 10pt 12pt 14pt 18pt 24pt 36pt',
+            
+            // ✅ CONFIGURAÇÕES DE COLAGEM (MÁGICA CONTRA O WORD)
+            paste_as_text: false, // Permite manter negrito/tabelas
+            paste_postprocess: function(plugin, args) {
+                // args.node é o fragmento invisível com os dados do Word antes de ir pro editor
+                var elementos = args.node.querySelectorAll("*");
+                for (var i = 0; i < elementos.length; i++) {
+                    // Removemos apenas as formatações chatas do Word que quebram o layout
+                    elementos[i].style.fontFamily = "";
+                    elementos[i].style.fontSize = "";
+                    elementos[i].style.lineHeight = "";
+                    elementos[i].style.color = "";
+                    elementos[i].style.backgroundColor = "";
+                    elementos[i].style.margin = ""; // Remove margens malucas de parágrafos
+                }
+            },
+            
             content_style: `
+                html {
+                    background-color: #e0e0e0;
+                }
                 body { 
                     font-family: Arial, sans-serif; 
                     font-size: 14pt; 
                     line-height: 1.6; 
-                    padding: 30px 60px; 
-                    max-width: 1200px;
-                    margin: 0 auto;
+                    padding: 40px 60px; 
+                    max-width: 850px;
+                    margin: 20px auto;
                     background-color: #ffffff;
-                    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                    box-shadow: 0 0 15px rgba(0,0,0,0.15);
                 } 
                 p { margin: 0.3em 0 }
             `,

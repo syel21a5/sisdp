@@ -279,16 +279,16 @@ $(document).ready(function () {
                     }
 
                     $('#inputIdade').val(calcularIdade($('#inputDataNascimento').val()));
-                    $('#inputEstadoCivil').val(c.EstCivil || '');
-                    $('#inputNaturalidade').val(c.Naturalidade || '');
-                    $('#inputProfissao').val(c.Profissao || '');
-                    $('#inputInstrucao').val(c.Instrucao || '');
-                    $('#inputRG').val(c.RG || '');
-                    $('#inputCPF').val(c.CPF || '').trigger('input');
-                    $('#inputTelefone').val(c.Telefone || '(00) 00000-0000').trigger('input');
-                    $('#inputMae').val(c.Mae || '');
-                    $('#inputPai').val(c.Pai || '');
-                    $('#inputEndereco').val(c.Endereco || '');
+                    $('#inputEstadoCivil').val(c.EstCivil || c.estado_civil || '');
+                    $('#inputNaturalidade').val(c.Naturalidade || c.naturalidade || '');
+                    $('#inputProfissao').val(c.Profissao || c.profissao || '');
+                    $('#inputInstrucao').val(c.Instrucao || c.instrucao || c.escolaridade || '');
+                    $('#inputRG').val(c.RG || c.rg || '');
+                    $('#inputCPF').val(c.CPF || c.cpf || '').trigger('input');
+                    $('#inputTelefone').val(c.Telefone || c.telefone || '(00) 00000-0000').trigger('input');
+                    $('#inputMae').val(c.Mae || c.mae || '');
+                    $('#inputPai').val(c.Pai || c.pai || '');
+                    $('#inputEndereco').val(c.Endereco || c.endereco || '');
 
                     $('#btnEditarCondutor, #btnExcluirCondutor').prop('disabled', false);
 
@@ -322,16 +322,16 @@ $(document).ready(function () {
             }
         }
 
-        $('#inputEstadoCivil').val(dados.EstCivil || '');
-        $('#inputNaturalidade').val(dados.Naturalidade || '');
-        $('#inputProfissao').val(dados.Profissao || '');
-        $('#inputInstrucao').val(dados.Instrucao || '');
-        $('#inputRG').val(dados.RG || '');
-        $('#inputCPF').val(dados.CPF || '').trigger('input');
-        $('#inputTelefone').val(dados.Telefone || '(00) 00000-0000').trigger('input');
-        $('#inputMae').val(dados.Mae || '');
-        $('#inputPai').val(dados.Pai || '');
-        $('#inputEndereco').val(dados.Endereco || '');
+        $('#inputEstadoCivil').val(dados.EstCivil || dados.estado_civil || '');
+        $('#inputNaturalidade').val(dados.Naturalidade || dados.naturalidade || '');
+        $('#inputProfissao').val(dados.Profissao || dados.profissao || '');
+        $('#inputInstrucao').val(dados.Instrucao || dados.instrucao || dados.escolaridade || '');
+        $('#inputRG').val(dados.RG || dados.rg || '');
+        $('#inputCPF').val(dados.CPF || dados.cpf || '').trigger('input');
+        $('#inputTelefone').val(dados.Telefone || dados.telefone || '(00) 00000-0000').trigger('input');
+        $('#inputMae').val(dados.Mae || dados.mae || '');
+        $('#inputPai').val(dados.Pai || dados.pai || '');
+        $('#inputEndereco').val(dados.Endereco || dados.endereco || '');
 
         $('#btnEditarCondutor, #btnExcluirCondutor').prop('disabled', false);
 

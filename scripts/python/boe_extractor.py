@@ -53,7 +53,10 @@ import fitz
 # --- utilitários ---
 import unicodedata
 def normalizar_nome(nome: str) -> str:
-    """Remove acentos e normaliza espaços para comparação."""
+    """Remove acentos, prefixos de tipo e normaliza espaços para comparação."""
+    if not nome: return ""
+    # Remove prefixos comuns do BOE PMPE
+    nome = re.sub(r'^(?:FISICA\s+PESSOA|JURIDICA\s+PESSOA|FISICA|JURIDICA):\s*', '', nome, flags=re.IGNORECASE)
     nfkd = unicodedata.normalize('NFKD', nome)
     sem_acentos = ''.join(c for c in nfkd if not unicodedata.combining(c))
     return re.sub(r'\s+', ' ', sem_acentos).strip().upper()
@@ -66,140 +69,58 @@ def remover_acentos(texto: str) -> str:
     return ''.join(c for c in nfkd if not unicodedata.combining(c))
 
 def _formatar_endereco(end_raw: str) -> str:
-    """Reformata endereço do BOE (separado por ;) para a ordem:
-    Rua, Número, Bairro, Cidade, Estado.
-    
-    Formato BOE típico: 
-    'RUA PEDRO IVO , 144; RUA PEDRO IVO, BORGES; 0; CENTRO; AFOGADOS DA INGAZEIRA; PERNAMBUCO; BRASIL; BAR DA SEPARACAO'
-    Ou: 'MUNICIPIO DE AFOGADOS DA INGAZEIRA, 97; RUA CLETO CAMPELO; 55000-000'
+    """Reformata endereço do BOE mantendo partes originais mas limpando pontuação.
+    Ex: 'RUA X ,99;CIDADE;PE' -> 'RUA X, 99; CIDADE/PE'
     """
-    # Separa por ;
+    if not end_raw: return ""
+    
+    # 1. Separa por ; e limpa cada parte
     partes = [p.strip() for p in end_raw.split(';') if p.strip()]
     
-    # Remove BRASIL, CEPs (00000-000 ou 55000-000) e zeros puros
-    limpo = []
-    for p in partes:
-        p_upper = p.upper().strip()
-        if p_upper == 'BRASIL':
-            continue
-        if re.match(r'^\d{5}-?\d{3}$', p_upper):
-            continue
-        if p_upper == '0' or p_upper == '00':
-            continue
-        # Remove estado por extenso se já temos cidade
-        limpo.append(p)
+    # 2. Mapa de estados para sigla
+    st_map = {
+        'ACRE':'AC','ALAGOAS':'AL','AMAPA':'AP','AMAPÁ':'AP','AMAZONAS':'AM','BAHIA':'BA',
+        'CEARA':'CE','CEARÁ':'CE','DISTRITO FEDERAL':'DF','ESPIRITO SANTO':'ES','ESPÍRITO SANTO':'ES',
+        'GOIAS':'GO','GOIÁS':'GO','MARANHAO':'MA','MARANHÃO':'MA','MATO GROSSO':'MT',
+        'MATO GROSSO DO SUL':'MS','MINAS GERAIS':'MG','PARA':'PA','PARÁ':'PA','PARAIBA':'PB',
+        'PARAÍBA':'PB','PARANA':'PR','PARANÁ':'PR','PERNAMBUCO':'PE','PIAUI':'PI','PIAUÍ':'PI',
+        'RIO DE JANEIRO':'RJ','RIO GRANDE DO NORTE':'RN','RIO GRANDE DO SUL':'RS',
+        'RONDONIA':'RO','RONDÔNIA':'RO','RORAIMA':'RR','SANTA CATARINA':'SC',
+        'SAO PAULO':'SP','SÃO PAULO':'SP','SERGIPE':'SE','TOCANTINS':'TO'
+    }
+    ufs = set(st_map.values())
     
-    if not limpo:
-        return end_raw
-    
-    # Mapa de estados para abreviação
-    st_map = {'ACRE':'AC','ALAGOAS':'AL','AMAPA':'AP','AMAPÁ':'AP','AMAZONAS':'AM','BAHIA':'BA',
-              'CEARA':'CE','CEARÁ':'CE','DISTRITO FEDERAL':'DF','ESPIRITO SANTO':'ES','ESPÍRITO SANTO':'ES',
-              'GOIAS':'GO','GOIÁS':'GO','MARANHAO':'MA','MARANHÃO':'MA','MATO GROSSO':'MT',
-              'MATO GROSSO DO SUL':'MS','MINAS GERAIS':'MG','PARA':'PA','PARÁ':'PA','PARAIBA':'PB',
-              'PARAÍBA':'PB','PARANA':'PR','PARANÁ':'PR','PERNAMBUCO':'PE','PIAUI':'PI','PIAUÍ':'PI',
-              'RIO DE JANEIRO':'RJ','RIO GRANDE DO NORTE':'RN','RIO GRANDE DO SUL':'RS',
-              'RONDONIA':'RO','RONDÔNIA':'RO','RORAIMA':'RR','SANTA CATARINA':'SC',
-              'SAO PAULO':'SP','SÃO PAULO':'SP','SERGIPE':'SE','TOCANTINS':'TO'}
-    
-    # Identifica o estado (se houver) e converte para sigla
-    estado_uf = ''
-    partes_sem_estado = []
-    for p in limpo:
-        p_upper = p.upper().strip()
-        if p_upper in st_map:
-            estado_uf = st_map[p_upper]
-        else:
-            partes_sem_estado.append(p)
-    
-    # Tenta identificar componentes do endereço
-    rua = ''
-    numero = ''
-    bairro = ''
-    cidade = ''
-    complemento = ''
-    referencia = ''
-    
-    for idx, p in enumerate(partes_sem_estado):
-        p_clean = p.strip()
-        p_upper = p_clean.upper()
+    # 3. Processa cada parte
+    final_parts = []
+    i = 0
+    while i < len(partes):
+        p = partes[i]
         
-        # Primeira parte geralmente é "RUA X, NUMERO" ou "MUNICIPIO DE X, NUMERO"
-        if idx == 0:
-            # Verifica se tem número embutido (ex: "RUA PEDRO IVO , 144" ou "MUNICIPIO DE X, 97")
-            m_rua_num = re.match(r'^(.+?)\s*,\s*(\d+)\s*$', p_clean)
-            if m_rua_num:
-                rua = m_rua_num.group(1).strip()
-                numero = m_rua_num.group(2).strip()
-                # Se começa com MUNICIPIO DE, é indicador de zona rural
-                if re.match(r'(?i)MUNICIPIO\s+DE\s+', rua):
-                    # Extrai a cidade do "MUNICIPIO DE X"
-                    m_mun = re.match(r'(?i)MUNICIPIO\s+DE\s+(.*)', rua)
-                    if m_mun:
-                        cidade = m_mun.group(1).strip()
-                        rua = ''  # Será preenchido pela próxima parte
-            else:
-                rua = p_clean
-        elif idx == 1:
-            # Pode ser repetição da rua (com complemento), bairro, ou nome do local
-            if not rua:
-                # Se rua ficou vazio (era MUNICIPIO DE), esta é a rua real
-                rua = p_clean
-            elif p_upper.startswith('RUA ') or p_upper.startswith('AV ') or p_upper.startswith('AVENIDA '):
-                # Repetição de rua com possível complemento - ignora se já temos
-                pass
-            else:
-                # Provavelmente é o bairro ou complemento
-                if not bairro:
-                    bairro = p_clean
-                else:
-                    complemento = p_clean
-        elif idx == 2:
-            if not bairro:
-                bairro = p_clean
-            elif not cidade:
-                cidade = p_clean
-            else:
-                referencia = p_clean
-        elif idx == 3:
-            if not cidade:
-                cidade = p_clean
-            else:
-                referencia = p_clean
-        else:
-            # Referências extras
-            if p_clean and p_upper not in ['NAO INFORMADO', 'NÃO INFORMADO']:
-                referencia = p_clean
-    
-    # Monta o endereço formatado: Rua, Número, Bairro, Cidade-UF
-    resultado = []
-    if rua:
-        # Limpa espaçamento extra do rua (ex: "RUA PEDRO IVO " -> "RUA PEDRO IVO")
-        rua = re.sub(r'\s+', ' ', rua).strip()
-        resultado.append(rua)
-    if numero and numero != '0' and numero != '00':
-        resultado.append(numero)
-    if bairro:
-        resultado.append(bairro)
-    if cidade:
-        if estado_uf:
-            resultado.append(f"{cidade}-{estado_uf}")
-        else:
-            resultado.append(cidade)
-    elif estado_uf:
-        resultado.append(estado_uf)
-    
-    if not resultado:
-        # Fallback: retorna original limpo
-        return ', '.join(partes_sem_estado)
-    
-    return ', '.join(resultado)
+        # Ajusta vírgula: "RUA X ,99" -> "RUA X, 99"
+        p = re.sub(r'\s*,\s*', ', ', p).strip()
+        
+        # Verifica se esta parte é cidade e a próxima é UF ou Estado por extenso
+        if i + 1 < len(partes):
+            prox_raw = partes[i+1].upper().strip()
+            # Converte para sigla se for nome completo
+            prox_uf = st_map.get(prox_raw, prox_raw)
+            
+            if prox_uf in ufs:
+                # Une Cidade/UF
+                p = f"{p}/{prox_uf}"
+                i += 1 # Pula a próxima parte (UF)
+        
+        final_parts.append(p)
+        i += 1
+        
+    # 4. Une por "; " (espaço após ponto e vírgula)
+    return "; ".join(final_parts)
 
 
 def parse_boe_python(texto: str) -> dict:
     import re
     dados = {
-        "boe": "", "ip": "", "natureza": "",
+        "boe": "", "boe_pm": "", "ip": "", "natureza": "",
         "delegado": "", "escrivao": "", "delegacia": "",
         "data_fato": "", "hora_fato": "", "end_fato": "",
         "vitimas": [], "autores": [], "testemunhas": [],
@@ -207,17 +128,46 @@ def parse_boe_python(texto: str) -> dict:
         "objetos_apreendidos": "", "envolvidos_detalhes": {}
     }
     
-    # Text cleaning
+    # 1. Identificação de Tipo de BO (PCPE vs PMPE) - DEVE SER ANTES DE QUALQUER LIMPEZA
+    is_pcpe = "INFOPOL" in texto.upper() or "POLICIA CIVIL" in texto.upper()
+    is_pmpe = ("POLICIA MILITAR" in texto.upper() or "SISBO" in texto.upper() or "2ª PARTE" in texto.upper() or "ENVOLVIDO Nº" in texto.upper()) and not is_pcpe
+
+    # 2. Text cleaning (Remoção de lixo de cabeçalho INFOPOL)
     texto = re.sub(r'\d{2}/\d{2}/\d{4},\s*\d{2}:\d{2}\s*\nSecretaria de Defesa Social\s*::\s*INFOPOL\s*\nhttps?://[^\n]+(?:\n\d+/\d+)?', '\n', texto, flags=re.IGNORECASE)
     
-    # BOE
-    m_boe = re.search(r'BOLETIM DE OCORRÊNCIA Nº:\s*(\d{10,})\b', texto, flags=re.IGNORECASE)
+    # 3. Extração de Números (BOE / BOPM)
+    m_boe = re.search(r'BOLETIM DE OCORRÊNCIA Nº:\s*(\d+[A-Z]\d+|\d{10,})\b', texto, flags=re.IGNORECASE)
     if not m_boe:
         m_boe = re.search(r'N[^\d]+(\d+[A-Z]\d+)', texto, flags=re.IGNORECASE)
     if not m_boe:
-        # Tenta achar o padrao puro do Boletim de Pernambuco (ex: 26E0257000953)
         m_boe = re.search(r'\b(\d{2,}[A-Z]\d{5,})\b', texto, flags=re.IGNORECASE)
-    if m_boe: dados["boe"] = m_boe.group(1).strip()
+    
+    if m_boe: 
+        val = m_boe.group(1).strip()
+        if is_pmpe:
+            dados["boe_pm"] = val
+            dados["boe"] = ""
+        else:
+            dados["boe"] = val
+    
+    # BO PM (Complementar ou Específico)
+    m_bopm = re.search(r'(?:Complementa o )?BO\s*(?:PM)?\s*Número:\s*([A-Z0-9/\-]+)', texto, flags=re.IGNORECASE)
+    if not m_bopm and is_pmpe:
+        m_bopm = re.search(r'\b(M-?\d{7,})\b', texto, flags=re.IGNORECASE)
+        
+    if m_bopm:
+        val_pm = m_bopm.group(1).strip()
+        if is_pmpe:
+            dados["boe_pm"] = val_pm
+            dados["boe"] = ""
+        else:
+            # Se for Civil, salvamos o número da PM para informação, 
+            # mas limpamos para o PHP não criar arquivo de cache duplicado
+            dados["boe_pm"] = "" 
+    
+    if is_pcpe:
+        # Garantia final: se é Civil, não deixa vazar número de PM para o cache
+        dados["boe_pm"] = ""
     
     # Natureza
     nats = re.findall(r'Natureza:(.*?)\nData:', texto, flags=re.DOTALL)
@@ -230,7 +180,9 @@ def parse_boe_python(texto: str) -> dict:
         dados["hora_fato"] = m_data.group(2).strip()
         
     m_end = re.search(r'Endereço do fato:(.*?)\nLocal do fato:', texto, flags=re.DOTALL)
-    if m_end: dados["end_fato"] = remover_acentos(m_end.group(1).strip().replace('\n', ' '))
+    if m_end: 
+        raw_end = m_end.group(1).strip().replace('\n', ' ')
+        dados["end_fato"] = _formatar_endereco(raw_end)
 
     bloco_envolvidos_idx = re.findall(r'Envolvidos:\s*\n(.*?)(?=\nObjetos:|\nNatureza:|\nCondutor da ocorrência:|\nEnvolvidos\s*\n)', texto, flags=re.DOTALL)
     papel_map = {}
@@ -253,17 +205,35 @@ def parse_boe_python(texto: str) -> dict:
     bloco_envolvidos = re.search(r'Envolvidos\s*\n(.*?)(?=\nObjetos\s*\n|\nComplemento\s*\n|\Z)', texto, flags=re.DOTALL)
     if bloco_envolvidos:
         txt_env = bloco_envolvidos.group(1)
-        pessoas_matches = list(re.finditer(r'^([A-ZÀ-ÿ\s]+?)\s+\([^()]*?\)\s*Sexo:', txt_env, flags=re.MULTILINE))
-        for i, match in enumerate(pessoas_matches):
-            nome_raw = remover_acentos(match.group(1).strip().upper())
-            start = match.end()
-            end = pessoas_matches[i+1].start() if i+1 < len(pessoas_matches) else len(txt_env)
-            ficha_raw = txt_env[start:end]
+        
+        # Branch para formato PMPE (ENVOLVIDO Nº X)
+        is_pmpe_pessoas = bool(re.search(r'\nENVOLVIDO Nº\s*\d+', '\n' + txt_env, re.IGNORECASE))
+        
+        pessoas_raw = []
+        if is_pmpe_pessoas:
+            parts = re.split(r'\n(?=ENVOLVIDO Nº\s*\d+)', '\n' + txt_env, flags=re.IGNORECASE)
+            for part in parts:
+                if not part.strip(): continue
+                # Tenta capturar o nome após "Pessoa:", garantindo que não pegue o "Tipo Pessoa:"
+                m_nome = re.search(r'(?<!Tipo\s)Pessoa:\s*([^\n]+)', part, re.IGNORECASE)
+                if m_nome:
+                    nome = m_nome.group(1).strip()
+                    # Se o nome capturado ainda começar com "FÍSICA " ou "JURÍDICA ", limpa
+                    nome = re.sub(r'^(?:FÍSICA|JURÍDICA|FISICA|JURIDICA)\s+Pessoa:\s*', '', nome, flags=re.IGNORECASE).strip()
+                    pessoas_raw.append((nome, part))
+        else:
+            pessoas_matches = list(re.finditer(r'^([A-ZÀ-ÿ\s]+?)\s+\([^()]*?\)\s*Sexo:', txt_env, flags=re.MULTILINE))
+            for i, match in enumerate(pessoas_matches):
+                nome = match.group(1).strip()
+                start = match.end()
+                end = pessoas_matches[i+1].start() if i+1 < len(pessoas_matches) else len(txt_env)
+                pessoas_raw.append((nome, txt_env[start:end]))
+
+        for nome_raw_match, ficha_raw in pessoas_raw:
+            nome_raw = remover_acentos(nome_raw_match.upper())
             
             # ✅ FIX: Unir linhas quebradas pelo PDF para evitar truncamento de campos
-            # O PDF quebra linhas no meio de frases. Juntamos linhas que continuam
-            # um campo (linha que NÃO começa com palavra-chave conhecida).
-            ficha = re.sub(r'\n(?!Mãe:|Pai:|Nascimento:|Naturalidade:|Documentos:|Estado\s+Civil:|Escolaridade:|Profissão:|Telefones?|Endereço|Características|Idade\s+aparente|Pessoa\s+com|[A-ZÀ-ÿ]{3,}[A-ZÀ-ÿ\s]+\([^()]*\)\s*Sexo:)', ' ', ficha_raw)
+            ficha = re.sub(r'\n(?!Mãe:|Pai:|Nascimento:|Data de Nascimento:|Naturalidade:|Documentos:|Estado\s+Civil:|Escolaridade:|Profissão:|Telefones?|Endereço|Características|Idade\s+aparente|Pessoa\s+com|[A-ZÀ-ÿ]{3,}[A-ZÀ-ÿ\s]+\([^()]*\)\s*Sexo:)', ' ', ficha_raw)
             
             p = {
                 "nome": nome_raw, "cpf": "", "rg": "", "nascimento": "", 
@@ -272,51 +242,59 @@ def parse_boe_python(texto: str) -> dict:
                 "alcunha": ""
             }
             
-            # Mãe: captura até o próximo campo (Pai:) ou fim de seção
-            m_mae = re.search(r'Mãe:\s*(.+?)(?=;\s*Pai:|Pai:|$)', ficha, re.IGNORECASE)
-            if m_mae: p['mae'] = re.sub(r'\s+', ' ', m_mae.group(1).strip().rstrip(';').strip())
+            # Mãe: captura até o próximo campo ou fim de seção
+            m_mae = re.search(r'Mãe:\s*([^;\n]+?)(?=;\s*Pai:|Pai:|\n|$)', ficha, re.IGNORECASE)
+            if m_mae: 
+                mae = re.sub(r'\s+', ' ', m_mae.group(1)).strip().rstrip(';').strip()
+                if mae.upper() not in ['NÃO INFORMADO', 'NAO INFORMADO', 'N/A']: p['mae'] = mae.upper()
             
-            # Pai: captura até o próximo campo (Nascimento:) ou fim de seção
-            m_pai = re.search(r'Pai:\s*(.+?)(?=;\s*Nascimento:|Nascimento:|$)', ficha, re.IGNORECASE)
-            if m_pai: p['pai'] = re.sub(r'\s+', ' ', m_pai.group(1).strip().rstrip(';').strip())
+            # Pai: captura até o próximo campo ou fim
+            m_pai = re.search(r'Pai:\s*([^;\n]+?)(?=;\s*Nascimento:|Nascimento:|\s*Data de Nascimento:|\n|$)', ficha, re.IGNORECASE)
+            if m_pai: 
+                pai = re.sub(r'\s+', ' ', m_pai.group(1)).strip().rstrip(';').strip()
+                if pai.upper() not in ['NÃO INFORMADO', 'NAO INFORMADO', 'N/A']: p['pai'] = pai.upper()
             
-            m_nasc = re.search(r'Nascimento:\s*([\d/]+)', ficha)
+            m_nasc = re.search(r'(?:Data de )?Nascimento:\s*([\d/]+)', ficha, re.IGNORECASE)
             if m_nasc: p['nascimento'] = m_nasc.group(1).strip()
             
-            # CPF: Extrair e FORMATAR como XXX.XXX.XXX-XX
+            # CPF: Extrair e FORMATAR
             m_cpf = re.search(r'(\d{11})\s*\(CPF\)', ficha)
+            if not m_cpf: m_cpf = re.search(r'CPF:\s*(\d{11})', ficha)
             if m_cpf:
                 cpf_raw = m_cpf.group(1).strip()
                 p['cpf'] = f"{cpf_raw[:3]}.{cpf_raw[3:6]}.{cpf_raw[6:9]}-{cpf_raw[9:]}"
             
             m_rg = re.search(r'([\d/]+[A-Za-z/]+)\s*\(RG\)', ficha)
-            if m_rg: p['rg'] = m_rg.group(1).strip()
+            if not m_rg: 
+                m_rg2 = re.search(r'RG:\s*([^\s]+)', ficha)
+                if m_rg2 and m_rg2.group(1) not in ['NÃO', 'NAO']: p['rg'] = m_rg2.group(1)
+            else: p['rg'] = m_rg.group(1).strip()
 
             # Alcunha/Apelido
             m_alc = re.search(r'Apelido:\s*([^;\n]+)', ficha, re.IGNORECASE)
             if m_alc:
-                alc = m_alc.group(1).strip()
-                if alc.upper() not in ['NAO INFORMADO', 'NÃO INFORMADO', '']:
+                alc = m_alc.group(1).strip().upper()
+                if alc not in ['NAO INFORMADO', 'NÃO INFORMADO', '']:
                     p['alcunha'] = alc
 
-            # Naturalidade: captura multi-linha (após join) até ;
-            m_natural = re.search(r'Naturalidade:\s*(.+?)(?=Documentos:|$)', ficha, re.IGNORECASE)
+            # Naturalidade:
+            # Naturalidade:
+            m_natural = re.search(r'Naturalidade:\s*([^;\n]+?)(?=Documentos:|Estado\s+Civil:|\n|$)', ficha, re.IGNORECASE)
             if m_natural:
-                nat_raw = m_natural.group(1).strip().rstrip(';').strip()
-                nat_parts = [x.strip() for x in nat_raw.split('/') if x.strip() and x.strip() != 'BRASIL']
+                nat_raw = m_natural.group(1).strip().rstrip(';').strip().upper()
+                # Tenta separar por / ou apenas pegar o valor se for único
+                nat_parts = [x.strip() for x in re.split(r'[/;]', nat_raw) if x.strip() and x.strip() != 'BRASIL']
                 if len(nat_parts) >= 2:
                     city = nat_parts[0]
-                    state = nat_parts[1].upper()
+                    state = nat_parts[1]
                     st_map = {'ACRE':'AC','ALAGOAS':'AL','AMAPA':'AP','AMAPÁ':'AP','AMAZONAS':'AM','BAHIA':'BA','CEARA':'CE','CEARÁ':'CE','DISTRITO FEDERAL':'DF','ESPIRITO SANTO':'ES','ESPÍRITO SANTO':'ES','GOIAS':'GO','GOIÁS':'GO','MARANHAO':'MA','MARANHÃO':'MA','MATO GROSSO':'MT','MATO GROSSO DO SUL':'MS','MINAS GERAIS':'MG','PARA':'PA','PARÁ':'PA','PARAIBA':'PB','PARAÍBA':'PB','PARANA':'PR','PARANÁ':'PR','PERNAMBUCO':'PE','PIAUI':'PI','PIAUÍ':'PI','RIO DE JANEIRO':'RJ','RIO GRANDE DO NORTE':'RN','RIO GRANDE DO SUL':'RS','RONDONIA':'RO','RONDÔNIA':'RO','RORAIMA':'RR','SANTA CATARINA':'SC','SAO PAULO':'SP','SÃO PAULO':'SP','SERGIPE':'SE','TOCANTINS':'TO'}
-                    if city in ['NÃO INFORMADO', 'NAO INFORMADO']:
-                        p['naturalidade'] = 'NAO INFORMADO'
-                    else:
+                    if city not in ['NÃO INFORMADO', 'NAO INFORMADO']:
                         uf = st_map.get(state, state)
-                        p['naturalidade'] = f"{city}-{uf}"
+                        p['naturalidade'] = f"{city} / {uf}"
                 elif len(nat_parts) == 1:
                     val = nat_parts[0]
-                    if val.upper() not in ['NAO', 'NÃO']:
-                        p['naturalidade'] = val
+                    if val not in ['NAO', 'NÃO', 'NÃO INFORMADO', 'NAO INFORMADO']:
+                        p['naturalidade'] = f"{val} / NÃO INFORMADO"
             
             # Profissão: captura até Telefones ou fim de seção
             m_prof = re.search(r'Profissão:\s*(.+?)(?=Telefones|$)', ficha, re.IGNORECASE)
@@ -372,7 +350,8 @@ def parse_boe_python(texto: str) -> dict:
             # ✅ FIX: Endereço — Captura multi-linha e reformata na ordem:
             # Rua, Número, Bairro, Cidade, Estado
             enderecos = []
-            for m_end in re.finditer(r'Endere[çc]o\s+(?:Residencial|Comercial):\s*(.+?)(?=\nEndere[çc]o|\n[A-ZÀ-ÿ]{3,}[A-ZÀ-ÿ\s]+\([^()]*\)|Características|$)', ficha_raw, re.IGNORECASE | re.DOTALL):
+            # Ajustado para pegar "Endereço:" puro (comum no BO PM) ou Residencial/Comercial
+            for m_end in re.finditer(r'Endere[çc]o\s*(?::|Residencial:|Comercial:)\s*(.+?)(?=\nEndere[çc]o|\nDados\s+Profissionais|\n[A-ZÀ-ÿ]{3,}[A-ZÀ-ÿ\s]+\([^()]*\)|Caracter[ií]sticas|$)', ficha_raw, re.IGNORECASE | re.DOTALL):
                 end_raw = m_end.group(1).strip()
                 # Junta linhas quebradas numa só
                 end_raw = re.sub(r'\s*\n\s*', ' ', end_raw).strip()
@@ -434,87 +413,265 @@ def parse_boe_python(texto: str) -> dict:
             dados['condutor'].append(condutor_nome)
 
     # --- NOVO: Extração de Objetos (Veículos e Celulares) ---
-    # Regex relaxada para capturar o bloco de objetos mesmo com variações de quebra de linha ou símbolos
-    bloco_objetos = re.search(r'Objetos:?\s*[\r\n]+(.*?)(?=[\r\n]+(?:Complemento|Dados Complementares|Histórico|Narrativa|Condutor da ocorrência:|Dados da ocorrência:)|$)', texto, flags=re.DOTALL | re.IGNORECASE)
+    bloco_objetos = re.search(r'Objetos\s*\n(.*?)(?=\nComplemento|\nDados Complementares|\nHistórico|\nNarrativa|\nCondutor da ocorrência:|\Z)', texto, flags=re.DOTALL | re.IGNORECASE)
     if bloco_objetos:
         txt_obj = bloco_objetos.group(1)
-        # Identifica cada item (VEICULO, CELULAR, etc)
-        # O cabeçalho costuma ser algo como "NOME DO OBJETO (CATEGORIA)"
-        # Melhoria: Split mais flexível que não exige quebra de linha após a categoria
-        itens = re.split(r'[\r\n]+(?=[A-ZÀ-ÿ0-9/.\-\s]{3,} \([^()]+\))', "\n" + txt_obj)
-        
         obj_list_text = []
-        for item in itens:
-            item = item.strip()
-            if not item: continue
-            
-            # Pega o cabeçalho do item
-            m_header = re.match(r'^([A-ZÀ-ÿ0-9/.\-\s]+) \(([^()]+)\)', item, re.IGNORECASE)
-            if not m_header: continue
-            
-            nome_obj = m_header.group(1).strip().upper()
-            categoria = m_header.group(2).strip().upper()
-            obj_list_text.append(f"{nome_obj} ({categoria})")
-            
-            # --- Se for VEICULO ---
-            if 'VEICULO' in categoria or 'VEÍCULO' in categoria or 'VEICULO' in nome_obj:
-                v = {"marca_modelo": "", "placa": "", "chassi": "", "cor": ""}
-                
-                # Marca/Modelo (Suporta Categoria/Marca/Modelo ou apenas Marca/Modelo)
-                m_v_mod = re.search(r'(?:Marca/Modelo|Modelo):\s*([^\n\r]+)', item, re.IGNORECASE)
-                if m_v_mod: 
-                    v['marca_modelo'] = m_v_mod.group(1).replace('NÃO INFORMADO', '').strip(' /').strip()
-                else: 
-                    # Tenta pegar do próprio nome do objeto se não achou label específica
-                    v['marca_modelo'] = nome_obj
-                
-                # Cor
-                m_v_cor = re.search(r'Cor(?:\s*Predominante)?:\s*([A-ZÀ-ÿ\s]+?)(?=[\r\n]|$)', item, re.IGNORECASE)
-                if m_v_cor: v['cor'] = m_v_cor.group(1).strip()
-                
-                # Placa (suporta modelos novos Mercosul ou antigos)
-                m_v_placa = re.search(r'Placa:\s*([A-Z0-9\-\s]{7,8})', item, re.IGNORECASE)
-                if m_v_placa: 
-                    v['placa'] = re.sub(r'[^A-Z0-9]', '', m_v_placa.group(1).upper()).strip()
-                
-                # Chassi
-                m_v_chassi = re.search(r'Chassi:\s*([A-Z0-9]{17})', item, re.IGNORECASE)
-                if m_v_chassi: v['chassi'] = m_v_chassi.group(1).strip()
-                
-                if v['placa'] or v['marca_modelo'] or v['chassi']:
-                    if v['marca_modelo'] == 'NÃO INFORMADO': v['marca_modelo'] = nome_obj
-                    dados['veiculos'].append(v)
 
-            # --- Se for CELULAR ---
-            elif 'TELEF' in categoria or 'CELULAR' in categoria or 'CELULAR' in nome_obj:
-                c = {"marca_modelo": nome_obj, "imei1": "", "imei2": ""}
+        # Detecta se é o formato PMPE (OBJETO Nº X) ou PCPE (NOME (CATEGORIA))
+        is_pmpe = bool(re.search(r'\nOBJETO Nº\s*\d+', '\n' + txt_obj, re.IGNORECASE))
+
+        if is_pmpe:
+            # Separar por OBJETO Nº
+            itens = re.split(r'\n(?=OBJETO Nº\s*\d+)', '\n' + txt_obj, flags=re.IGNORECASE)
+            
+            for item in itens:
+                item = item.strip()
+                if not item: continue
                 
-                # Busca por IMEIs (15 dígitos)
+                m_tipo = re.search(r'Tipo do Objeto:\s*([^\n]+)', item, re.IGNORECASE)
+                m_cat = re.search(r'Categoria do Objeto:\s*([^\n]+)', item, re.IGNORECASE)
+                
+                if not m_tipo: continue
+                
+                nome_obj = m_tipo.group(1).strip().upper()
+                categoria = m_cat.group(1).strip().upper() if m_cat else "NÃO INFORMADO"
+                
+                detalhes = []
+                
+                m_marca = re.search(r'Marca:\s*(.*?)(?=\s*Modelo:|\s*Cor:|\n|\Z)', item, re.IGNORECASE)
+                m_modelo = re.search(r'Modelo:\s*(.*?)(?=\s*Cor:|\n|\Z)', item, re.IGNORECASE)
+                m_cor = re.search(r'Cor:\s*(.*?)(?=\s*Caracter[ií]sticas|\n|\Z)', item, re.IGNORECASE)
+                
+                marca = m_marca.group(1).strip() if m_marca else ""
+                modelo = m_modelo.group(1).strip() if m_modelo else ""
+                cor = m_cor.group(1).strip() if m_cor else ""
+                
+                # Monta a Categoria/Marca/Modelo equivalente ao PCPE
+                marca_modelo_parts = []
+                if marca and 'NÃO' not in marca.upper() and 'NAO' not in marca.upper(): marca_modelo_parts.append(marca)
+                if modelo and 'NÃO' not in modelo.upper() and 'NAO' not in modelo.upper(): marca_modelo_parts.append(modelo)
+                marca_modelo_val = " ".join(marca_modelo_parts)
+                if marca_modelo_val:
+                    detalhes.append(f"Mod: {marca_modelo_val}")
+                
+                if cor and 'NÃO' not in cor.upper() and 'NAO' not in cor.upper():
+                    detalhes.append(f"Cor: {cor}")
+
+                # Para celular extra
+                c = {"marca_modelo": marca_modelo_val or nome_obj, "imei1": "", "imei2": "", "proprietario": ""}
+                
+                # Extrai IMEIs usando Regex
                 imeis = re.findall(r'\b(\d{15})\b', item)
-                if len(imeis) >= 1: c['imei1'] = imeis[0]
-                if len(imeis) >= 2: c['imei2'] = imeis[1]
                 
-                # Se não achou na busca global, tenta label específica
-                if not c['imei1']:
-                    m_imei = re.search(r'IMEI\s*\d?:\s*(\d{15})', item, re.IGNORECASE)
-                    if m_imei: c['imei1'] = m_imei.group(1)
+                imei1_m = re.search(r'Imei 1:\s*(\d{15})', item, re.IGNORECASE)
+                imei2_m = re.search(r'Imei 2:\s*(\d{15})', item, re.IGNORECASE)
                 
-                dados['celulares'].append(c)
+                if imei1_m: c['imei1'] = imei1_m.group(1)
+                elif len(imeis) >= 1: c['imei1'] = imeis[0]
+                
+                if imei2_m: c['imei2'] = imei2_m.group(1)
+                elif len(imeis) >= 2: c['imei2'] = imeis[1]
+
+                m_serie = re.search(r'N[úu]mero de S[ée]rie:\s*(.*?)(?=\s*Objeto Apreendido|\n|\Z)', item, re.IGNORECASE)
+                if m_serie:
+                    serie_val = m_serie.group(1).strip()
+                    if serie_val and 'NÃO' not in serie_val.upper() and 'NAO' not in serie_val.upper():
+                        detalhes.append(f"Série: {serie_val}")
+                        if not c['imei1']: c['imei1'] = serie_val
+                
+                m_carac = re.search(r'Caracter[ií]sticas\s*(?:Adicionais)?:\s*(.*?)(?=\s*Quantidade:|\nImei|\n|\Z)', item, re.IGNORECASE | re.DOTALL)
+                if m_carac:
+                    carac_val = re.sub(r'\s+', ' ', m_carac.group(1)).strip()
+                    if carac_val and 'NÃO' not in carac_val.upper() and 'NAO' not in carac_val.upper():
+                        detalhes.append(f"Desc: {carac_val}")
+                
+                m_qtd = re.search(r'Quantidade:\s*([^\n]+)', item, re.IGNORECASE)
+                if m_qtd:
+                    qtd_val = m_qtd.group(1).strip()
+                    if qtd_val and 'NÃO' not in qtd_val.upper() and 'NAO' not in qtd_val.upper():
+                        detalhes.append(f"Qtd: {qtd_val}")
+
+                is_celular = 'TELEF' in categoria or 'CELULAR' in categoria or 'CELULAR' in nome_obj
+                if is_celular:
+                    if c['imei1'] and 'Série:' not in ''.join(detalhes): detalhes.append(f"IMEI1: {c['imei1']}")
+                    if c['imei2']: detalhes.append(f"IMEI2: {c['imei2']}")
+                    dados['celulares'].append(c)
+                elif 'VEIC' in categoria or 'VEÍC' in categoria or 'VEIC' in nome_obj or 'AUTOM' in categoria or 'MOTO' in categoria:
+                    # Veiculo PM - tenta placa e chassi no bloco
+                    v = {"marca_modelo": marca_modelo_val, "placa": "", "chassi": "", "cor": cor, "proprietario": ""}
+                    
+                    m_v_placa = re.search(r'Placa\s*[:\-]?\s*([A-Z]{3}[-\s]?[0-9][A-Z0-9][0-9]{2}|[A-Z]{3}[-\s]?[0-9]{4})\b', item, re.IGNORECASE)
+                    if m_v_placa: v['placa'] = re.sub(r'[\-\s]', '', m_v_placa.group(1).upper()).strip()
+                    
+                    m_v_chassi = re.search(r'Chassi\s*[:\-]?\s*([A-Z0-9]{17})\b', item, re.IGNORECASE)
+                    if m_v_chassi: v['chassi'] = m_v_chassi.group(1).upper().strip()
+                    
+                    if v['placa']: detalhes.append(f"Placa: {v['placa']}")
+                    if v['chassi']: detalhes.append(f"Chassi: {v['chassi']}")
+                    
+                    dados['veiculos'].append(v)
+                
+                desc = f"{nome_obj} ({categoria})"
+                if detalhes:
+                    desc += " - " + ", ".join(detalhes)
+                obj_list_text.append(desc)
+
+        else:
+            # Lógica PCPE
+            itens = re.split(r'\n(?=[^:\n]+ \([^()\n]+\)\n)', "\n" + txt_obj)
+            if len(itens) <= 2 and not txt_obj.startswith('\n'):
+                 itens = re.split(r'(?<=\n)(?=[^:\n]+ \([^()\n]+\)(?:\s|$))', txt_obj)
+            
+            for item in itens:
+                item = item.strip()
+                if not item: continue
+                
+                # Pega o cabeçalho do item (suportando espaços bagunçados)
+                m_header = re.match(r'^([A-ZÀ-ÿ0-9/.\-\s]+?)\s*\(([^()]+)\)', item, re.IGNORECASE)
+                if not m_header: continue
+                
+                nome_obj = m_header.group(1).strip().upper()
+                categoria = m_header.group(2).strip().upper()
+                
+                # --- Se for VEICULO ---
+                if 'VEICULO' in categoria or 'VEÍCULO' in categoria or 'VEICULO' in nome_obj:
+                    v = {"marca_modelo": "", "placa": "", "chassi": "", "cor": "", "proprietario": ""}
+                    
+                    # Marca/Modelo
+                    m_v_mod = re.search(r'Categoria/Marca/Modelo:\s*(.*?)(?=\s*(?:\n|Cor:|Placa:|Chassi:|Propriet[aá]rio|Condutor|Respons[aá]vel|-|\/|\Z))', item, re.IGNORECASE | re.DOTALL)
+                    if m_v_mod: 
+                        mod_raw = m_v_mod.group(1).replace('NÃO INFORMADO', '').strip(' /').strip()
+                        v['marca_modelo'] = re.sub(r'\s+', ' ', mod_raw)
+                    
+                    m_v_cor = re.search(r'Cor:\s*([A-ZÀ-ÿ]+)', item, re.IGNORECASE)
+                    if m_v_cor: v['cor'] = m_v_cor.group(1).strip()
+                    
+                    m_v_placa = re.search(r'Placa\s*[:\-]?\s*([A-Z]{3}[-\s]?[0-9][A-Z0-9][0-9]{2}|[A-Z]{3}[-\s]?[0-9]{4})\b', item, re.IGNORECASE)
+                    if not m_v_placa: m_v_placa = re.search(r'\b([A-Z]{3}[-\s]?[0-9][A-Z0-9][0-9]{2}|[A-Z]{3}[-\s]?[0-9]{4})\b', item, re.IGNORECASE)
+                    if m_v_placa: v['placa'] = re.sub(r'[\-\s]', '', m_v_placa.group(1).upper()).strip()
+                    
+                    m_v_chassi = re.search(r'Chassi\s*[:\-]?\s*([A-Z0-9]{17})\b', item, re.IGNORECASE)
+                    if not m_v_chassi: m_v_chassi = re.search(r'\b([A-Z0-9]{17})\b', item, re.IGNORECASE)
+                    if m_v_chassi: v['chassi'] = m_v_chassi.group(1).upper().strip()
+    
+                    m_v_prop = re.search(r'(?:Propriet[aá]rio|Proprietario|Condutor|Respons[aá]vel|Em\s+nome\s+de|Vinculado\s+a|Pertencente\s+a)\s*:\s*([^\n;]+)', item, re.IGNORECASE)
+                    if m_v_prop:
+                        prop_raw = m_v_prop.group(1).strip()
+                        prop_raw = re.split(r'\b(?:CPF|RG|NASCIMENTO|ENDERECO|ENDEREÇO|MAE|MÃE|PAI)\b', prop_raw, flags=re.IGNORECASE)[0].strip()
+                        prop_raw = re.sub(r'\s*\([^)]*\)\s*$', '', prop_raw).strip()
+                        prop_raw = re.sub(r'[^A-ZÀ-ÿ\s]', ' ', prop_raw, flags=re.IGNORECASE)
+                        prop_raw = re.sub(r'\s+', ' ', prop_raw).strip()
+                        prop_raw = remover_acentos(prop_raw).upper()
+                        if prop_raw and prop_raw not in ['NAO INFORMADO', 'NÃO INFORMADO', 'N/A']:
+                            v['proprietario'] = prop_raw
+                    
+                    detalhes = []
+                    if v['marca_modelo']: detalhes.append(f"Marca/Modelo: {v['marca_modelo']}")
+                    if v['placa']: detalhes.append(f"Placa: {v['placa']}")
+                    if v['chassi']: detalhes.append(f"Chassi: {v['chassi']}")
+                    if v['cor']: detalhes.append(f"Cor: {v['cor']}")
+                    
+                    desc = f"{nome_obj} ({categoria})"
+                    if detalhes:
+                        desc += " - " + ", ".join(detalhes)
+                    obj_list_text.append(desc)
+    
+                    if v['placa'] or v['marca_modelo'] or v['chassi']:
+                        dados['veiculos'].append(v)
+    
+                # --- Se for CELULAR ---
+                elif 'TELEF' in categoria or 'CELULAR' in categoria or 'CELULAR' in nome_obj:
+                    c = {"marca_modelo": nome_obj, "imei1": "", "imei2": "", "proprietario": ""}
+                    
+                    # Busca por IMEIs (15 dígitos)
+                    imeis = re.findall(r'\b(\d{15})\b', item)
+                    if len(imeis) >= 1: c['imei1'] = imeis[0]
+                    if len(imeis) >= 2: c['imei2'] = imeis[1]
+                    
+                    if not c['imei1']:
+                        m_imei = re.search(r'IMEI\s*\d?:\s*(\d{15})', item, re.IGNORECASE)
+                        if m_imei: c['imei1'] = m_imei.group(1)
+    
+                    m_c_prop = re.search(r'(?:Propriet[aá]rio|Proprietario|Condutor|Respons[aá]vel|Em\s+nome\s+de|Vinculado\s+a|Pertencente\s+a)\s*:\s*([^\n;]+)', item, re.IGNORECASE)
+                    if m_c_prop:
+                        prop_raw = m_c_prop.group(1).strip()
+                        prop_raw = re.split(r'\b(?:CPF|RG|NASCIMENTO|ENDERECO|ENDEREÇO|MAE|MÃE|PAI)\b', prop_raw, flags=re.IGNORECASE)[0].strip()
+                        prop_raw = re.sub(r'\s*\([^)]*\)\s*$', '', prop_raw).strip()
+                        prop_raw = re.sub(r'[^A-ZÀ-ÿ\s]', ' ', prop_raw, flags=re.IGNORECASE)
+                        prop_raw = re.sub(r'\s+', ' ', prop_raw).strip()
+                        prop_raw = remover_acentos(prop_raw).upper()
+                        if prop_raw and prop_raw not in ['NAO INFORMADO', 'NÃO INFORMADO', 'N/A']:
+                            c['proprietario'] = prop_raw
+                    
+                    detalhes = []
+                    m_cat = re.search(r'Categoria/Marca/Modelo:\s*([^\n-]+)', item, re.IGNORECASE)
+                    if m_cat:
+                        cat_val = m_cat.group(1).replace('NÃO INFORMADO', '').replace('NAO INFORMADO', '').strip(' /').strip()
+                        if cat_val:
+                            detalhes.append(f"Mod: {cat_val}")
+                            c['marca_modelo'] = cat_val
+    
+                    m_desc = re.search(r'Descri[çc][ãa]o:\s*(.*?)(?=\s*N[úu]mero de S[ée]rie|Cor|Quantidade|Valor Unit[áa]rio|\Z)', item, re.IGNORECASE | re.DOTALL)
+                    if m_desc:
+                        desc_val = re.sub(r'\s+', ' ', m_desc.group(1)).strip()
+                        if desc_val and 'NÃO INFORMADO' not in desc_val.upper():
+                            detalhes.append(f"Desc: {desc_val}")
+    
+                    m_serie = re.search(r'N[úu]mero de S[ée]rie:\s*(.*?)(?=\s*Cor|Quantidade|Valor Unit[áa]rio|\n|\Z)', item, re.IGNORECASE)
+                    serie_val = ""
+                    if m_serie:
+                        serie_val = re.sub(r'\s+', ' ', m_serie.group(1)).strip()
+                        if serie_val and 'NÃO INFORMADO' not in serie_val.upper() and 'NAO INFORMADO' not in serie_val.upper():
+                            detalhes.append(f"Série: {serie_val}")
+                            if not c['imei1']:
+                                # Se não achou IMEI pela regex de 15 dígitos, usa o que tiver em Número de Série
+                                c['imei1'] = serie_val
+    
+                    if c['imei1'] and 'Série:' not in ''.join(detalhes): detalhes.append(f"IMEI1: {c['imei1']}")
+                    if c['imei2']: detalhes.append(f"IMEI2: {c['imei2']}")
+                    
+                    desc = f"{nome_obj} ({categoria})"
+                    if detalhes:
+                        desc += " - " + ", ".join(detalhes)
+                    obj_list_text.append(desc)
+    
+                    dados['celulares'].append(c)
+                
+                else:
+                    detalhes = []
+                    m_cat = re.search(r'Categoria/Marca/Modelo:\s*([^\n-]+)', item, re.IGNORECASE)
+                    if m_cat:
+                        cat_val = m_cat.group(1).replace('NÃO INFORMADO', '').replace('NAO INFORMADO', '').strip(' /').strip()
+                        if cat_val:
+                            detalhes.append(f"Mod: {cat_val}")
+                    
+                    m_desc = re.search(r'Descri[çc][ãa]o:\s*(.*?)(?=\s*N[úu]mero de S[ée]rie|Cor|Quantidade|Valor Unit[áa]rio|\Z)', item, re.IGNORECASE | re.DOTALL)
+                    if m_desc:
+                        desc_val = re.sub(r'\s+', ' ', m_desc.group(1)).strip()
+                        if desc_val and 'NÃO INFORMADO' not in desc_val.upper():
+                            detalhes.append(f"Desc: {desc_val}")
+    
+                    m_serie = re.search(r'N[úu]mero de S[ée]rie:\s*(.*?)(?=\s*Cor|Quantidade|Valor Unit[áa]rio|\n|\Z)', item, re.IGNORECASE)
+                    if m_serie:
+                        serie_val = re.sub(r'\s+', ' ', m_serie.group(1)).strip()
+                        if serie_val and 'NÃO INFORMADO' not in serie_val.upper() and 'NAO INFORMADO' not in serie_val.upper():
+                            detalhes.append(f"Série: {serie_val}")
+    
+                    m_qtd = re.search(r'Quantidade:\s*([^\n]+?)(?=\s*Valor Unit[áa]rio|\n|\Z)', item, re.IGNORECASE)
+                    if m_qtd:
+                        qtd_val = m_qtd.group(1).replace('UNIDADE NÃO INFORMADA', '').replace('UNIDADE NAO INFORMADA', '').strip(' ()').strip()
+                        if qtd_val and qtd_val.upper() not in ['NAO INFORMADO', 'NÃO INFORMADO', 'UNIDADE NAO INFORMADA']:
+                            detalhes.append(f"Qtd: {qtd_val}")
+    
+                    desc = f"{nome_obj} ({categoria})"
+                    if detalhes:
+                        desc += " - " + ", ".join(detalhes)
+    
+                    obj_list_text.append(desc)
 
         if obj_list_text:
-            dados['objetos_apreendidos'] = " / ".join(obj_list_text)
-
-    # --- FALLBACK: Se não detectou veículos na seção Objetos, busca no texto todo se a natureza sugerir ---
-    natureza_full = (dados['natureza'] or '').upper()
-    if not dados['veiculos'] and ('VEICULO' in natureza_full or 'VEÍCULO' in natureza_full or 'AUTO' in natureza_full):
-        # Busca placa no formato Mercosul ou antigo em qualquer lugar
-        placas_soltas = re.findall(r'Placa:\s*([A-Z]{3}[0-9][A-Z0-9][0-9]{2})', texto, re.I)
-        for p in placas_soltas:
-            p_upper = p.upper()
-            if not any(v['placa'] == p_upper for v in dados['veiculos']):
-                dados['veiculos'].append({"marca_modelo": "VEÍCULO DETECTADO (NATUREZA)", "placa": p_upper, "chassi": "", "cor": ""})
-                if "VEÍCULO" not in (dados['objetos_apreendidos'] or ''):
-                    dados['objetos_apreendidos'] = (dados['objetos_apreendidos'] or "") + (" / " if dados['objetos_apreendidos'] else "") + "VEÍCULO (DETECTADO)"
+            dados['objetos_apreendidos'] = "\n".join(obj_list_text)
 
     # Deduplicacao e Filtragem de Categorias (Hierarquia: Autores > Vitimas > Condutor > Testemunhas > Outros)
     for k in ['autores', 'vitimas', 'condutor', 'testemunhas', 'outros']:
@@ -529,6 +686,20 @@ def parse_boe_python(texto: str) -> dict:
     dados['condutor'] = remove_from_list(dados['condutor'], [dados['autores'], dados['vitimas']])
     dados['testemunhas'] = remove_from_list(dados['testemunhas'], [dados['autores'], dados['vitimas'], dados['condutor']])
     dados['outros'] = remove_from_list(dados['outros'], [dados['autores'], dados['vitimas'], dados['condutor'], dados['testemunhas']])
+
+    proprietario_padrao = ''
+    for k in ['autores', 'condutor', 'vitimas', 'testemunhas', 'outros']:
+        if dados.get(k) and len(dados[k]) > 0:
+            proprietario_padrao = dados[k][0]
+            break
+
+    if proprietario_padrao:
+        for v in dados.get('veiculos', []):
+            if isinstance(v, dict) and not v.get('proprietario'):
+                v['proprietario'] = proprietario_padrao
+        for c in dados.get('celulares', []):
+            if isinstance(c, dict) and not c.get('proprietario'):
+                c['proprietario'] = proprietario_padrao
 
     # Validacao de Sucesso Inicial
     has_boe = bool(dados["boe"])
@@ -610,17 +781,55 @@ def ler_arquivo(file_path: str, clean_mode: bool = True) -> str:
 
 # --- Chamadas de IA ---
 def get_prompt(texto):
-    return f"""Extraia do BOE e retorne APENAS um JSON:
+    return f"""Extraia todos os dados deste Boletim de Ocorrência (BOE) e retorne APENAS um JSON válido.
+
+IMPORTANTE SOBRE OBJETOS APREENDIDOS:
+1. Localize a seção "Objetos" e extraia TODOS os itens listados. 
+2. NÃO resuma nem agrupe itens diferentes.
+3. Para cada objeto, inclua: [Tipo/Nome] - Marca: [Marca], Mod: [Modelo], Cor: [Cor], Qtd: [Quantidade], Desc: [Descrição completa].
+4. Se for um celular, inclua também o IMEI ou Número de Série na descrição.
+5. Separe cada objeto por uma quebra de linha (\\n) dentro da string "objetos_apreendidos".
+
+ESTRUTURA DO JSON:
 {{
-  "boe": "numero", "ip": "numero", "delegado": "nome", "escrivao": "nome", "delegacia": "nome", "data_fato": "data", "hora_fato": "hora", "end_fato": "endereco", "natureza": "texto",
-  "objetos_apreendidos": "lista com \\n",
-  "vitimas": [], "autores": [], "testemunhas": [], "condutor": [], "outros": [],
+  "boe": "número completo",
+  "ip": "número do procedimento se houver",
+  "delegado": "nome",
+  "escrivao": "nome",
+  "delegacia": "nome da unidade",
+  "data_fato": "DD/MM/AAAA",
+  "hora_fato": "HH:MM",
+  "end_fato": "endereço completo formatado",
+  "natureza": "todas as naturezas separadas por /",
+  "objetos_apreendidos": "Item 1\\nItem 2\\nItem 3...",
+  "vitimas": ["NOME 1", "NOME 2"],
+  "autores": ["NOME 1", "NOME 2"],
+  "testemunhas": ["NOME 1"],
+  "condutor": ["NOME"],
+  "outros": [],
   "veiculos": [{{"marca_modelo": "", "placa": "", "chassi": "", "cor": ""}}],
   "celulares": [{{"marca_modelo": "", "imei1": "", "imei2": ""}}],
-  "envolvidos_detalhes": {{ "NOME": {{nome, cpf, rg, nascimento, mae, pai, profissao, endereco}} }}
+  "envolvidos_detalhes": {{
+     "NOME COMPLETO": {{
+        "nome": "NOME COMPLETO",
+        "cpf": "000.000.000-00",
+        "rg": "0000000/SDS/PE",
+        "nascimento": "DD/MM/AAAA",
+        "mae": "NOME DA MÃE",
+        "pai": "NOME DO PAI",
+        "profissao": "CARGO",
+        "endereco": "ENDEREÇO COMPLETO"
+     }}
+  }}
 }}
-IMPORTANTE: JAMAIS extraia o policial que registrou o BO.
-TEXTO: {texto}"""
+
+REGRAS ADICIONAIS:
+- JAMAIS extraia o nome do policial que apenas registrou o BO no sistema.
+- Se um campo não for encontrado, deixe-o vazio ("").
+- Mantenha os nomes em CAIXA ALTA.
+
+TEXTO DO BOE:
+{texto}"""
 
 # --- Lógica de Chamada (Apenas DeepSeek) ---
 def call_deepseek(texto, api_key):
@@ -696,9 +905,6 @@ if __name__ == "__main__":
     deepseek_key = config['deepseek_key']
     gemini_key = config['gemini_keys'][0] if config['gemini_keys'] else None
 
-    if not deepseek_key and not gemini_key:
-        fallback_json("Nenhuma chave de IA (GEMINI_API_KEY ou DEEPSEEK_API_KEY) foi configurada.")
-
     # TENTA COMPLETAMENTE VIA PYTHON PRIMEIRO (Custo Zero)
     texto_raw_original = ler_arquivo(args.file_path, clean_mode=False) 
     
@@ -712,6 +918,9 @@ if __name__ == "__main__":
     # MODO RÁPIDO (Padrão): Retorna resultado do Python IMEDIATAMENTE
     # A IA só é acionada se BOE_USE_AI=true estiver no .env (desligado por padrão)
     use_ai = os.environ.get('BOE_USE_AI', '').lower() == 'true'
+    if use_ai and not deepseek_key and not gemini_key:
+        sys.stderr.write("[BOE-IA] BOE_USE_AI=true, mas nenhuma chave (GEMINI/DEEPSEEK) foi configurada. IA desativada.\n")
+        use_ai = False
     
     if success_py:
         # Python extraiu tudo com sucesso → retorna instantâneo
@@ -741,4 +950,3 @@ if __name__ == "__main__":
         with open("/tmp/debug_boe_trace.json", "w", encoding="utf-8") as ft:
             ft.write(json.dumps({"fonte": "PYTHON" if success_py else ("IA_DEEPSEEK" if use_ai else "PYTHON_PARCIAL"), "success_py": success_py, "dados": py_data}, ensure_ascii=False))
     except: pass
-

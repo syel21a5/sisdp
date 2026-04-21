@@ -156,14 +156,18 @@ class PromptGeneratorController extends Controller
     {
         $boeLimpo = preg_replace('/[^A-Za-z0-9]/', '', $boe);
 
-        // Procura em TODOS os tipos de cache (apfd e ia)
+        // Procura em TODOS os tipos de cache (apfd e ia) e prefixos
         $sufixos = ['apfd', 'ia'];
+        $prefixos = ['boe_pcpe_', 'boe_pm_', 'boe_'];
+        
         foreach ($sufixos as $sufixo) {
-            $cacheFile = storage_path("app/boe_cache/boe_{$boeLimpo}_{$sufixo}.json");
-            if (file_exists($cacheFile)) {
-                $dados = json_decode(file_get_contents($cacheFile), true);
-                if ($dados && !empty($dados['texto_raw'])) {
-                    return $dados['texto_raw'];
+            foreach ($prefixos as $prefixo) {
+                $cacheFile = storage_path("app/boe_cache/{$prefixo}{$boeLimpo}_{$sufixo}.json");
+                if (file_exists($cacheFile)) {
+                    $dados = json_decode(file_get_contents($cacheFile), true);
+                    if ($dados && !empty($dados['texto_raw'])) {
+                        return $dados['texto_raw'];
+                    }
                 }
             }
         }
@@ -312,10 +316,17 @@ class PromptGeneratorController extends Controller
                 }
             }
 
+            // 1.2 Identificação do Tipo de BO (Idêntica ao Extrator Nativo)
+            $isPcpe = (stripos($texto, 'INFOPOL') !== false || stripos($texto, 'POLICIA CIVIL') !== false);
+            $isPmpe = (stripos($texto, 'POLICIA MILITAR') !== false || stripos($texto, 'SISBO') !== false || stripos($texto, '2ª PARTE') !== false || stripos($texto, 'ENVOLVIDO Nº') !== false) && !$isPcpe;
+            $prefix = $isPmpe ? 'boe_pm_' : 'boe_pcpe_';
+
             // 1.5 Verificar Cache por NÚMERO DO BOE (texto diferente mas mesmo BOE)
-            if (preg_match('/\b(\d{2,}[A-Z]\d{5,})\b/i', $texto, $boeMatch)) {
-                $boeLimpo = preg_replace('/[^A-Za-z0-9]/', '', $boeMatch[1]);
-                $cacheFileBoe = $cacheDir . "/boe_{$boeLimpo}_ia.json";
+            $boePattern = $isPmpe ? '/(?:BOLETIM DE OCORRÊNCIA Nº:\s*(\d{10,})|\b(M-?\d{7,})\b)/i' : '/\b(\d{2,}[A-Z]\d{5,})\b/i';
+            if (preg_match($boePattern, $texto, $boeMatch)) {
+                $boeExtracted = $boeMatch[1] ?? $boeMatch[0];
+                $boeLimpo = preg_replace('/[^A-Za-z0-9]/', '', $boeExtracted);
+                $cacheFileBoe = $cacheDir . "/{$prefix}{$boeLimpo}_ia.json";
                 if (file_exists($cacheFileBoe)) {
                     $cachedData = json_decode(file_get_contents($cacheFileBoe), true);
                     if ($cachedData) {
@@ -346,7 +357,7 @@ class PromptGeneratorController extends Controller
 
             if (!empty($dados['boe'])) {
                 $boeLimpo = preg_replace('/[^A-Za-z0-9]/', '', $dados['boe']);
-                $cacheFileBoe = $cacheDir . "/boe_{$boeLimpo}_ia.json";
+                $cacheFileBoe = $cacheDir . "/{$prefix}{$boeLimpo}_ia.json";
                 file_put_contents($cacheFileBoe, json_encode($dados));
             }
 

@@ -115,6 +115,31 @@
         </div>
     </div>
 
+    <script>
+        window.dadosParaImpressao = {
+            delegacia: @json(isset($dadosArray['delegacia']) ? $dadosArray['delegacia'] : 'NÃO INFORMADO'),
+            cidade: @json(isset($dadosArray['cidade']) ? $dadosArray['cidade'] : 'NÃO INFORMADO'),
+            delegado: @json(isset($dadosArray['delegado']) ? $dadosArray['delegado'] : ''),
+            escrivao: @json(isset($dadosArray['escrivao']) ? $dadosArray['escrivao'] : ''),
+            nome: @json(isset($dadosArray['nome']) ? $dadosArray['nome'] : ''),
+            alcunha: @json(isset($dadosArray['alcunha']) ? $dadosArray['alcunha'] : ''),
+            nascimento: @json(isset($dadosArray['nascimento']) ? $dadosArray['nascimento'] : ''),
+            idade: @json(isset($dadosArray['idade']) ? $dadosArray['idade'] : ''),
+            estcivil: @json(isset($dadosArray['estcivil']) ? $dadosArray['estcivil'] : ''),
+            naturalidade: @json(isset($dadosArray['naturalidade']) ? $dadosArray['naturalidade'] : ''),
+            rg: @json(isset($dadosArray['rg']) ? $dadosArray['rg'] : ''),
+            cpf: @json(isset($dadosArray['cpf']) ? $dadosArray['cpf'] : ''),
+            profissao: @json(isset($dadosArray['profissao']) ? $dadosArray['profissao'] : ''),
+            instrucao: @json(isset($dadosArray['instrucao']) ? $dadosArray['instrucao'] : ''),
+            telefone: @json(isset($dadosArray['telefone']) ? $dadosArray['telefone'] : ''),
+            mae: @json(isset($dadosArray['mae']) ? $dadosArray['mae'] : ''),
+            pai: @json(isset($dadosArray['pai']) ? $dadosArray['pai'] : ''),
+            endereco: @json(isset($dadosArray['endereco']) ? $dadosArray['endereco'] : ''),
+            boe: @json(isset($dadosArray['boe']) ? $dadosArray['boe'] : ''),
+            data_ext: @json(isset($dadosArray['data_ext']) ? $dadosArray['data_ext'] : 'NÃO INFORMADO')
+        };
+    </script>
+
     <!-- ✅ DEPENDÊNCIAS DO SISTEMA -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>

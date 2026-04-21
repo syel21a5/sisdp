@@ -248,16 +248,16 @@ $(document).ready(function () {
             }
         }
 
-        $('#inputEstadoCivilVitima1').val(dados.EstCivil || '');
-        $('#inputNaturalidadeVitima1').val(dados.Naturalidade || '');
-        $('#inputProfissaoVitima1').val(dados.Profissao || '');
-        $('#inputInstrucaoVitima1').val(dados.Instrucao || '');
-        $('#inputRGVitima1').val(dados.RG || '');
-        $('#inputCPFVitima1').val(dados.CPF || '').trigger('input');
-        $('#inputTelefoneVitima1').val(dados.Telefone || '(00) 00000-0000').trigger('input');
-        $('#inputMaeVitima1').val(dados.Mae || '');
-        $('#inputPaiVitima1').val(dados.Pai || '');
-        $('#inputEnderecoVitima1').val(dados.Endereco || '');
+        $('#inputEstadoCivilVitima1').val(dados.EstCivil || dados.estado_civil || '');
+        $('#inputNaturalidadeVitima1').val(dados.Naturalidade || dados.naturalidade || '');
+        $('#inputProfissaoVitima1').val(dados.Profissao || dados.profissao || '');
+        $('#inputInstrucaoVitima1').val(dados.Instrucao || dados.instrucao || dados.escolaridade || '');
+        $('#inputRGVitima1').val(dados.RG || dados.rg || '');
+        $('#inputCPFVitima1').val(dados.CPF || dados.cpf || '').trigger('input');
+        $('#inputTelefoneVitima1').val(dados.Telefone || dados.telefone || '(00) 00000-0000').trigger('input');
+        $('#inputMaeVitima1').val(dados.Mae || dados.mae || '');
+        $('#inputPaiVitima1').val(dados.Pai || dados.pai || '');
+        $('#inputEnderecoVitima1').val(dados.Endereco || dados.endereco || '');
 
         $('#btnEditarVitima1, #btnExcluirVitima1').prop('disabled', false);
 

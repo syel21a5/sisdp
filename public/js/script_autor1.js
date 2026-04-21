@@ -398,17 +398,17 @@ $(document).ready(function () {
             }
         }
 
-        $('#inputEstadoCivilAutor1').val(dados.EstCivil || '');
-        $('#inputNaturalidadeAutor1').val(dados.Naturalidade || '');
-        $('#inputProfissaoAutor1').val(dados.Profissao || '');
-        $('#inputInstrucaoAutor1').val(dados.Instrucao || '');
-        $('#inputRGAutor1').val(dados.RG || '');
-        $('#inputCPFAutor1').val(dados.CPF || '').trigger('input');
+        $('#inputEstadoCivilAutor1').val(dados.EstCivil || dados.estado_civil || '');
+        $('#inputNaturalidadeAutor1').val(dados.Naturalidade || dados.naturalidade || '');
+        $('#inputProfissaoAutor1').val(dados.Profissao || dados.profissao || '');
+        $('#inputInstrucaoAutor1').val(dados.Instrucao || dados.instrucao || dados.escolaridade || '');
+        $('#inputRGAutor1').val(dados.RG || dados.rg || '');
+        $('#inputCPFAutor1').val(dados.CPF || dados.cpf || '').trigger('input');
         // Preenche com (00) 00000-0000 se vazio, conforme solicitado
-        $('#inputTelefoneAutor1').val(dados.Telefone || '(00) 00000-0000').trigger('input');
-        $('#inputMaeAutor1').val(dados.Mae || '');
-        $('#inputPaiAutor1').val(dados.Pai || '');
-        $('#inputEnderecoAutor1').val(dados.Endereco || '');
+        $('#inputTelefoneAutor1').val(dados.Telefone || dados.telefone || '(00) 00000-0000').trigger('input');
+        $('#inputMaeAutor1').val(dados.Mae || dados.mae || '');
+        $('#inputPaiAutor1').val(dados.Pai || dados.pai || '');
+        $('#inputEnderecoAutor1').val(dados.Endereco || dados.endereco || '');
 
         // Dados Complementares
         $('#inputTipoPenalAutor1').val(dados.TipoPenal || '');
