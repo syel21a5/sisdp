@@ -106,8 +106,3 @@
     <script src="{{ asset('js/pages/pecas/LiberacaoInfrator.js') }}"></script>
 </body>
 </html>
-
-</body>
-</html>
-
-

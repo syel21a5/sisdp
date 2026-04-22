@@ -124,10 +124,3 @@
     <script src="{{ asset('js/pages/pecas/ExameDanos.js') }}"></script>
 </body>
 </html>
-
-    <!-- JavaScript principal -->
-    <script src="{{ asset('js/pages/pecas/ExameDanos.js') }}"></script>
-</body>
-</html>
-
-

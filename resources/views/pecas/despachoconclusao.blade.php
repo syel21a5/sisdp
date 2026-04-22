@@ -115,17 +115,3 @@
     <script src="{{ asset('js/pages/pecas/DespachoConclusao.js') }}"></script>
 </body>
 </html>
-
-    <script>
-        console.log('🟢 BLADE OFÍCIOS MP CARREGADO');
-        console.log('🟢 Rota:', '{{ request()->path() }}');
-        console.log('🟢 Dados carregados:', window.dadosParaImpressao);
-    </script>
-
-    <!-- ✅ JS CORRIGIDO PARA MP -->
-    <script src="{{ asset('js/pages/pecas/DespachoConclusao.js') }}?v=<?php echo time(); ?>"></script>
-
-</body>
-</html>
-
-

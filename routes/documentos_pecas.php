@@ -18,16 +18,23 @@ Route::middleware(['auth', 'permission:pecas'])->group(function () {
     $processarPeca = function ($dados, $view, $isOficio = false) {
         $dadosArray = [];
         if ($dados) {
-            // 1. Verificar se é UUID (Cache)
+            // 1. Verificar se é UUID (Cache) ou chave com prefixo session_
             if (strlen($dados) === 36 || strpos($dados, 'session_') === 0) {
                 $key = str_replace('session_', '', $dados);
                 $dadosArray = \Illuminate\Support\Facades\Cache::get('doc_sessao_' . $key, []);
             } else {
-                // 2. Fallback Base64
-                try {
-                    $dadosArray = json_decode(base64_decode($dados), true);
-                } catch (\Exception $e) {
-                    $dadosArray = [];
+                // 2. Tentar cache direto (para chaves como rol_XXXX)
+                $cached = \Illuminate\Support\Facades\Cache::get($dados);
+                if (is_array($cached) && !empty($cached)) {
+                    $dadosArray = $cached;
+                } else {
+                    // 3. Fallback Base64
+                    try {
+                        $decoded = json_decode(base64_decode($dados), true);
+                        $dadosArray = is_array($decoded) ? $decoded : [];
+                    } catch (\Exception $e) {
+                        $dadosArray = [];
+                    }
                 }
             }
         }

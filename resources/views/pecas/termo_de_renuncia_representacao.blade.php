@@ -106,10 +106,3 @@
     <script src="{{ asset('js/pages/pecas/RenunciaRepresentacao.js') }}"></script>
 </body>
 </html>
-
-    <!-- JavaScript principal -->
-    <script src="{{ asset('js/pages/pecas/RenunciaRepresentacao.js') }}"></script>
-</body>
-</html>
-
-

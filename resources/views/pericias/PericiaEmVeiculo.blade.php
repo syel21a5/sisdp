@@ -123,10 +123,3 @@
     <script src="{{ asset('js/pages/pericias/PericiaEmVeiculo.js') }}"></script>
 </body>
 </html>
-
-    <!-- JavaScript principal -->
-    <script src="{{ asset('js/pages/pericias/PericiaEmVeiculo.js') }}"></script>
-</body>
-</html>
-
-

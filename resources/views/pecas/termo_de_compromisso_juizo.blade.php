@@ -106,8 +106,3 @@
     <script src="{{ asset('js/pages/pecas/CompromissoJuizo.js') }}"></script>
 </body>
 </html>
-
-</body>
-</html>
-
-

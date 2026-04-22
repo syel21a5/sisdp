@@ -107,10 +107,3 @@
     <script src="{{ asset('js/pages/pecas/Representacao.js') }}"></script>
 </body>
 </html>
-
-    <!-- JavaScript principal -->
-    <script src="{{ asset('js/pages/pecas/Representacao.js') }}"></script>
-</body>
-</html>
-
-

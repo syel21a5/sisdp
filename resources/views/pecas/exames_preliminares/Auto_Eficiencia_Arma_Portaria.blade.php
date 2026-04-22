@@ -145,4 +145,3 @@
     <script src="{{ asset('js/pages/pecas/EficienciaArma.js') }}"></script>
 </body>
 </html>
-

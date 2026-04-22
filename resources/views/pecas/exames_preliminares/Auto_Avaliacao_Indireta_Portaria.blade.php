@@ -119,10 +119,3 @@
     <script src="{{ asset('js/pages/pecas/Avaliacao.js') }}"></script>
 </body>
 </html>
-
-    <!-- JavaScript principal -->
-    <script src="{{ asset('js/pages/pecas/Avaliacao.js') }}"></script>
-</body>
-</html>
-
-

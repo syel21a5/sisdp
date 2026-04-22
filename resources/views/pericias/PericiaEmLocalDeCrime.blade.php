@@ -136,10 +136,3 @@
     <script src="{{ asset('js/pages/pericias/PericiaEmLocalDeCrime.js') }}"></script>
 </body>
 </html>
-
-    <!-- Script Principal -->
-    <script src="{{ asset('js/pages/pericias/PericiaEmLocalDeCrime.js') }}"></script>
-</body>
-</html>
-
-
