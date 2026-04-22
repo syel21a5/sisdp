@@ -434,6 +434,7 @@ $(document).ready(function () {
         if (window.OcorrenciasApp) {
             window.OcorrenciasApp.isOwner = true;
             window.OcorrenciasApp.ownerName = null;
+            window.OcorrenciasApp.currentId = null; // ✅ FIX: Resetar o ID ao limpar para habilitar "Salvar" e desabilitar "Editar"
             if (typeof window.OcorrenciasApp.desbloquearCamposFormulario === 'function') {
                 window.OcorrenciasApp.desbloquearCamposFormulario();
             }
@@ -455,6 +456,10 @@ $(document).ready(function () {
         } else {
             $('#btnProcessarIA').show();
             $('#btnProcessarBoe').hide();
+        }
+
+        if (typeof OcorrenciasApp.atualizarEstadoBotoes === 'function') {
+            OcorrenciasApp.atualizarEstadoBotoes();
         }
 
         console.log('✨ [script_apfd] Limpeza concluída.');
@@ -791,11 +796,12 @@ $(document).ready(function () {
                         ip: $('#inputIP').val()
                     };
                     
+                    if (typeof OcorrenciasApp !== 'undefined') {
+                        OcorrenciasApp.currentId = response.registroExistenteId || null; // ✅ FIX: Sincroniza o ID (null habilita Salvar, ID habilita Editar)
+                    }
+
                     if (response.registroExistenteId) {
                         window.mostrarAlerta('BOE já cadastrado no sistema! Dados carregados para atualização.');
-                        if (typeof OcorrenciasApp !== 'undefined') {
-                            OcorrenciasApp.currentId = response.registroExistenteId;
-                        }
                     }
 
                     console.log('🤖 SISTEMA EXTRAÇÃO CONCLUÍDA:', {
@@ -1002,9 +1008,18 @@ $(document).ready(function () {
                     window.pendentesIA_Celulares = dados.celulares || [];
                     window.pendentesIA_Veiculos = dados.veiculos || [];
 
+                    // ✅ NOVO: Sincronizar o ID (null habilita Salvar, ID habilita Editar)
+                    if (typeof OcorrenciasApp !== 'undefined') {
+                        OcorrenciasApp.currentId = response.registroExistenteId || null;
+                    }
+
                     // Concilia com BD
                     if (typeof OcorrenciasApp.conciliarEnvolvidosBD === 'function') {
                         OcorrenciasApp.conciliarEnvolvidosBD(['vitimas', 'autores', 'testemunhas', 'condutores', 'outros']);
+                    }
+
+                    if (response.registroExistenteId) {
+                        window.mostrarAlerta('BOE já cadastrado no sistema! Dados carregados para atualização.');
                     }
 
                     window.mostrarSucesso('🤖 Dados extraídos com sucesso pela Inteligência Artificial!');

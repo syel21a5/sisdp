@@ -2265,6 +2265,16 @@ window.OcorrenciasApp = {
             }
         });
 
+        // ✅ NOVO: Se o usuário alterar o BOE manualmente, resetamos o ID para evitar que ele 
+        // edite/sobrescreva um registro por engano. Isso força o uso do botão "SALVAR" para o novo número.
+        $('#inputBOE, #inputBOEPM').on('input', () => {
+            if (this.currentId) {
+                console.log('⚠️ [script] BOE alterado manualmente. Resetando currentId para evitar sobreposição.');
+                this.currentId = null;
+                this.atualizarEstadoBotoes();
+            }
+        });
+
         // Máscara automática de CPF no campo de busca de envolvidos
         $('#txtPesquisa').on('input', function() {
             if ($('#ddlFiltro').val() !== 'CPF') return;
@@ -2842,7 +2852,7 @@ window.OcorrenciasApp = {
 
                     // Atualiza botões
                     $btn.prop('disabled', true).html(originalHtml);
-                    $('#btnEditar').prop('disabled', false);
+                    this.atualizarEstadoBotoes(); // ✅ Sincroniza estado (Habilita Editar, Desabilita Salvar)
                     $('#btnExcluir').prop('disabled', false);
 
                     // ✅ FIX: Recarregar vínculos do banco após salvar.
@@ -2946,7 +2956,8 @@ window.OcorrenciasApp = {
                 if (response.success) {
                     this.mostrarSucesso('Registro atualizado com sucesso!');
                     this.carregarGrid();
-                    $('#btnEditar').prop('disabled', false).html('<i class="bi bi-pencil-square"></i> Editar');
+                    this.atualizarEstadoBotoes(); // ✅ Sincroniza estado
+                    $btn.html(originalHtml);
                 } else {
                     this.mostrarErro(response.message);
                     $('#btnEditar').prop('disabled', false).html('<i class="bi bi-pencil-square"></i> Editar');

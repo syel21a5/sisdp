@@ -308,10 +308,19 @@ class PromptGeneratorController extends Controller
                 $cachedData = json_decode(file_get_contents($cacheFileHash), true);
                 if ($cachedData) {
                     Log::info("Extração via IA: Retornando dados do CACHE (Hash).");
+
+                    // NOVO: Verificar se o BOE extraído já existe no banco (cadprincipal)
+                    $registroExistenteId = null;
+                    if (!empty($cachedData['boe'])) {
+                        $registro = DB::table('cadprincipal')->where('BOE', $cachedData['boe'])->first();
+                        if ($registro) $registroExistenteId = $registro->id;
+                    }
+
                     return response()->json([
                         'success' => true,
                         'dados' => $cachedData,
-                        'cached' => true
+                        'cached' => true,
+                        'registroExistenteId' => $registroExistenteId
                     ]);
                 }
             }
@@ -331,10 +340,19 @@ class PromptGeneratorController extends Controller
                     $cachedData = json_decode(file_get_contents($cacheFileBoe), true);
                     if ($cachedData) {
                         Log::info("Extração via IA: Retornando dados do CACHE (Número BOE: {$boeMatch[1]}).");
+
+                        // NOVO: Verificar se o BOE extraído já existe no banco (cadprincipal)
+                        $registroExistenteId = null;
+                        if (!empty($cachedData['boe'])) {
+                            $registro = DB::table('cadprincipal')->where('BOE', $cachedData['boe'])->first();
+                            if ($registro) $registroExistenteId = $registro->id;
+                        }
+
                         return response()->json([
                             'success' => true,
                             'dados' => $cachedData,
-                            'cached' => true
+                            'cached' => true,
+                            'registroExistenteId' => $registroExistenteId
                         ]);
                     }
                 }
@@ -353,6 +371,18 @@ class PromptGeneratorController extends Controller
             // 3. Salvar no Cache (incluindo texto_raw para o gerador de prompts)
             Log::info("Extração via IA: Salvando novos dados no CACHE.");
             $dados['texto_raw'] = $texto;
+            
+            // NOVO: Verificar se o BOE extraído já existe no banco (cadprincipal)
+            $registroExistenteId = null;
+            if (!empty($dados['boe'])) {
+                $registro = DB::table('cadprincipal')
+                    ->where('BOE', $dados['boe'])
+                    ->first();
+                if ($registro) {
+                    $registroExistenteId = $registro->id;
+                }
+            }
+
             file_put_contents($cacheFileHash, json_encode($dados));
 
             if (!empty($dados['boe'])) {
@@ -364,7 +394,8 @@ class PromptGeneratorController extends Controller
             return response()->json([
                 'success' => true,
                 'dados' => $dados,
-                'cached' => false
+                'cached' => false,
+                'registroExistenteId' => $registroExistenteId
             ]);
 
         } catch (\Exception $e) {
