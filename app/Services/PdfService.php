@@ -19,6 +19,10 @@ class PdfService
         // NOVO: Delegar a geração do PDF para Python (Playwright) com qualidade superior
         $tempHtml = sys_get_temp_dir() . '/pdf_input_' . uniqid() . '.html';
         $tempPdf = sys_get_temp_dir() . '/pdf_output_' . uniqid() . '.pdf';
+        
+        // Garante que divs de quebra de página não sejam corrompidas pelo pré-processamento
+        $html = str_replace('<div class="page-break"></div>', '<div style="page-break-after: always;"></div>', $html);
+        
         file_put_contents($tempHtml, $html);
         
         $scriptPath = base_path('scripts/python/gerar_pdf.py');
@@ -124,8 +128,8 @@ class PdfService
         }
 
         // 7. Remover elementos indesejados do Quill
-        $content = preg_replace('/<div class="ql-editor"([^>]*)>/', '', $content);
-        $content = str_replace('</div>', '', $content);
+        // 7. Remover elementos indesejados do Quill (apenas a div wrapper, preservando o conteúdo e outras divs)
+        $content = preg_replace('/<div class="ql-editor"([^>]*)>(.*?)<\/div>/is', '$2', $content);
         $content = preg_replace('/<span class="ql-cursor">[^<]*<\/span>/', '', $content);
 
         return trim($content);

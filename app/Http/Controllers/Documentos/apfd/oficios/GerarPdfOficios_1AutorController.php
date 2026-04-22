@@ -335,9 +335,12 @@ class GerarPdfOficios_1AutorController extends Controller
                 /* ✅✅✅ QUEBRA DE PÁGINA CORRIGIDA */
                 .page-break {
                     page-break-before: always !important;
-                    margin-top: 0 !important;
-                    padding-top: 0 !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
                     height: 0 !important;
+                    line-height: 0 !important;
+                    border: none !important;
+                    background: transparent !important;
                 }
 
                 /* ✅✅✅ GARANTIR QUE SEGUNDA PÁGINA COMECE NO TOPO */
@@ -390,11 +393,13 @@ class GerarPdfOficios_1AutorController extends Controller
                     margin-bottom: 0 !important;
                     width: 100%;
                     border-collapse: collapse;
+                    border: none !important;
                 }
 
                 .header td {
                     padding: 0 5px !important;
                     vertical-align: middle;
+                    border: none !important;
                 }
 
                 .header img {
@@ -432,8 +437,9 @@ class GerarPdfOficios_1AutorController extends Controller
                 .ql-align-right { text-align: right !important; }
                 .ql-align-left { text-align: left !important; }
                 .ql-align-right.preservar-espacamento { margin-top: -10px !important; margin-bottom: 5px !important; }
-                .ql-editor { border: none !important; padding: 0 !important; }
-                .ql-clipboard { display: none !important; }
+                .ql-editor { border: none !important; padding: 0 !important; outline: none !important; }
+                .ql-clipboard, .ql-tooltip, .ql-hidden { display: none !important; visibility: hidden !important; border: none !important; }
+                textarea.ql-clipboard { display: none !important; }
             </style>
         </head>
         <body>

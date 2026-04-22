@@ -663,6 +663,7 @@
     }
 
     /* ✅✅✅ QUEBRA DE PÁGINA NA IMPRESSÃO - CORRIGIDO */
+    #editor .page-break,
     .page-break {
         page-break-before: always !important;
         break-before: page !important;
@@ -670,10 +671,17 @@
         margin: 0 !important;
         padding: 0 !important;
         border: none !important;
+        background: transparent !important;
         display: block !important;
+    }
+    
+    #editor .page-break::before {
+        content: none !important;
+        display: none !important;
     }
 
     /* ✅✅✅ QUEBRA DE PÁGINA COMPATÍVEL COM QUILL NA IMPRESSÃO */
+    #editor .page-break-marker,
     .page-break-marker {
         page-break-before: always !important;
         break-before: page !important;
@@ -681,7 +689,13 @@
         margin: 0 !important;
         padding: 0 !important;
         border: none !important;
+        background: transparent !important;
         visibility: hidden !important;
+    }
+    
+    #editor .page-break-marker::before {
+        content: none !important;
+        display: none !important;
     }
 
     /* ✅✅✅ GARANTIR QUE O CONTEÚDO APÓS QUEBRA COMECE NO TOPO */

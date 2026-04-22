@@ -155,14 +155,20 @@ function cleanHtmlContent(html) {
     // 6. ✅✅✅ SUBSTITUIR QUEBRA VISUAL POR QUEBRA DE PÁGINA REAL
     html = html.replace(
         /--- QUEBRA DE PÁGINA ---/g,
-        '<div class="page-break" style="page-break-before: always;"></div>'
+        '<div class="page-break" style="page-break-before: always; border: none !important; background: transparent !important; height: 0; line-height: 0; margin: 0; padding: 0;"></div>'
     );
 
     // 7. ✅✅✅ CONVERTER MARCADOR DE QUEBRA COMPATÍVEL COM QUILL
     html = html.replace(
         /<p class="page-break-marker"[^>]*>--- QUEBRA DE PÁGINA ---<\/p>/g,
-        '<div class="page-break" style="page-break-before: always;"></div>'
+        '<div class="page-break" style="page-break-before: always; border: none !important; background: transparent !important; height: 0; line-height: 0; margin: 0; padding: 0;"></div>'
     );
+
+    // 8. ✅✅✅ REMOVER ARTEFATOS DO QUILL (Clipboard, Tooltip, etc)
+    html = html.replace(/<div class="ql-clipboard"[^>]*>.*?<\/div>/g, '');
+    html = html.replace(/<div class="ql-tooltip"[^>]*>.*?<\/div>/g, '');
+    html = html.replace(/<textarea[^>]*class="ql-clipboard"[^>]*>.*?<\/textarea>/g, '');
+    html = html.replace(/<div[^>]*class="ql-hidden"[^>]*>.*?<\/div>/g, '');
 
     // 8. ✅✅✅ GARANTIR QUE A QUEBRA ENTRE OFÍCIOS SEJA PRESERVADA
     // Se não encontrou quebra, insere uma automaticamente, exceto no ofício único

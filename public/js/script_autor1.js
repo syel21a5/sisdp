@@ -891,6 +891,15 @@ $(document).ready(function () {
 
                 dados = {
                     data: $('#inputData').val(),
+                    data_fato: (() => {
+                        const val = $('#inputDataFato').val();
+                        if (!val) return 'NÃO INFORMADO';
+                        if (val.includes('-')) {
+                            const [ano, mes, dia] = val.split('-');
+                            return `${dia}/${mes}/${ano}`;
+                        }
+                        return val;
+                    })(),
                     data_comp: $('#inputDataComp').val(),
                     data_ext: $('#inputDataExt').val(),
                     cidade: $('#inputCidade').val(),
@@ -898,52 +907,39 @@ $(document).ready(function () {
                     escrivao: $('#inputEscrivao').val(),
                     delegacia: $('#inputDelegacia').val(),
                     boe: $('#inputBOE').val(),
+                    boe_pm: $('#inputBOEPM').val() || '',
                     ip: $('#inputIP').val(),
                     apreensao: $('#inputApreensao').val(),
                     nmandado: $('#inputNmandadoAutor1').val() || '',
                     datamandado: $('#inputDataMandadoAutor1').val() || '',
                     incidencia_penal: $('#inputIncidenciaPenal').val() || $('#inputTipoPenalAutor1').val() || '',
+                    natureza: $('#inputIncidenciaPenal').val() || $('#inputTipoPenalAutor1').val() || '',
+                    tipificacao: $('#inputTipoPenalAutor1').val() || $('#inputIncidenciaPenal').val() || '',
                     fianca_pago: $('#inputFiancaPagoAutor1').is(':checked'),
+                    fianca: $('#inputFiancaAutor1').val(),
+                    fianca_ext: $('#inputFiancaExtAutor1').val(),
+                    hora_fato: $('#inputHoraFato').val() || '',
+                    end_fato: $('#inputEndFato').val() || '',
+                    local_fato: $('#inputEndFato').val() || '',
+                    dp_resp: $('#inputDPResp').val() || '',
+                    cid_resp: $('#inputCidResp').val() || '',
+                    bel_resp: $('#inputBelResp').val() || '',
+                    escr_resp: $('#inputEscrResp').val() || '',
+                    policial_1: $('#inputPolicial1').val() || '',
+                    policial_2: $('#inputPolicial2').val() || '',
 
-                    condutor: { nome: $('#inputNomeCondutor').val() || 'NÃO INFORMADO' },
-
-                    autor1: {
-                        nome: $('#inputNomeAutor1').val() || 'NÃO INFORMADO',
-                        tipopenal: $('#inputTipoPenalAutor1').val() || '',
-                        fianca: $('#inputFiancaAutor1').val() || '',
-                        fianca_ext: $('#inputFiancaExtAutor1').val() || '',
-                        fianca_pago: $('#inputFiancaPagoAutor1').is(':checked')
-                    },
-                    autor2: {
-                        nome: $('#inputNomeAutor2').val() || 'NÃO INFORMADO',
-                        tipopenal: $('#inputTipoPenalAutor2').val() || '',
-                        fianca: $('#inputFiancaAutor2').val() || '',
-                        fianca_ext: $('#inputFiancaExtAutor2').val() || ''
-                    },
-                    autor3: {
-                        nome: $('#inputNomeAutor3').val() || 'NÃO INFORMADO',
-                        tipopenal: $('#inputTipoPenalAutor3').val() || '',
-                        fianca: $('#inputFiancaAutor3').val() || '',
-                        fianca_ext: $('#inputFiancaExtAutor3').val() || ''
-                    },
-
-                    vitima1: { nome: $('#inputNomeVitima1').val() || 'NÃO INFORMADO' },
-                    vitima2: { nome: $('#inputNomeVitima2').val() || 'NÃO INFORMADO' },
-                    vitima3: { nome: $('#inputNomeVitima3').val() || 'NÃO INFORMADO' },
-
-                    testemunha1: {
-                        nome: (typeof OcorrenciasApp !== 'undefined' && OcorrenciasApp.envolvidos && OcorrenciasApp.envolvidos.testemunhas && OcorrenciasApp.envolvidos.testemunhas[0]) ? OcorrenciasApp.envolvidos.testemunhas[0] : ($('#inputNomeTestemunha1').val() || 'NÃO INFORMADO')
-                    },
-                    testemunha2: {
-                        nome: (typeof OcorrenciasApp !== 'undefined' && OcorrenciasApp.envolvidos && OcorrenciasApp.envolvidos.testemunhas && OcorrenciasApp.envolvidos.testemunhas[1]) ? OcorrenciasApp.envolvidos.testemunhas[1] : ($('#inputNomeTestemunha2').val() || 'NÃO INFORMADO')
-                    },
-                    testemunha3: { nome: $('#inputNomeTestemunha3').val() || 'NÃO INFORMADO' },
+                    // Envolvidos usando a lógica moderna de OcorrenciasApp se disponível
+                    condutor: { nome: (typeof OcorrenciasApp !== 'undefined' && OcorrenciasApp.envolvidos && OcorrenciasApp.envolvidos.condutores && OcorrenciasApp.envolvidos.condutores[0]) ? OcorrenciasApp.envolvidos.condutores[0] : ($('#inputNomeCondutor').val() || 'NÃO INFORMADO') },
+                    vitima1: { nome: (typeof OcorrenciasApp !== 'undefined' && OcorrenciasApp.envolvidos && OcorrenciasApp.envolvidos.vitimas && OcorrenciasApp.envolvidos.vitimas[0]) ? OcorrenciasApp.envolvidos.vitimas[0] : ($('#inputNomeVitima1').val() || 'NÃO INFORMADO') },
+                    vitima2: { nome: (typeof OcorrenciasApp !== 'undefined' && OcorrenciasApp.envolvidos && OcorrenciasApp.envolvidos.vitimas && OcorrenciasApp.envolvidos.vitimas[1]) ? OcorrenciasApp.envolvidos.vitimas[1] : ($('#inputNomeVitima2').val() || 'NÃO INFORMADO') },
+                    vitima3: { nome: (typeof OcorrenciasApp !== 'undefined' && OcorrenciasApp.envolvidos && OcorrenciasApp.envolvidos.vitimas && OcorrenciasApp.envolvidos.vitimas[2]) ? OcorrenciasApp.envolvidos.vitimas[2] : ($('#inputNomeVitima3').val() || 'NÃO INFORMADO') },
+                    testemunha1: { nome: (typeof OcorrenciasApp !== 'undefined' && OcorrenciasApp.envolvidos && OcorrenciasApp.envolvidos.testemunhas && OcorrenciasApp.envolvidos.testemunhas[0]) ? OcorrenciasApp.envolvidos.testemunhas[0] : ($('#inputNomeTestemunha1').val() || 'NÃO INFORMADO') },
+                    testemunha2: { nome: (typeof OcorrenciasApp !== 'undefined' && OcorrenciasApp.envolvidos && OcorrenciasApp.envolvidos.testemunhas && OcorrenciasApp.envolvidos.testemunhas[1]) ? OcorrenciasApp.envolvidos.testemunhas[1] : ($('#inputNomeTestemunha2').val() || 'NÃO INFORMADO') },
+                    testemunha3: { nome: (typeof OcorrenciasApp !== 'undefined' && OcorrenciasApp.envolvidos && OcorrenciasApp.envolvidos.testemunhas && OcorrenciasApp.envolvidos.testemunhas[2]) ? OcorrenciasApp.envolvidos.testemunhas[2] : ($('#inputNomeTestemunha3').val() || 'NÃO INFORMADO') },
 
                     // Manter compatibilidade
                     nome: $('#inputNomeAutor1').val() || 'NÃO INFORMADO',
-                    fianca: $('#inputFiancaAutor1').val() || '',
-                    fianca_ext: $('#inputFiancaExtAutor1').val() || '',
-
+                    
                     // ✅ LISTA DINÂMICA DE AUTORES AGORA 100% PREENCHIDA
                     autores: autoresCompletos
                 };

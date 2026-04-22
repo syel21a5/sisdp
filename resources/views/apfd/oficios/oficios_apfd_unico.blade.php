@@ -62,14 +62,15 @@
 
 <body class="body-declaracao">
     <?php
-// ✅ DECODIFICAR DADOS DA URL
-$dadosBase64 = request()->segment(2);
-$dadosArray = [];
+// ✅ DECODIFICAR DADOS DA URL APENAS SE NÃO FOI PASSADO PELO CONTROLLER
+if (!isset($dadosArray) || empty($dadosArray)) {
+    $dadosBase64 = request()->segment(2);
+    $dadosArray = [];
 
-if ($dadosBase64) {
-    try {
-        $dadosJson = base64_decode($dadosBase64);
-        $dadosArray = json_decode($dadosJson, true) ?? [];
+    if ($dadosBase64) {
+        try {
+            $dadosJson = base64_decode($dadosBase64);
+            $dadosArray = json_decode($dadosJson, true) ?? [];
 
         // ✅ ESTRUTURAR OS DADOS CORRETAMENTE
         if (!empty($dadosArray)) {
@@ -120,6 +121,7 @@ if ($dadosBase64) {
     } catch (Exception $e) {
         $dadosArray = [];
     }
+}
 }
 
 function exibirDado($array, $chave, $subchave = null, $padrao = 'NÃO INFORMADO')
@@ -205,6 +207,45 @@ if ($incPenalGeral !== '') {
 }
 
 $dataComp = !empty($dadosArray['data_comp']) ? $dadosArray['data_comp'] : (!empty($dadosArray['data_ext']) ? $dadosArray['data_ext'] : 'NÃO INFORMADO');
+
+// ✅ LÓGICA DINÂMICA PARA VÍTIMAS
+$vitimas = [];
+if (isset($dadosArray['vitimas']) && is_array($dadosArray['vitimas'])) {
+    $vitimas = array_filter($dadosArray['vitimas'], function($v) {
+        $n = is_string($v) ? $v : ($v['nome'] ?? '');
+        $n = strtoupper(trim($n));
+        return $n !== '' && $n !== 'NÃO INFORMADO' && strpos($n, 'VITIMA') === false;
+    });
+    $vitimas = array_values($vitimas);
+}
+
+// Fallback para vitima1, vitima2, vitima3
+if (empty($vitimas)) {
+    for ($i = 1; $i <= 3; $i++) {
+        if (isset($dadosArray["vitima$i"]) && !empty($dadosArray["vitima$i"]['nome'])) {
+            $n = strtoupper(trim($dadosArray["vitima$i"]['nome']));
+            if ($n !== 'NÃO INFORMADO' && strpos($n, 'VITIMA') === false) {
+                $vitimas[] = $n;
+            }
+        }
+    }
+}
+
+$qtdVitimas = count($vitimas);
+$textoVitimas = 'tendo como vítima: <strong>NÃO INFORMADO</strong>';
+
+if ($qtdVitimas == 1) {
+    $nome = is_string($vitimas[0]) ? $vitimas[0] : ($vitimas[0]['nome'] ?? '');
+    $textoVitimas = 'tendo como vítima: <strong>' . $nome . '</strong>';
+} elseif ($qtdVitimas == 2) {
+    $nome1 = is_string($vitimas[0]) ? $vitimas[0] : ($vitimas[0]['nome'] ?? '');
+    $nome2 = is_string($vitimas[1]) ? $vitimas[1] : ($vitimas[1]['nome'] ?? '');
+    $textoVitimas = 'tendo como vítimas: <strong>' . $nome1 . ' e ' . $nome2 . '</strong>';
+} elseif ($qtdVitimas > 2) {
+    $nome1 = is_string($vitimas[0]) ? $vitimas[0] : ($vitimas[0]['nome'] ?? '');
+    $nome2 = is_string($vitimas[1]) ? $vitimas[1] : ($vitimas[1]['nome'] ?? '');
+    $textoVitimas = 'tendo como vítimas: <strong>' . $nome1 . ', ' . $nome2 . ' e outros(as)</strong>';
+}
 
 // ✅ LÓGICA DE DESFECHO (3 GRUPOS)
 $grupoPagou = [];
@@ -382,8 +423,7 @@ $textoDesfecho = "Após as formalidades legais, " . implode("</p><p style=\"text
                     fato ocorrido no dia {{ $dataComp }}, na(o) cidade de
                     <strong>{{ !empty($dadosArray['cidade']) ? $dadosArray['cidade'] : 'NÃO INFORMADO' }}/PE</strong>,
                     de acordo com o Boletim de Ocorrência de nº
-                    <strong>{{ !empty($dadosArray['boe']) ? $dadosArray['boe'] : 'NÃO INFORMADO' }}</strong>, tendo como
-                    vítima: <strong><?php echo exibirDado($dadosArray, 'vitima1', 'nome'); ?></strong>.
+                    <strong>{{ !empty($dadosArray['boe']) ? $dadosArray['boe'] : 'NÃO INFORMADO' }}</strong>, <?php echo $textoVitimas; ?>.
                 </p>
 
                 <p style="text-align: justify; line-height: 1.6; margin: 0.2em 0; padding: 0;">

@@ -59,8 +59,8 @@ $html = '
         }
         body {
             font-family: Arial, sans-serif;
-            font-size: 12.5pt !important;
-            line-height: 1.6;
+            font-size: 12pt !important;
+            line-height: 1.3;
             margin: 0;
             padding: 0;
             color: #000;
@@ -85,9 +85,9 @@ $html = '
             padding-top: 40px !important;
         }
         p {
-            margin: 0.4em 0;
+            margin: 0.3em 0;
             padding: 0;
-            line-height: 1.6;
+            line-height: 1.3;
             text-align: justify;
         }
         .footer {
@@ -102,7 +102,7 @@ $html = '
         }
         .orgao-principal {
             font-weight: bold;
-            font-size: 12.5pt;
+            font-size: 12pt;
             margin-bottom: 2px;
             line-height: 1.1;
         }
@@ -129,63 +129,24 @@ $html = '
             margin-top: -3px !important;
             object-fit: contain;
         }
-        .ql-font-arial, .ql-font-arial p, .ql-font-arial span, .ql-font-arial div, .ql-font-arial strong {
-            font-family: Arial, sans-serif !important;
+        table {
+            border-collapse: collapse;
+            width: 100%;
         }
-        .ql-font-times-new-roman, .ql-font-times-new-roman p, .ql-font-times-new-roman span, .ql-font-times-new-roman div, .ql-font-times-new-roman strong {
-            font-family: "Times New Roman", Times, serif !important;
+        .table-quesitos {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            font-size: 12pt;
         }
-        .ql-font-courier-new, .ql-font-courier-new p, .ql-font-courier-new span, .ql-font-courier-new div, .ql-font-courier-new strong {
-            font-family: "Courier New", monospace !important;
+        .table-quesitos td {
+            border: 1px solid black;
+            padding: 6px 8px;
+            vertical-align: top;
         }
-        .ql-font-georgia, .ql-font-georgia p, .ql-font-georgia span, .ql-font-georgia div, .ql-font-georgia strong {
-            font-family: Georgia, serif !important;
-        }
-        .ql-font-verdana, .ql-font-verdana p, .ql-font-verdana span, .ql-font-verdana div, .ql-font-verdana strong {
-            font-family: Verdana, sans-serif !important;
-        }
-        .ql-font-segoe-ui, .ql-font-segoe-ui p, .ql-font-segoe-ui span, .ql-font-segoe-ui div, .ql-font-segoe-ui strong {
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif !important;
-        }
-        .ql-size-10pt, .ql-size-10pt p, .ql-size-10pt span, .ql-size-10pt div, .ql-size-10pt strong {
-            font-size: 10pt !important;
-        }
-        .ql-size-11pt, .ql-size-11pt p, .ql-size-11pt span, .ql-size-11pt div, .ql-size-11pt strong {
-            font-size: 11pt !important;
-        }
-        .ql-size-12pt, .ql-size-12pt p, .ql-size-12pt span, .ql-size-12pt div, .ql-size-12pt strong {
-            font-size: 12pt !important;
-        }
-        .ql-size-14pt, .ql-size-14pt p, .ql-size-14pt span, .ql-size-14pt div, .ql-size-14pt strong {
-            font-size: 14pt !important;
-        }
-        .ql-size-16pt, .ql-size-16pt p, .ql-size-16pt span, .ql-size-16pt div, .ql-size-16pt strong {
-            font-size: 16pt !important;
-        }
-        .ql-size-18pt, .ql-size-18pt p, .ql-size-18pt span, .ql-size-18pt div, .ql-size-18pt strong {
-            font-size: 18pt !important;
-        }
-        .ql-size-20pt, .ql-size-20pt p, .ql-size-20pt span, .ql-size-20pt div, .ql-size-20pt strong {
-            font-size: 20pt !important;
-        }
-        .ql-align-center {
-            text-align: center !important;
-        }
-        .ql-align-justify {
-            text-align: justify !important;
-        }
-        .ql-align-right {
-            text-align: right !important;
-        }
-        .ql-align-left {
-            text-align: left !important;
-        }
-        .ql-editor {
-            border: none !important;
-            padding: 0 !important;
-        }
-        .ql-clipboard {
-            display: none !important;
+        .page-break {
+            page-break-before: always;
+            padding-top: 40px !important;
         }
     </style>
 </head>
