@@ -324,9 +324,9 @@ if (count($testemunhasNomes) === 1) {
             </div>
         </div>
 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.3/tinymce.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        
+        
+        
 
         <!-- Dados para JavaScript -->
         <script>
@@ -365,7 +365,8 @@ if (count($testemunhasNomes) === 1) {
         </script>
 
 
-        <!-- ✅ DEPENDÊNCIAS DO SISTEMA -->
+        
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.3/tinymce.min.js" referrerpolicy="origin"></script>
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script src="{{ asset('js/DocumentoService.js') }}"></script>
         

@@ -159,3 +159,4 @@
     <script src="{{ asset('js/veiculo.js') }}"></script>
 </body>
 </html>
+

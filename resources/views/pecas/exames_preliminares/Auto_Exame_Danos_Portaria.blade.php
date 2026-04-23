@@ -124,3 +124,4 @@
     <script src="{{ asset('js/pages/pecas/ExameDanos.js') }}"></script>
 </body>
 </html>
+

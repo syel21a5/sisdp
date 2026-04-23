@@ -39,14 +39,11 @@
         </div>
 
         <!-- ÁREA DO EDITOR -->
-
         <div class="editor-area">
             <div id="editor" class="preservar-espacamento">
-                <p style="text-align: center; background-color: #e0e0e0; padding: 5px; font-weight: bold; border: 1px solid #000;">ROL DE TESTEMUNHAS / INFORMANTES</p>
-                <p><br></p>
+                <p style="text-align: center; background-color: #e0e0e0; padding: 5px; font-weight: bold; border: 1px solid #000; font-family: 'Arial Black', Gadget, sans-serif; font-size: 16pt;">ROL DE TESTEMUNHAS / INFORMANTES</p>
                 <p><strong>Tombamento: nº {{ $dadosArray['ip'] ?? 'NÃO INFORMADO' }}</strong></p>
                 <p><br></p>
-
                 @php
                     $contador = 0;
                     $chavesPessoas = [];

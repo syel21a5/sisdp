@@ -679,3 +679,4 @@
     }).mount('#app');
 </script>
 @endpush
+

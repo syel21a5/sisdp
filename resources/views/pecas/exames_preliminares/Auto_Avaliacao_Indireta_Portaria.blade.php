@@ -119,3 +119,4 @@
     <script src="{{ asset('js/pages/pecas/Avaliacao.js') }}"></script>
 </body>
 </html>
+

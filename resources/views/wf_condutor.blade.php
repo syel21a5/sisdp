@@ -209,3 +209,4 @@
         'OFICIOS MANDADO DE PRISAO': "{{ route('numoficio.mp', ['dados' => '--DADOS--']) }}"
     };
 </script>
+

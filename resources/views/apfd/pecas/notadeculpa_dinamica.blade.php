@@ -6,9 +6,9 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>OFÍCIOS APFD - 1 AUTOR - Editor Profissional</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="{{ asset('css/formularios.css') }}" rel="stylesheet">
+    
 </head>
 <body class="body-declaracao">
     <?php
@@ -125,59 +125,7 @@
                             <?php echo exibirDado($dadosArray, 'cidade'); ?>
                         </div>
                     </div>
-                    <img src="{{ asset('images/b_PCPE.png') }}" alt="Brasão da Polícia Civil">
-                </div>
-            </div>
-        </div>
-
-        <!-- TOOLBAR DE FERRAMENTAS -->
-        <div class="toolbar-container">
-            <div class="toolbar-main">
-                <div class="toolbar-left" style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-                    <div id="toolbar">
-                        <span class="ql-formats">
-                            <button class="ql-bold" title="Negrito (Ctrl+B)"></button>
-                            <button class="ql-italic" title="Itálico (Ctrl+I)"></button>
-                            <button class="ql-underline" title="Sublinhado (Ctrl+U)"></button>
-                            <button class="ql-strike" title="Tachado"></button>
-                        </span>
-                        <span class="ql-formats">
-                            <select class="ql-color" title="Cor do texto"></select>
-                            <select class="ql-background" title="Cor de fundo"></select>
-                        </span>
-                        <span class="ql-formats">
-                            <button class="ql-list" value="ordered" title="Lista ordenada"></button>
-                            <button class="ql-list" value="bullet" title="Lista com marcadores"></button>
-                            <button class="ql-indent" value="-1" title="Diminuir recuo"></button>
-                            <button class="ql-indent" value="+1" title="Aumentar recuo"></button>
-                        </span>
-                        <span class="ql-formats">
-                            <select class="ql-align" title="Alinhamento"></select>
-                        </span>
-                        <span class="ql-formats">
-                            <button class="ql-link" title="Inserir link"></button>
-                            <button class="ql-image" title="Inserir imagem"></button>
-                        </span>
-                        <!-- BOTÕES PERSONALIZADOS -->
-                        <span class="ql-formats">
-                            <button class="ql-page-break" title="Quebra de Página (Ctrl+Enter)">
-                                <i class="fas fa-file-alt"></i>
-                            </button>
-                            <button class="ql-text-case" title="Alternar Maiúsculas/Minúsculas (Shift+F3)">
-                                <i class="fas fa-text-height"></i>
-                            </button>
-                        </span>
-                        <span class="ql-formats">
-                            <button class="ql-clean" title="Limpar formatação"></button>
-                        </span>
-                    </div>
-                </div>
-
-                <div class="toolbar-right">
-                    <button class="btn-custom">
-                        <i class="fas fa-file-pdf"></i>
-                        Gerar PDF
-                    </button>
+                    <img src="{{ asset('images/b_PCPE.png') }}" alt="Brasão da Polícia Civil"> </button>
                 </div>
             </div>
         </div>
@@ -234,9 +182,10 @@
         </div>
     </div>
 
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{{ asset('js/DocumentoService.js') }}"></script>
+    
+    
 
     <!-- Dados para JavaScript -->
     <script>
@@ -273,3 +222,4 @@
 
 </body>
 </html>
+

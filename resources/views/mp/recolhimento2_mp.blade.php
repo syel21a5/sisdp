@@ -7,9 +7,9 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>OFÍCIO RECOLHIMENTO MP - Autor 2</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="{{ asset('css/formularios.css') }}" rel="stylesheet">
+    
 </head>
 <body class="body-declaracao">
     <?php
@@ -84,22 +84,7 @@
             </div>
         </div>
 
-        <div class="toolbar-container">
-            <div class="toolbar-main">
-                <div class="toolbar-left" style="display:flex;align-items:center;gap:15px;flex-wrap:wrap;">
-                    <div id="toolbar">
-                        <span class="ql-formats"><button class="ql-bold"></button><button class="ql-italic"></button><button class="ql-underline"></button><button class="ql-strike"></button></span>
-                        <span class="ql-formats"><select class="ql-color"></select><select class="ql-background"></select></span>
-                        <span class="ql-formats"><button class="ql-list" value="ordered"></button><button class="ql-list" value="bullet"></button><button class="ql-indent" value="-1"></button><button class="ql-indent" value="+1"></button></span>
-                        <span class="ql-formats"><select class="ql-align"></select></span>
-                        <span class="ql-formats"><button class="ql-link"></button><button class="ql-image"></button></span>
-                        <span class="ql-formats"><button class="ql-page-break"><i class="fas fa-file-alt"></i></button><button class="ql-text-case"><i class="fas fa-text-height"></i></button></span>
-                        <span class="ql-formats"><button class="ql-clean"></button></span>
-                    </div>
-                </div>
-                <div class="toolbar-right"><button class="btn-custom"><i class="fas fa-file-pdf"></i>Gerar PDF</button></div>
-            </div>
-        </div>
+
 
         <div class="editor-area">
             <div id="editor" class="preservar-espacamento">
@@ -134,9 +119,10 @@
         </div>
     </div>
 
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{{ asset('js/DocumentoService.js') }}"></script>
+    
+    
 
     <script>
         window.dadosParaImpressao = {

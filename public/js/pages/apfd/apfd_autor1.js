@@ -5,38 +5,9 @@ function printDocument() {
     console.log('🟢 GERANDO PDF APFD AUTOR 1 COM TINYMCE...');
 
     const dados = window.dadosParaImpressao || {};
-
-    // ✅ CAPTURAR CONTEÚDO DO EDITOR TINYMCE
     let content = tinymce.activeEditor ? tinymce.activeEditor.getContent() : document.getElementById('editor').innerHTML;
 
-    // Criar formulário para enviar ao Laravel
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/termo-apfd-autor1';
-    form.target = '_blank';
-    form.style.display = 'none';
-
-    // Adicionar CSRF token
-    const csrfToken = document.querySelector('meta[name="csrf-token"]');
-    if (!csrfToken) {
-        console.error('CSRF token não encontrado!');
-        return;
-    }
-
-    const csrfInput = document.createElement('input');
-    csrfInput.type = 'hidden';
-    csrfInput.name = '_token';
-    csrfInput.value = csrfToken.content;
-    form.appendChild(csrfInput);
-
-    // Adicionar conteúdo HTML limpo
-    const conteudoInput = document.createElement('input');
-    conteudoInput.type = 'hidden';
-    conteudoInput.name = 'conteudo';
-    conteudoInput.value = content;
-    form.appendChild(conteudoInput);
-
-    // Adicionar todos os dados necessários (Autor 1)
+    // Adicionar todos os dados necessários
     const dadosParaEnviar = {
         'orgao_emissor': 'APFD AUTOR 1',
         'cidade': dados.cidade || 'NÃO INFORMADO',
@@ -52,7 +23,7 @@ function printDocument() {
         'rg': dados.rg || '',
         'cpf': dados.cpf || '',
         'profissao': dados.profissao || '',
-        'instrucao': dados.instrucao || '',
+        'instrucao': (dados.instrucao || '').toUpperCase(),
         'telefone': dados.telefone || '',
         'mae': dados.mae || '',
         'pai': dados.pai || '',
@@ -60,20 +31,11 @@ function printDocument() {
         'parente': dados.parente || dados.Parente || 'NÃO INFORMADO',
         'familia': dados.familia || dados.Familia || 'NÃO INFORMADO',
         'boe': dados.boe || '',
-        'data_ext': dados.data_ext || 'NÃO INFORMADO'
+        'data_ext': dados.data_ext || 'NÃO INFORMADO',
+        'conteudo': content
     };
 
-    Object.keys(dadosParaEnviar).forEach(key => {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = key;
-        input.value = dadosParaEnviar[key];
-        form.appendChild(input);
-    });
-
-    document.body.appendChild(form);
-    form.submit();
-    document.body.removeChild(form);
+    DocumentoService.gerar('/termo-apfd-autor1', dadosParaEnviar);
 }
 
 // ✅ CONFIGURAÇÃO INICIAL

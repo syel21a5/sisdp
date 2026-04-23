@@ -349,3 +349,4 @@
 
 <!-- Incluir o JavaScript específico do veículo -->
 <script src="{{ asset('js/veiculo.js') }}?v={{ time() }}"></script>
+

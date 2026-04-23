@@ -136,3 +136,4 @@
     <script src="{{ asset('js/pages/pericias/PericiaEmLocalDeCrime.js') }}"></script>
 </body>
 </html>
+

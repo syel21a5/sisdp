@@ -7,9 +7,9 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Laudo Traumatológico (Hospitalar) - Editor Profissional</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Removido Quill CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="{{ asset('css/formularios.css') }}" rel="stylesheet">
+    
     <style>
         body {
             background-color: #e9ecef;
@@ -113,15 +113,7 @@
             </div>
         </div>
 
-        <!-- TOOLBAR DE FERRAMENTAS -->
-        <div class="toolbar-container">
-            <div class="toolbar-right">
-                <button class="btn-custom" onclick="printDocument()">
-                    <i class="fas fa-file-pdf"></i>
-                    Gerar PDF
-                </button>
-            </div>
-        </div>
+
 
         <!-- ÁREA DO EDITOR -->
         <div class="editor-area">
@@ -295,9 +287,10 @@
         </div>
     </div>
 
-    <!-- Scripts -->
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.3/tinymce.min.js" referrerpolicy="origin"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    <script src="{{ asset('js/DocumentoService.js') }}"></script>
 
     <!-- Dados para JavaScript -->
     <script>

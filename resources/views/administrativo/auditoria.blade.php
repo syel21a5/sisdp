@@ -96,3 +96,4 @@
     .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; }
 </style>
 @endsection
+

@@ -554,3 +554,4 @@
     <script src="{{ asset('js/relatorios/procedimentos.js') }}?v={{ time() }}"></script>
 </body>
 </html>
+

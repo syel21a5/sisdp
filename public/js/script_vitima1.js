@@ -516,11 +516,6 @@ $(document).ready(function () {
         const nome = $('#inputNomeVitima1').val();
         const documentoSelecionado = $('#termoDocumentoVitima1').val().trim().toUpperCase();
 
-        console.log('=== DEBUG IMPRESSÃO VITIMA1-APFD ===');
-        console.log('📄 Documento selecionado:', documentoSelecionado);
-        console.log('👤 Nome da vítima:', nome);
-
-        // Validações básicas
         if (!nome) {
             mostrarErro('Por favor, preencha o nome da vítima.');
             return;
@@ -530,155 +525,52 @@ $(document).ready(function () {
             return;
         }
 
-        // ✅ CORREÇÃO: Verifica se as rotas de impressão da VÍTIMA 1 estão definidas
         if (typeof rotasImpressaoVitima1 === 'undefined') {
-            console.error('❌ ERRO CRÍTICO: rotasImpressaoVitima1 não configurada');
-            mostrarErro('Rotas de impressão não configuradas. Recarregue a página.');
+            mostrarErro('Rotas de impressão não configuradas.');
             return;
         }
 
-        // ✅✅✅ CORREÇÃO: DECIDE QUAL FUNÇÃO USAR BASEADO NO DOCUMENTO
-        let dados;
-
-        // Documentos que precisam de dados INDIVIDUAIS (apenas da vítima1)
-        const documentosIndividuais = [
-            "TERMO DE DECLARACAO",
-            "TERMO DE DEPOIMENTO",
-            "TERMO DE INTERROGATORIO",
-            "AAFAI - VITIMA 1",
-            "APFD - VITIMA 1",
-            "CERTIDAO DE ASSINATURA INDIVIDUAL",
-            "AUTO DE APRESENTACAO E APREENSAO",
-            "TERMO DE RESTITUICAO",
-            "TERMO DE RENUNCIA E DESISTENCIA DE REPRESENTACAO",
-            "TERMO DE REPRESENTACAO",
-            "TERMO DE COMPROMISSO",
-            "TERMO DE LIBERACAO DE MENOR - INFRATOR",
-            "LAUDO TRAUMATOLOGICO",
-            "LAUDO TRAUMATOLOGICO IML",
-            "PERICIA EM LOCAL DE CRIME"
-        ];
-
-        // Documentos que precisam de dados MÚLTIPLOS (todas as pessoas)
-        const documentosMultiplos = [
-            "CERTIDAO DE ASSINATURA APFD"
-        ];
-
-        if (documentosIndividuais.includes(documentoSelecionado)) {
-            // Para documentos individuais, usa dados apenas da vítima1
-            dados = {
-                nome: nome,
-                alcunha: $('#inputAlcunhaVitima1').val(),
-                nascimento: $('#inputDataNascimentoVitima1').val(),
-                idade: $('#inputIdadeVitima1').val(),
-                estcivil: $('#inputEstadoCivilVitima1').val(),
-                naturalidade: $('#inputNaturalidadeVitima1').val(),
-                rg: $('#inputRGVitima1').val(),
-                cpf: $('#inputCPFVitima1').val(),
-                profissao: $('#inputProfissaoVitima1').val(),
-                instrucao: $('#inputInstrucaoVitima1').val(),
-                telefone: $('#inputTelefoneVitima1').val(),
-                mae: $('#inputMaeVitima1').val(),
-                pai: $('#inputPaiVitima1').val(),
-                endereco: $('#inputEnderecoVitima1').val(),
-                // Dados do wf_geral (formulário principal)
-                data: $('#inputData').val(),
-                data_comp: $('#inputDataComp').val(),
-                data_ext: $('#inputDataExt').val(),
-                cidade: $('#inputCidade').val(),
-                delegado: $('#inputDelegado').val(),
-                escrivao: $('#inputEscrivao').val(),
-                delegacia: $('#inputDelegacia').val(),
-                boe: $('#inputBOE').val(),
-                apreensao: $('#inputApreensao').val(),
-                ip: $('#inputIP').val()
-            };
-            console.log('📄 Usando dados INDIVIDUAIS para:', documentoSelecionado);
-        } else if (documentosMultiplos.includes(documentoSelecionado)) {
-            // Para documentos múltiplos, usa função que coleta dados de TODAS as pessoas
-            dados = window.prepararDadosMultiplosAPFD?.() || prepararDadosMultiplosFallback();
-            console.log('📄 Usando dados MÚLTIPLOS para:', documentoSelecionado);
-        } else {
-            // Fallback: usa dados individuais por padrão
-            dados = {
-                nome: nome,
-                alcunha: $('#inputAlcunhaVitima1').val(),
-                nascimento: $('#inputDataNascimentoVitima1').val(),
-                idade: $('#inputIdadeVitima1').val(),
-                estcivil: $('#inputEstadoCivilVitima1').val(),
-                naturalidade: $('#inputNaturalidadeVitima1').val(),
-                rg: $('#inputRGVitima1').val(),
-                cpf: $('#inputCPFVitima1').val(),
-                profissao: $('#inputProfissaoVitima1').val(),
-                instrucao: $('#inputInstrucaoVitima1').val(),
-                telefone: $('#inputTelefoneVitima1').val(),
-                mae: $('#inputMaeVitima1').val(),
-                pai: $('#inputPaiVitima1').val(),
-                endereco: $('#inputEnderecoVitima1').val(),
-                data: $('#inputData').val(),
-                data_comp: $('#inputDataComp').val(),
-                data_ext: $('#inputDataExt').val(),
-                cidade: $('#inputCidade').val(),
-                delegado: $('#inputDelegado').val(),
-                escrivao: $('#inputEscrivao').val(),
-                delegacia: $('#inputDelegacia').val(),
-                boe: $('#inputBOE').val(),
-                apreensao: $('#inputApreensao').val(),
-                ip: $('#inputIP').val()
-            };
-            console.log('📄 Usando dados INDIVIDUAIS (fallback) para:', documentoSelecionado);
-        }
-
-        // Função fallback caso a função principal não exista
-        function prepararDadosMultiplosFallback() {
-            console.warn('⚠️ Função prepararDadosMultiplosAPFD não encontrada, usando fallback');
-            return {
-                // Dados principais
-                data: $('#inputData').val(),
-                data_comp: $('#inputDataComp').val(),
-                data_ext: $('#inputDataExt').val(),
-                cidade: $('#inputCidade').val(),
-                delegado: $('#inputDelegado').val(),
-                escrivao: $('#inputEscrivao').val(),
-                delegacia: $('#inputDelegacia').val(),
-                boe: $('#inputBOE').val(),
-                ip: $('#inputIP').val(),
-                apreensao: $('#inputApreensao').val(),
-                // Vítima 1 (dados atuais)
-                vitima1: {
-                    nome: $('#inputNomeVitima1').val(),
-                    alcunha: $('#inputAlcunhaVitima1').val(),
-                    nascimento: $('#inputDataNascimentoVitima1').val(),
-                    idade: $('#inputIdadeVitima1').val(),
-                    estcivil: $('#inputEstadoCivilVitima1').val(),
-                    naturalidade: $('#inputNaturalidadeVitima1').val(),
-                    rg: $('#inputRGVitima1').val(),
-                    cpf: $('#inputCPFVitima1').val(),
-                    profissao: $('#inputProfissaoVitima1').val(),
-                    instrucao: $('#inputInstrucaoVitima1').val(),
-                    telefone: $('#inputTelefoneVitima1').val(),
-                    mae: $('#inputMaeVitima1').val(),
-                    pai: $('#inputPaiVitima1').val(),
-                    endereco: $('#inputEnderecoVitima1').val()
-                }
-            };
-        }
-
-        console.log('📊 Dados coletados:', dados);
-
-        // ✅ CORREÇÃO: Verifica se o documento existe nas rotas da VÍTIMA 1 APFD
         if (!rotasImpressaoVitima1[documentoSelecionado]) {
-            console.error('❌ ERRO: Documento não encontrado nas rotas');
-            console.log('📋 Documentos disponíveis:', Object.keys(rotasImpressaoVitima1));
             mostrarErro(`Documento "${documentoSelecionado}" não está configurado!`);
             return;
         }
 
-        console.log('✅ Rota encontrada:', rotasImpressaoVitima1[documentoSelecionado]);
+        try {
+            // ✅ CAPTURA CENTRALIZADA E ROBUSTA (Chips + Formulários)
+            let dados = DocumentoService.capturarDadosGlobais();
 
-        // ✅ USANDO O NOVO SERVIÇO CENTRALIZADO (EVITA URLs LONGAS)
-        DocumentoService.gerar(rotasImpressaoVitima1[documentoSelecionado], dados);
-        console.log('=== FIM DEBUG ===');
+            // ✅ SOBREPOSIÇÃO COM DADOS ATUAIS DA ABA (Garante que o que foi digitado agora seja usado)
+            const dadosAtuaisVitima = {
+                nome: $('#inputNomeVitima1').val(),
+                alcunha: ($('#inputAlcunhaVitima1').val() || '').toUpperCase(),
+                nascimento: $('#inputDataNascimentoVitima1').val(),
+                idade: $('#inputIdadeVitima1').val(),
+                rg: $('#inputRGVitima1').val(),
+                cpf: $('#inputCPFVitima1').val(),
+                mae: ($('#inputMaeVitima1').val() || '').toUpperCase(),
+                pai: ($('#inputPaiVitima1').val() || '').toUpperCase(),
+                endereco: ($('#inputEnderecoVitima1').val() || '').toUpperCase(),
+                profissao: ($('#inputProfissaoVitima1').val() || '').toUpperCase(),
+                naturalidade: ($('#inputNaturalidadeVitima1').val() || '').toUpperCase(),
+                estcivil: ($('#inputEstadoCivilVitima1').val() || '').toUpperCase(),
+                instrucao: ($('#inputInstrucaoVitima1').val() || '').toUpperCase(),
+                telefone: $('#inputTelefoneVitima1').val()
+            };
+
+            // Mescla no objeto principal e também no objeto vitima1 para compatibilidade
+            Object.assign(dados, dadosAtuaisVitima);
+            dados.vitima1 = dadosAtuaisVitima;
+
+            const rota = rotasImpressaoVitima1[documentoSelecionado];
+            console.log('🚀 Enviando para DocumentoService:', { documentoSelecionado, dados });
+
+            // Usa o DocumentoService para gerar (trata POST e Cache automaticamente)
+            DocumentoService.gerar(rota, dados);
+
+        } catch (error) {
+            console.error('❌ Erro ao preparar documento:', error);
+            mostrarErro('Erro ao preparar os dados para o documento.');
+        }
     });
 
 

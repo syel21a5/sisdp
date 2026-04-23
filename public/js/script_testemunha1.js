@@ -513,11 +513,6 @@ $(document).ready(function () {
         const nome = $('#inputNomeTestemunha1').val();
         const documentoSelecionado = $('#termoDocumentoTestemunha1').val().trim().toUpperCase();
 
-        console.log('=== DEBUG IMPRESSÃO TESTEMUNHA1-APFD ===');
-        console.log('📄 Documento selecionado:', documentoSelecionado);
-        console.log('👤 Nome da testemunha:', nome);
-
-        // Validações básicas
         if (!nome) {
             mostrarErro('Por favor, preencha o nome da testemunha.');
             return;
@@ -527,142 +522,52 @@ $(document).ready(function () {
             return;
         }
 
-        let dados;
-
-        // ✅✅✅ MESMA LÓGICA INTELIGENTE DOS VITIMAS
-        const documentosIndividuais = [
-            "TERMO DE DECLARACAO",
-            "TERMO DE DEPOIMENTO",
-            "TERMO DE INTERROGATORIO",
-            "AAFAI - TESTEMUNHA 1",
-            "APFD - TESTEMUNHA 1",
-            "AUTO DE APRESENTACAO E APREENSAO",
-            "TERMO DE RESTITUICAO",
-            "TERMO DE RENUNCIA E DESISTENCIA DE REPRESENTACAO",
-            "TERMO DE REPRESENTACAO",
-            "TERMO DE COMPROMISSO",
-            "TERMO DE LIBERACAO DE MENOR - INFRATOR",
-            "LAUDO TRAUMATOLOGICO",
-            "LAUDO TRAUMATOLOGICO IML",
-            "CERTIDAO DE ASSINATURA INDIVIDUAL"
-        ];
-
-        const documentosMultiplos = [
-            "CERTIDAO DE ASSINATURA APFD"
-        ];
-
-        if (documentosIndividuais.includes(documentoSelecionado)) {
-            // Para documentos individuais
-            dados = {
-                nome: nome,
-                alcunha: $('#inputAlcunhaTestemunha1').val(),
-                nascimento: $('#inputDataNascimentoTestemunha1').val(),
-                idade: $('#inputIdadeTestemunha1').val(),
-                estcivil: $('#inputEstadoCivilTestemunha1').val(),
-                naturalidade: $('#inputNaturalidadeTestemunha1').val(),
-                rg: $('#inputRGTestemunha1').val(),
-                cpf: $('#inputCPFTestemunha1').val(),
-                profissao: $('#inputProfissaoTestemunha1').val(),
-                instrucao: $('#inputInstrucaoTestemunha1').val(),
-                telefone: $('#inputTelefoneTestemunha1').val(),
-                mae: $('#inputMaeTestemunha1').val(),
-                pai: $('#inputPaiTestemunha1').val(),
-                endereco: $('#inputEnderecoTestemunha1').val(),
-                // Dados do wf_geral
-                data: $('#inputData').val(),
-                data_comp: $('#inputDataComp').val(),
-                data_ext: $('#inputDataExt').val(),
-                cidade: $('#inputCidade').val(),
-                delegado: $('#inputDelegado').val(),
-                escrivao: $('#inputEscrivao').val(),
-                delegacia: $('#inputDelegacia').val(),
-                boe: $('#inputBOE').val(),
-                apreensao: $('#inputApreensao').val(),
-                ip: $('#inputIP').val()
-            };
-        } else if (documentosMultiplos.includes(documentoSelecionado)) {
-            // ✅✅✅ CORREÇÃO: Para AAFAI TESTEMUNHA 1, usar estrutura com testemunha1
-            dados = {
-                // Dados principais
-                data: $('#inputData').val(),
-                data_comp: $('#inputDataComp').val(),
-                data_ext: $('#inputDataExt').val(),
-                cidade: $('#inputCidade').val(),
-                delegado: $('#inputDelegado').val(),
-                escrivao: $('#inputEscrivao').val(),
-                delegacia: $('#inputDelegacia').val(),
-                boe: $('#inputBOE').val(),
-                ip: $('#inputIP').val(),
-                apreensao: $('#inputApreensao').val(),
-                // ✅ ESTRUTURA CORRETA: Dados dentro de testemunha1
-                testemunha1: {
-                    nome: nome,
-                    alcunha: $('#inputAlcunhaTestemunha1').val(),
-                    nascimento: $('#inputDataNascimentoTestemunha1').val(),
-                    idade: $('#inputIdadeTestemunha1').val(),
-                    estcivil: $('#inputEstadoCivilTestemunha1').val(),
-                    naturalidade: $('#inputNaturalidadeTestemunha1').val(),
-                    rg: $('#inputRGTestemunha1').val(),
-                    cpf: $('#inputCPFTestemunha1').val(),
-                    profissao: $('#inputProfissaoTestemunha1').val(),
-                    instrucao: $('#inputInstrucaoTestemunha1').val(),
-                    telefone: $('#inputTelefoneTestemunha1').val(),
-                    mae: $('#inputMaeTestemunha1').val(),
-                    pai: $('#inputPaiTestemunha1').val(),
-                    endereco: $('#inputEnderecoTestemunha1').val()
-                }
-            };
-        } else {
-            // Fallback: usa dados individuais por padrão
-            dados = {
-                nome: nome,
-                alcunha: $('#inputAlcunhaTestemunha1').val(),
-                nascimento: $('#inputDataNascimentoTestemunha1').val(),
-                idade: $('#inputIdadeTestemunha1').val(),
-                estcivil: $('#inputEstadoCivilTestemunha1').val(),
-                naturalidade: $('#inputNaturalidadeTestemunha1').val(),
-                rg: $('#inputRGTestemunha1').val(),
-                cpf: $('#inputCPFTestemunha1').val(),
-                profissao: $('#inputProfissaoTestemunha1').val(),
-                instrucao: $('#inputInstrucaoTestemunha1').val(),
-                telefone: $('#inputTelefoneTestemunha1').val(),
-                mae: $('#inputMaeTestemunha1').val(),
-                pai: $('#inputPaiTestemunha1').val(),
-                endereco: $('#inputEnderecoTestemunha1').val(),
-                data: $('#inputData').val(),
-                data_comp: $('#inputDataComp').val(),
-                data_ext: $('#inputDataExt').val(),
-                cidade: $('#inputCidade').val(),
-                delegado: $('#inputDelegado').val(),
-                escrivao: $('#inputEscrivao').val(),
-                delegacia: $('#inputDelegacia').val(),
-                boe: $('#inputBOE').val(),
-                apreensao: $('#inputApreensao').val(),
-                ip: $('#inputIP').val()
-            };
-        }
-
-        console.log('📊 Dados coletados para testemunha 1 APFD:', dados);
-
-        // ✅ CORREÇÃO: Verifica se as rotas de impressão da TESTEMUNHA 1 APFD estão definidas
         if (typeof rotasImpressaoTestemunha1 === 'undefined') {
-            console.error('❌ ERRO CRÍTICO: rotasImpressaoTestemunha1 não configurada');
-            mostrarErro('Rotas de impressão não configuradas. Recarregue a página.');
+            mostrarErro('Rotas de impressão não configuradas.');
             return;
         }
 
-        // ✅ CORREÇÃO: Verifica se o documento existe nas rotas da TESTEMUNHA 1 APFD
         if (!rotasImpressaoTestemunha1[documentoSelecionado]) {
-            console.error('❌ ERRO: Documento não encontrado nas rotas');
-            console.log('📋 Documentos disponíveis:', Object.keys(rotasImpressaoTestemunha1));
             mostrarErro(`Documento "${documentoSelecionado}" não está configurado!`);
             return;
         }
 
-        console.log('✅ Rota encontrada:', rotasImpressaoTestemunha1[documentoSelecionado]);
+        try {
+            // ✅ CAPTURA CENTRALIZADA E ROBUSTA (Chips + Formulários)
+            let dados = DocumentoService.capturarDadosGlobais();
 
-        // ✅ USANDO O NOVO SERVIÇO CENTRALIZADO (EVITA URLs LONGAS)
-        DocumentoService.gerar(rotasImpressaoTestemunha1[documentoSelecionado], dados);
+            // ✅ SOBREPOSIÇÃO COM DADOS ATUAIS DA ABA (Garante que o que foi digitado agora seja usado)
+            const dadosAtuaisTestemunha = {
+                nome: $('#inputNomeTestemunha1').val(),
+                alcunha: ($('#inputAlcunhaTestemunha1').val() || '').toUpperCase(),
+                nascimento: $('#inputDataNascimentoTestemunha1').val(),
+                idade: $('#inputIdadeTestemunha1').val(),
+                rg: $('#inputRGTestemunha1').val(),
+                cpf: $('#inputCPFTestemunha1').val(),
+                mae: ($('#inputMaeTestemunha1').val() || '').toUpperCase(),
+                pai: ($('#inputPaiTestemunha1').val() || '').toUpperCase(),
+                endereco: ($('#inputEnderecoTestemunha1').val() || '').toUpperCase(),
+                profissao: ($('#inputProfissaoTestemunha1').val() || '').toUpperCase(),
+                naturalidade: ($('#inputNaturalidadeTestemunha1').val() || '').toUpperCase(),
+                estcivil: ($('#inputEstadoCivilTestemunha1').val() || '').toUpperCase(),
+                instrucao: ($('#inputInstrucaoTestemunha1').val() || '').toUpperCase(),
+                telefone: $('#inputTelefoneTestemunha1').val()
+            };
+
+            // Mescla no objeto principal e também no objeto testemunha1 para compatibilidade
+            Object.assign(dados, dadosAtuaisTestemunha);
+            dados.testemunha1 = dadosAtuaisTestemunha;
+
+            const rota = rotasImpressaoTestemunha1[documentoSelecionado];
+            console.log('🚀 Enviando para DocumentoService:', { documentoSelecionado, dados });
+
+            // Usa o DocumentoService para gerar (trata POST e Cache automaticamente)
+            DocumentoService.gerar(rota, dados);
+
+        } catch (error) {
+            console.error('❌ Erro ao preparar documento:', error);
+            mostrarErro('Erro ao preparar os dados para o documento.');
+        }
     });
 
 

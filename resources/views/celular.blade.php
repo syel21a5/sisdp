@@ -349,3 +349,4 @@
 
 <!-- Incluir o JavaScript específico do celular -->
 <script src="{{ asset('js/celular.js') }}?v={{ time() }}"></script>
+

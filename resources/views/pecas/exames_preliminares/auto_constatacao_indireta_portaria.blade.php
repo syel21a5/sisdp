@@ -179,8 +179,8 @@
     </div>
 
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    
 
     <!-- Dados para JavaScript -->
     <script>
@@ -222,3 +222,4 @@
     <script src="{{ asset('js/pages/pecas/ExameDanos.js') }}"></script>
 </body>
 </html>
+

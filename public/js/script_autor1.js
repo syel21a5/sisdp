@@ -723,243 +723,46 @@ $(document).ready(function () {
         $(this).html('<span class="spinner-border spinner-border-sm"></span> Gerando...').prop('disabled', true);
 
         try {
-            // ✅ LISTAS REAIS DE DOCUMENTOS
-            const documentosIndividuais = [
-                "TERMO DE DECLARACAO",
-                "TERMO DE DEPOIMENTO",
-                "TERMO DE INTERROGATORIO",
-                "AAFAI - AUTOR 1",
-                "APFD - AUTOR 1",
-                "NOTA DE CULPA",
-                "NOTA DE CIENCIA - GARANTIAS CONSTITUCIONAIS",
-                "AUTO DE APRESENTACAO E APREENSAO",
-                "TERMO DE RESTITUICAO",
-                "TERMO DE RENUNCIA E DESISTENCIA DE REPRESENTACAO",
-                "TERMO DE REPRESENTACAO",
-                "TERMO DE COMPROMISSO",
-                "TERMO DE LIBERACAO DE MENOR - INFRATOR",
-                "LAUDO TRAUMATOLOGICO",
-                "LAUDO TRAUMATOLOGICO IML",
-                "CERTIDAO DE ASSINATURA INDIVIDUAL",
-                "AUTO CIRCUNSTACIADO - AUTOR 1",
-                "MANDADO DE PRISAO - OFICIOS",
-                "MANDADO DE PRISAO - OFICIO FAMILIA",
-                "APFD - OFICIO FAMILIA",
-                "MANDADO DE PRISAO - RECOLHIMENTO",
-                "PERICIA EM LOCAL DE CRIME"
-            ];
+            // ✅ CAPTURA CENTRALIZADA E ROBUSTA (Chips + Formulários)
+            let dados = DocumentoService.capturarDadosGlobais();
 
-            const documentosMultiplos = [
-                "COMUNICACAO DE APFD",
-                "COMUNICACAO DE APFD - UNICO OFICIO",
-                "CERTIDAO DE ASSINATURA APFD"
-            ];
+            // ✅ SOBREPOSIÇÃO COM DADOS ATUAIS DA ABA (Garante que o que foi digitado agora seja usado)
+            const dadosAtuaisAutor = {
+                nome: $('#inputNomeAutor1').val(),
+                alcunha: ($('#inputAlcunhaAutor1').val() || '').toUpperCase(),
+                nascimento: $('#inputDataNascimentoAutor1').val(),
+                idade: $('#inputIdadeAutor1').val(),
+                rg: $('#inputRGAutor1').val(),
+                cpf: $('#inputCPFAutor1').val(),
+                mae: ($('#inputMaeAutor1').val() || '').toUpperCase(),
+                pai: ($('#inputPaiAutor1').val() || '').toUpperCase(),
+                endereco: ($('#inputEnderecoAutor1').val() || '').toUpperCase(),
+                profissao: ($('#inputProfissaoAutor1').val() || '').toUpperCase(),
+                naturalidade: ($('#inputNaturalidadeAutor1').val() || '').toUpperCase(),
+                estcivil: ($('#inputEstadoCivilAutor1').val() || '').toUpperCase(),
+                instrucao: ($('#inputInstrucaoAutor1').val() || '').toUpperCase(),
+                telefone: $('#inputTelefoneAutor1').val(),
+                // Dados específicos de autor
+                tipopenal: ($('#inputTipoPenalAutor1').val() || '').toUpperCase(),
+                fianca: $('#inputFiancaAutor1').val(),
+                fianca_ext: ($('#inputFiancaExtAutor1').val() || '').toUpperCase(),
+                fianca_pago: $('#inputFiancaPagoAutor1').is(':checked'),
+                nmandado: $('#inputNmandadoAutor1').val(),
+                datamandado: $('#inputDataMandadoAutor1').val(),
+                parente: ($('#inputParenteAutor1').val() || '').toUpperCase(),
+                familia: ($('#inputFamiliaAutor1').val() || '').toUpperCase(),
+                advogado: ($('#inputAdvogadoAutor1').val() || '').toUpperCase()
+            };
 
-            let dados;
+            // Mescla no objeto principal e também no objeto autor1 para compatibilidade
+            Object.assign(dados, dadosAtuaisAutor);
+            dados.autor1 = dadosAtuaisAutor;
 
-            // ✅ Monta dados LEVES para documentos individuais
-            if (documentosIndividuais.includes(documentoSelecionado)) {
-                dados = {
-                    // Dados principais do BO/APFD
-                    data: $('#inputData').val(),
-                    data_fato: (() => {
-                        const val = $('#inputDataFato').val();
-                        if (!val) return 'NÃO INFORMADO';
-                        if (val.includes('-')) {
-                            const [ano, mes, dia] = val.split('-');
-                            return `${dia}/${mes}/${ano}`;
-                        }
-                        return val;
-                    })(),
-                    data_comp: $('#inputDataComp').val(),
-                    data_ext: $('#inputDataExt').val(),
-                    cidade: $('#inputCidade').val(),
-                    delegado: $('#inputDelegado').val(),
-                    escrivao: $('#inputEscrivao').val(),
-                    delegacia: $('#inputDelegacia').val(),
-                    boe: $('#inputBOE').val(),
-                    ip: $('#inputIP').val(),
-                    apreensao: $('#inputApreensao').val(),
-                    nmandado: $('#inputNmandadoAutor1').val() || '',
-                    datamandado: $('#inputDataMandadoAutor1').val() || '',
-                    incidencia_penal: $('#inputIncidenciaPenal').val() || $('#inputTipoPenalAutor1').val() || '',
-                    tipificacao: $('#inputTipoPenalAutor1').val() || $('#inputIncidenciaPenal').val() || '', // ✅ Prioriza Tipo Penal do Autor
-                    fianca_pago: $('#inputFiancaPagoAutor1').is(':checked'),
-                    fianca: $('#inputFiancaAutor1').val(),
-                    fianca_ext: $('#inputFiancaExtAutor1').val(),
-                    hora_fato: $('#inputHoraFato').val() || '',
-                    end_fato: $('#inputEndFato').val() || '',
+            const rota = rotasImpressaoAutor1[documentoSelecionado];
+            console.log('🚀 Enviando para DocumentoService:', { documentoSelecionado, dados });
 
-                    // Condutor, vítima e testemunhas
-                    condutor: { nome: $('#inputNomeCondutor').val() || 'NÃO INFORMADO' },
-                    vitima1: { nome: $('#inputNomeVitima1').val() || 'NÃO INFORMADO' },
-                    testemunha1: { nome: (typeof OcorrenciasApp !== 'undefined' && OcorrenciasApp.envolvidos && OcorrenciasApp.envolvidos.testemunhas && OcorrenciasApp.envolvidos.testemunhas[0]) ? OcorrenciasApp.envolvidos.testemunhas[0] : ($('#inputNomeTestemunha1').val() || 'NÃO INFORMADO') },
-                    testemunha2: { nome: (typeof OcorrenciasApp !== 'undefined' && OcorrenciasApp.envolvidos && OcorrenciasApp.envolvidos.testemunhas && OcorrenciasApp.envolvidos.testemunhas[1]) ? OcorrenciasApp.envolvidos.testemunhas[1] : ($('#inputNomeTestemunha2').val() || 'NÃO INFORMADO') },
-
-                    // Autor principal do documento (flat + nested para compatibilidade)
-                    nome: nome,
-                    tipopenal: $('#inputTipoPenalAutor1').val() || '',
-                    autor1: {
-                        nome: nome || 'NÃO INFORMADO',
-                        tipopenal: $('#inputTipoPenalAutor1').val() || '',
-                        fianca_pago: $('#inputFiancaPagoAutor1').is(':checked'),
-                        fianca: $('#inputFiancaAutor1').val(),
-                        fianca_ext: $('#inputFiancaExtAutor1').val()
-                    },
-                    alcunha: $('#inputAlcunhaAutor1').val() || '',
-                    nascimento: $('#inputDataNascimentoAutor1').val() || '',
-                    idade: $('#inputIdadeAutor1').val() || '',
-                    estcivil: $('#inputEstadoCivilAutor1').val() || '',
-                    naturalidade: $('#inputNaturalidadeAutor1').val() || '',
-                    rg: $('#inputRGAutor1').val() || '',
-                    cpf: $('#inputCPFAutor1').val() || '',
-                    profissao: $('#inputProfissaoAutor1').val() || '',
-                    instrucao: $('#inputInstrucaoAutor1').val() || '',
-                    telefone: $('#inputTelefoneAutor1').val() || '',
-                    mae: $('#inputMaeAutor1').val() || '',
-                    pai: $('#inputPaiAutor1').val() || '',
-                    endereco: $('#inputEnderecoAutor1').val() || '',
-                    fianca: $('#inputFiancaAutor1').val() || '',
-                    fianca_ext: $('#inputFiancaExtAutor1').val() || '',
-                    advogado: $('#inputAdvogadoAutor1').val() || '',
-                    parente: $('#inputParenteAutor1').val() || 'NÃO INFORMADO',
-                    familia: $('#inputFamiliaAutor1').val() || 'NÃO INFORMADO'
-                };
-            }
-            // ✅ Monta dados COMPLETOS com BUSCA ASSÍNCRONA para documentos múltiplos
-            else if (documentosMultiplos.includes(documentoSelecionado)) {
-
-                // 1. Identificar todos os autores que precisam ser buscados
-                const App = (typeof OcorrenciasApp !== 'undefined') ? OcorrenciasApp : (window.OcorrenciasApp || null);
-
-                const listaAutores = (App && App.envolvidos && App.envolvidos.autores)
-                    ? App.envolvidos.autores
-                    : [nome]; // Fallback para apenas o atual se não tiver lista global
-
-                const listaVinculos = (App && App.vinculos && App.vinculos.autores)
-                    ? App.vinculos.autores
-                    : [];
-
-                console.log('🔍 Iniciando busca de dados para impressão:', { listaAutores, listaVinculos });
-
-                // 2. Buscar dados de cada autor em paralelo
-                const promises = listaAutores.map(async (nomeAutor, index) => {
-                    const vinculo = listaVinculos[index];
-                    const id = vinculo ? (vinculo.pessoa_id || vinculo.id_cad) : null;
-
-                    // Se for o autor que está sendo editado AGORA no formulário, usamos os dados do form (mais atualizados)
-                    // Verificamos pelo ID selecionado ou pelo nome se não tiver ID
-                    const isCurrentForm = (id && id == $('#autor1_id').val()) || (!id && nomeAutor === $('#inputNomeAutor1').val());
-
-                    if (isCurrentForm) {
-                        return {
-                            nome: $('#inputNomeAutor1').val() || 'NÃO INFORMADO',
-                            tipopenal: $('#inputTipoPenalAutor1').val() || 'NÃO INFORMADO',
-                            fianca: $('#inputFiancaAutor1').val() || '',
-                            fianca_ext: $('#inputFiancaExtAutor1').val() || '',
-                            fianca_pago: $('#inputFiancaPagoAutor1').is(':checked')
-                        };
-                    }
-
-                    // Se tem ID, busca no banco
-                    if (id) {
-                        try {
-                            const resp = await $.get(`/autor1/buscar/${id}`);
-                            const d = resp.data || resp;
-                            // Normalização de booleanos vindos do banco
-                            const pg = (d.FiancaPago === 1 || d.FiancaPago === '1' || d.FiancaPago === true || d.fianca_pago === 1 || d.fianca_pago === true);
-                            return {
-                                nome: d.Nome || nomeAutor,
-                                tipopenal: d.TipoPenal || 'NÃO INFORMADO',
-                                fianca: d.Fianca ? parseFloat(d.Fianca).toFixed(2).replace('.', ',').replace(/\d(?=(\d{3})+\,)/g, '$&.') : '', // Formatação simples visual
-                                fianca_raw: d.Fianca, // Mantém raw se o PHP precisar
-                                fianca_ext: d.FiancaExt || '',
-                                fianca_pago: pg
-                            };
-                        } catch (err) {
-                            console.error(`❌ Erro ao buscar autor ${id}:`, err);
-                            return { nome: nomeAutor, tipopenal: 'ERRO AO BUSCAR' };
-                        }
-                    }
-
-                    // Se não tem ID, retorna só o nome (autor adicionado manualmente sem salvar?)
-                    return { nome: nomeAutor, tipopenal: 'NÃO INFORMADO' };
-                });
-
-                const autoresCompletos = await Promise.all(promises);
-                console.log('✅ Dados completos dos autores para impressão:', autoresCompletos);
-
-                dados = {
-                    data: $('#inputData').val(),
-                    data_fato: (() => {
-                        const val = $('#inputDataFato').val();
-                        if (!val) return 'NÃO INFORMADO';
-                        if (val.includes('-')) {
-                            const [ano, mes, dia] = val.split('-');
-                            return `${dia}/${mes}/${ano}`;
-                        }
-                        return val;
-                    })(),
-                    data_comp: $('#inputDataComp').val(),
-                    data_ext: $('#inputDataExt').val(),
-                    cidade: $('#inputCidade').val(),
-                    delegado: $('#inputDelegado').val(),
-                    escrivao: $('#inputEscrivao').val(),
-                    delegacia: $('#inputDelegacia').val(),
-                    boe: $('#inputBOE').val(),
-                    boe_pm: $('#inputBOEPM').val() || '',
-                    ip: $('#inputIP').val(),
-                    apreensao: $('#inputApreensao').val(),
-                    nmandado: $('#inputNmandadoAutor1').val() || '',
-                    datamandado: $('#inputDataMandadoAutor1').val() || '',
-                    incidencia_penal: $('#inputIncidenciaPenal').val() || $('#inputTipoPenalAutor1').val() || '',
-                    natureza: $('#inputIncidenciaPenal').val() || $('#inputTipoPenalAutor1').val() || '',
-                    tipificacao: $('#inputTipoPenalAutor1').val() || $('#inputIncidenciaPenal').val() || '',
-                    fianca_pago: $('#inputFiancaPagoAutor1').is(':checked'),
-                    fianca: $('#inputFiancaAutor1').val(),
-                    fianca_ext: $('#inputFiancaExtAutor1').val(),
-                    hora_fato: $('#inputHoraFato').val() || '',
-                    end_fato: $('#inputEndFato').val() || '',
-                    local_fato: $('#inputEndFato').val() || '',
-                    dp_resp: $('#inputDPResp').val() || '',
-                    cid_resp: $('#inputCidResp').val() || '',
-                    bel_resp: $('#inputBelResp').val() || '',
-                    escr_resp: $('#inputEscrResp').val() || '',
-                    policial_1: $('#inputPolicial1').val() || '',
-                    policial_2: $('#inputPolicial2').val() || '',
-
-                    // Envolvidos usando a lógica moderna de OcorrenciasApp se disponível
-                    condutor: { nome: (typeof OcorrenciasApp !== 'undefined' && OcorrenciasApp.envolvidos && OcorrenciasApp.envolvidos.condutores && OcorrenciasApp.envolvidos.condutores[0]) ? OcorrenciasApp.envolvidos.condutores[0] : ($('#inputNomeCondutor').val() || 'NÃO INFORMADO') },
-                    vitima1: { nome: (typeof OcorrenciasApp !== 'undefined' && OcorrenciasApp.envolvidos && OcorrenciasApp.envolvidos.vitimas && OcorrenciasApp.envolvidos.vitimas[0]) ? OcorrenciasApp.envolvidos.vitimas[0] : ($('#inputNomeVitima1').val() || 'NÃO INFORMADO') },
-                    vitima2: { nome: (typeof OcorrenciasApp !== 'undefined' && OcorrenciasApp.envolvidos && OcorrenciasApp.envolvidos.vitimas && OcorrenciasApp.envolvidos.vitimas[1]) ? OcorrenciasApp.envolvidos.vitimas[1] : ($('#inputNomeVitima2').val() || 'NÃO INFORMADO') },
-                    vitima3: { nome: (typeof OcorrenciasApp !== 'undefined' && OcorrenciasApp.envolvidos && OcorrenciasApp.envolvidos.vitimas && OcorrenciasApp.envolvidos.vitimas[2]) ? OcorrenciasApp.envolvidos.vitimas[2] : ($('#inputNomeVitima3').val() || 'NÃO INFORMADO') },
-                    testemunha1: { nome: (typeof OcorrenciasApp !== 'undefined' && OcorrenciasApp.envolvidos && OcorrenciasApp.envolvidos.testemunhas && OcorrenciasApp.envolvidos.testemunhas[0]) ? OcorrenciasApp.envolvidos.testemunhas[0] : ($('#inputNomeTestemunha1').val() || 'NÃO INFORMADO') },
-                    testemunha2: { nome: (typeof OcorrenciasApp !== 'undefined' && OcorrenciasApp.envolvidos && OcorrenciasApp.envolvidos.testemunhas && OcorrenciasApp.envolvidos.testemunhas[1]) ? OcorrenciasApp.envolvidos.testemunhas[1] : ($('#inputNomeTestemunha2').val() || 'NÃO INFORMADO') },
-                    testemunha3: { nome: (typeof OcorrenciasApp !== 'undefined' && OcorrenciasApp.envolvidos && OcorrenciasApp.envolvidos.testemunhas && OcorrenciasApp.envolvidos.testemunhas[2]) ? OcorrenciasApp.envolvidos.testemunhas[2] : ($('#inputNomeTestemunha3').val() || 'NÃO INFORMADO') },
-
-                    // Manter compatibilidade
-                    nome: $('#inputNomeAutor1').val() || 'NÃO INFORMADO',
-                    
-                    // ✅ LISTA DINÂMICA DE AUTORES AGORA 100% PREENCHIDA
-                    autores: autoresCompletos
-                };
-            }
-            else {
-                // Caso genérico de fallback (opcional)
-                dados = {
-                    nome: nome,
-                    data: $('#inputData').val(),
-                    boe: $('#inputBOE').val(),
-                    cidade: $('#inputCidade').val(),
-                    fianca: $('#inputFiancaAutor1').val() || '',
-                    fianca_ext: $('#inputFiancaExtAutor1').val() || '',
-                    hora_fato: $('#inputHoraFato').val() || '',
-                    end_fato: $('#inputEndFato').val() || ''
-                };
-            }
-
-            // ✅ USANDO O NOVO SERVIÇO CENTRALIZADO (EVITA URLs LONGAS)
-            DocumentoService.gerar(rotasImpressaoAutor1[documentoSelecionado], dados);
+            // Usa o DocumentoService para gerar (trata POST e Cache automaticamente)
+            DocumentoService.gerar(rota, dados);
 
         } catch (error) {
             console.error(error);

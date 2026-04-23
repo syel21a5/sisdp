@@ -4,3 +4,4 @@
         <p class="card-text mb-0 small">{{ $label }}</p>
     </div>
 </div>
+

@@ -352,3 +352,4 @@
     <script src="{{ asset('js/apreensao_celular/script.js') }}"></script>
 </body>
 </html>
+

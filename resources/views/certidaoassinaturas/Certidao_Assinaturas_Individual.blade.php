@@ -143,3 +143,4 @@
     <script src="{{ asset('js/pages/certidaoassinaturas/CertidaoAssinaturasIndividual.js') }}"></script>
 </body>
 </html>
+

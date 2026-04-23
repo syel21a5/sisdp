@@ -618,7 +618,6 @@ $(document).ready(function () {
             const nome = $('#inputNomeOutro').val();
             const documentoSelecionado = $('#termoDocumentoOutro').val().trim().toUpperCase();
 
-            // Validações básicas
             if (!nome) {
                 mostrarErro('Por favor, preencha o nome.');
                 return;
@@ -628,51 +627,44 @@ $(document).ready(function () {
                 return;
             }
 
-            let dados = {
-                nome: nome,
-                alcunha: $('#inputAlcunhaOutro').val(),
-                nascimento: $('#inputDataNascimentoOutro').val(),
-                idade: $('#inputIdadeOutro').val(),
-                estcivil: $('#inputEstadoCivilOutro').val(),
-                naturalidade: $('#inputNaturalidadeOutro').val(),
-                rg: $('#inputRGOutro').val(),
-                cpf: $('#inputCPFOutro').val(),
-                profissao: $('#inputProfissaoOutro').val(),
-                instrucao: $('#inputInstrucaoOutro').val(),
-                telefone: $('#inputTelefoneOutro').val(),
-                mae: $('#inputMaeOutro').val(),
-                pai: $('#inputPaiOutro').val(),
-                endereco: $('#inputEnderecoOutro').val(),
-                // Dados do wf_geral
-                data: $('#inputData').val(),
-                data_comp: $('#inputDataComp').val(),
-                data_ext: $('#inputDataExt').val(),
-                cidade: $('#inputCidade').val(),
-                delegado: $('#inputDelegado').val(),
-                escrivao: $('#inputEscrivao').val(),
-                delegacia: $('#inputDelegacia').val(),
-                boe: $('#inputBOE').val(),
-                apreensao: $('#inputApreensao').val(),
-                ip: $('#inputIP').val()
-            };
+            try {
+                // ✅ CAPTURA CENTRALIZADA E ROBUSTA (Chips + Formulários)
+                let dados = DocumentoService.capturarDadosGlobais();
 
-            // Tratamento especial para documentos que esperam "testemunha1"
-            // Replicamos os dados dentro de um objeto 'testemunha1' (hack) para que os templates da testemunha funcionem
-            dados.testemunha1 = { ...dados };
+                // ✅ SOBREPOSIÇÃO COM DADOS ATUAIS DA ABA (Garante que o que foi digitado agora seja usado)
+                const dadosAtuaisOutro = {
+                    nome: $('#inputNomeOutro').val(),
+                    alcunha: ($('#inputAlcunhaOutro').val() || '').toUpperCase(),
+                    nascimento: $('#inputDataNascimentoOutro').val(),
+                    idade: $('#inputIdadeOutro').val(),
+                    rg: $('#inputRGOutro').val(),
+                    cpf: $('#inputCPFOutro').val(),
+                    mae: ($('#inputMaeOutro').val() || '').toUpperCase(),
+                    pai: ($('#inputPaiOutro').val() || '').toUpperCase(),
+                    endereco: ($('#inputEnderecoOutro').val() || '').toUpperCase(),
+                    profissao: ($('#inputProfissaoOutro').val() || '').toUpperCase(),
+                    naturalidade: ($('#inputNaturalidadeOutro').val() || '').toUpperCase(),
+                    estcivil: ($('#inputEstadoCivilOutro').val() || '').toUpperCase(),
+                    instrucao: ($('#inputInstrucaoOutro').val() || '').toUpperCase(),
+                    telefone: $('#inputTelefoneOutro').val()
+                };
 
-            // Verifica rotas
-            // Tenta usar rotasImpressaoTestemunha1 como fallback já que o usuário pediu "mesmas da testemunha"
-            if (typeof rotasImpressaoTestemunha1 !== 'undefined' && rotasImpressaoTestemunha1[documentoSelecionado]) {
-                const url = rotasImpressaoTestemunha1[documentoSelecionado].replace('--DADOS--', btoa(unescape(encodeURIComponent(JSON.stringify(dados)))));
-                window.open(url, "_blank");
-                return;
-            }
+                // Mescla no objeto principal e também no objeto testemunha1 (hack para compatibilidade)
+                Object.assign(dados, dadosAtuaisOutro);
+                dados.testemunha1 = dadosAtuaisOutro;
 
-            // Fallback genérico
-            if (typeof window.imprimirDocumentoGlobal === 'function') {
-                window.imprimirDocumentoGlobal(documentoSelecionado, 'outro', $('#formOutro').serializeArray());
-            } else {
-                mostrarErro(`Documento "${documentoSelecionado}" não configurado.`);
+                // Verifica rotas (Usa rotas da testemunha 1 como padrão para "Outros")
+                if (typeof rotasImpressaoTestemunha1 !== 'undefined' && rotasImpressaoTestemunha1[documentoSelecionado]) {
+                    const rota = rotasImpressaoTestemunha1[documentoSelecionado];
+                    console.log('🚀 Enviando para DocumentoService (via Outros):', { documentoSelecionado, dados });
+                    DocumentoService.gerar(rota, dados);
+                } else {
+                    mostrarErro(`Documento "${documentoSelecionado}" não configurado.`);
+                }
+
+            } catch (error) {
+                console.error('❌ Erro ao preparar documento:', error);
+                mostrarErro('Erro ao preparar os dados para o documento.');
             }
         });
     })();

@@ -593,213 +593,42 @@ $(document).ready(function () {
             return;
         }
 
-        // ✅ LISTAS REAIS DE DOCUMENTOS
-        const documentosIndividuais = [
-            "TERMO DE DECLARACAO",
-            "TERMO DE DEPOIMENTO",
-            "TERMO DE INTERROGATORIO",
-            "AUTO DE APRESENTACAO E APREENSAO",
-            "TERMO DE RESTITUICAO",
-            "TERMO DE RENUNCIA E DESISTENCIA DE REPRESENTACAO",
-            "TERMO DE REPRESENTACAO",
-            "TERMO DE COMPROMISSO",
-            "LAUDO TRAUMATOLOGICO",
-            "LAUDO TRAUMATOLOGICO IML",
-            "CERTIDAO DE ASSINATURA INDIVIDUAL",
-            "PERICIA EM LOCAL DE CRIME"
-        ];
+        try {
+            // ✅ CAPTURA CENTRALIZADA E ROBUSTA (Chips + Formulários)
+            let dados = DocumentoService.capturarDadosGlobais();
 
-        const documentosMultiplos = [
-            "CERTIDAO DE ASSINATURA APFD",
-            "AAFAI CONDUTOR",
-            "APFD CONDUTOR"
-        ];
-
-        let dados;
-
-        // ✅ FUNÇÃO OTIMIZADA para buscar dados ESSENCIAIS
-        function buscarDadosEssenciais(prefixo) {
-            const dados = {};
-
-            // Campos CRÍTICOS para reduzir o tamanho
-            const camposEssenciais = ['Nome', 'Alcunha', 'Nascimento', 'Idade', 'RG', 'CPF', 'Profissao', 'Instrucao', 'Endereco'];
-
-            camposEssenciais.forEach(campo => {
-                const idCampo = `input${campo}${prefixo}`;
-                const elemento = document.getElementById(idCampo);
-                dados[campo.toLowerCase()] = elemento ? elemento.value || '' : '';
-            });
-
-            return dados;
-        }
-
-        // ✅ FUNÇÃO para condutor (campos específicos)
-        function buscarDadosCondutorEssenciais() {
-            return {
-                nome: $('#inputNomeCondutor').val() || 'NÃO INFORMADO',
-                alcunha: $('#inputAlcunha').val() || '',
-                nascimento: $('#inputDataNascimento').val() || '',
-                idade: $('#inputIdade').val() || '',
-                rg: $('#inputRG').val() || '',
-                cpf: $('#inputCPF').val() || '',
-                profissao: $('#inputProfissao').val() || '',
-                instrucao: $('#inputInstrucao').val() || '',
-                endereco: $('#inputEndereco').val() || ''
-            };
-        }
-
-        // ✅ FUNÇÃO para autores (inclui dados penais)
-        function buscarDadosAutorEssenciais(numero) {
-            const dados = buscarDadosEssenciais(`Autor${numero}`);
-
-            // Adiciona campos específicos de autores
-            dados.tipopenal = $(`#inputTipoPenalAutor${numero}`).val() || '';
-            dados.fianca = $(`#inputFiancaAutor${numero}`).val() || '';
-            dados.fianca_ext = $(`#inputFiancaExtAutor${numero}`).val() || '';
-
-            return dados;
-        }
-
-        // ✅ NOVA FUNÇÃO: Coletar dados dos chips dinâmicos
-        function obterDadosEnvolvidosParaImpressao() {
-            console.log('🔍 Buscando dados de envolvidos...');
-
-            // Tenta buscar do sistema de chips (window.obterEnvolvidosParaSalvar)
-            if (typeof window.obterEnvolvidosParaSalvar === 'function') {
-                const dados = window.obterEnvolvidosParaSalvar();
-                console.log('✅ Dados obtidos de window.obterEnvolvidosParaSalvar:', dados);
-                return dados;
-            }
-
-            // Fallback: busca de window.vinculos
-            if (window.vinculos) {
-                console.log('✅ Dados obtidos de window.vinculos');
-                return {
-                    vitimas: window.vinculos.vitimas || [],
-                    autores: window.vinculos.autores || [],
-                    testemunhas: window.vinculos.testemunhas || [],
-                    condutores: window.vinculos.condutores || []
-                };
-            }
-
-            // Fallback: busca de window.envolvidosChips
-            if (window.envolvidosChips) {
-                console.log('✅ Dados obtidos de window.envolvidosChips');
-                return {
-                    vitimas: window.envolvidosChips.vitimas || [],
-                    autores: window.envolvidosChips.autores || [],
-                    testemunhas: window.envolvidosChips.testemunhas || [],
-                    condutores: window.envolvidosChips.condutores || []
-                };
-            }
-
-            // Fallback final: arrays vazios
-            console.warn('⚠️ Nenhuma fonte de dados de envolvidos encontrada, retornando arrays vazios');
-            return {
-                vitimas: [],
-                autores: [],
-                testemunhas: [],
-                condutores: []
-            };
-        }
-
-        // ✅ DADOS PRINCIPAIS DO BO/APFD (ESSENCIAIS)
-        const dadosBo = {
-            data: $('#inputData').val() || '',
-            data_comp: $('#inputDataComp').val() || '',
-            data_ext: $('#inputDataExt').val() || '',
-            cidade: $('#inputCidade').val() || '',
-            delegado: $('#inputDelegado').val() || '',
-            escrivao: $('#inputEscrivao').val() || '',
-            delegacia: $('#inputDelegacia').val() || '',
-            boe: $('#inputBOE').val() || '',
-            ip: $('#inputIP').val() || '',
-            apreensao: $('#inputApreensao').val() || ''
-        };
-
-        // Monta dados LEVES para documentos individuais
-        if (documentosIndividuais.includes(documentoSelecionado)) {
-            dados = {
-                // Dados principais do BO/APFD
-                ...dadosBo,
-
-                // Condutor: dados essenciais
-                nome: nome,
-                alcunha: $('#inputAlcunha').val() || '',
-                nascimento: $('#inputDataNascimento').val() || '',
-                idade: $('#inputIdade').val() || '',
-                estcivil: $('#inputEstadoCivil').val() || '',
-                naturalidade: $('#inputNaturalidade').val() || '',
-                rg: $('#inputRG').val() || '',
-                cpf: $('#inputCPF').val() || '',
-                profissao: $('#inputProfissao').val() || '',
-                instrucao: $('#inputInstrucao').val() || '',
-                telefone: $('#inputTelefone').val() || '',
-                mae: $('#inputMae').val() || '',
-                pai: $('#inputPai').val() || '',
-                endereco: $('#inputEndereco').val() || ''
-            };
-        }
-
-
-        // ✅ CORREÇÃO: Monta dados OTIMIZADOS para documentos múltiplos (AGORA COM ARRAYS DINÂMICOS)
-        else if (documentosMultiplos.includes(documentoSelecionado)) {
-            // Buscar dados dos chips dinâmicos
-            const envolvidosChips = obterDadosEnvolvidosParaImpressao();
-
-            console.log('📊 Quantidade de envolvidos:', {
-                vitimas: envolvidosChips.vitimas?.length || 0,
-                autores: envolvidosChips.autores?.length || 0,
-                testemunhas: envolvidosChips.testemunhas?.length || 0
-            });
-
-            dados = {
-                // Dados principais do BO/APFD
-                ...dadosBo,
-
-                // ✅ Condutor (único)
-                condutor: buscarDadosCondutorEssenciais(),
-
-                // ✅ Arrays dinâmicos de envolvidos
-                vitimas: envolvidosChips.vitimas || [],
-                autores: envolvidosChips.autores || [],
-                testemunhas: envolvidosChips.testemunhas || []
+            // ✅ SOBREPOSIÇÃO COM DADOS ATUAIS DA ABA (Garante que o que foi digitado agora seja usado)
+            const dadosAtuaisCondutor = {
+                nome: $('#inputNomeCondutor').val(),
+                alcunha: ($('#inputAlcunha').val() || '').toUpperCase(),
+                nascimento: $('#inputDataNascimento').val(),
+                idade: $('#inputIdade').val(),
+                rg: $('#inputRG').val(),
+                cpf: $('#inputCPF').val(),
+                mae: ($('#inputMae').val() || '').toUpperCase(),
+                pai: ($('#inputPai').val() || '').toUpperCase(),
+                endereco: ($('#inputEndereco').val() || '').toUpperCase(),
+                profissao: ($('#inputProfissao').val() || '').toUpperCase(),
+                naturalidade: ($('#inputNaturalidade').val() || '').toUpperCase(),
+                estcivil: ($('#inputEstadoCivil').val() || '').toUpperCase(),
+                instrucao: ($('#inputInstrucao').val() || '').toUpperCase(),
+                telefone: $('#inputTelefone').val()
             };
 
-            // ✅ REMOVE CAMPOS VAZIOS para reduzir o tamanho
-            // Remove campos vazios de cada pessoa nos arrays
-            ['vitimas', 'autores', 'testemunhas'].forEach(tipo => {
-                if (Array.isArray(dados[tipo])) {
-                    dados[tipo] = dados[tipo].map(pessoa => {
-                        const pessoaLimpa = {};
-                        Object.keys(pessoa).forEach(campo => {
-                            // Mantém campos que não são vazios ou "NÃO INFORMADO"
-                            if (pessoa[campo] && pessoa[campo] !== '' && pessoa[campo] !== 'NÃO INFORMADO') {
-                                pessoaLimpa[campo] = pessoa[campo];
-                            }
-                        });
-                        return pessoaLimpa;
-                    }).filter(pessoa => Object.keys(pessoa).length > 0); // Remove pessoas completamente vazias
-                }
-            });
+            // Mescla no objeto principal e também no objeto condutor para compatibilidade
+            Object.assign(dados, dadosAtuaisCondutor);
+            dados.condutor = dadosAtuaisCondutor;
 
-            // Remove o condutor se estiver vazio
-            if (dados.condutor && Object.keys(dados.condutor).length === 0) {
-                delete dados.condutor;
-            }
+            const rota = rotasImpressaoCondutor[documentoSelecionado];
+            console.log('🚀 Enviando para DocumentoService:', { documentoSelecionado, dados });
+
+            // Usa o DocumentoService para gerar (trata POST e Cache automaticamente)
+            DocumentoService.gerar(rota, dados);
+
+        } catch (error) {
+            console.error('❌ Erro ao preparar documento:', error);
+            mostrarErro('Erro ao preparar os dados para o documento.');
         }
-        else {
-            // Caso genérico com dados principais
-            dados = {
-                ...dadosBo,
-                nome: nome
-            };
-        }
-
-        console.log('📦 Dados originais para o DocumentoService:', dados);
-
-        // ✅ USANDO O NOVO SERVIÇO CENTRALIZADO (EVITA URLs LONGAS EM TODO O SISTEMA)
-        DocumentoService.gerar(rotasImpressaoCondutor[documentoSelecionado], dados);
     });
 
     // === AUTOCOMPLETE PARA DOCUMENTOS ===

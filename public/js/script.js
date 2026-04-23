@@ -1564,13 +1564,34 @@ window.OcorrenciasApp = {
                     this.envolvidos.condutores = (data.condutor || []).map(p => p.Nome || p.nome || '');
                     this.envolvidos.outros = (data.outros || []).map(p => p.Nome || p.nome || '');
 
-                    // ✅ NOVO: Incluir status_aprovacao, criado_por_nome e vinculo_id nos vínculos
+                    // ✅ CORREÇÃO: Preservar TODOS os dados da pessoa nos vínculos
+                    // O campo 'detalhes' é usado pelo sincronizarComChipsModule para popular os chips
                     const mapVinculo = (p) => ({
                         nome: p.Nome || p.nome || '',
                         vinculo_id: p.vinculo_id,
                         pessoa_id: p.IdCad || p.id,
                         status_aprovacao: p.status_aprovacao || 'aprovado',
-                        criado_por_nome: p.criado_por_nome || null
+                        criado_por_nome: p.criado_por_nome || null,
+                        detalhes: {
+                            Nome: p.Nome || p.nome || '',
+                            Alcunha: p.Alcunha || p.alcunha || '',
+                            Nascimento: p.Nascimento || p.nascimento || '',
+                            Idade: p.Idade || p.idade || '',
+                            EstCivil: p.EstCivil || p.estcivil || p.estado_civil || '',
+                            Naturalidade: p.Naturalidade || p.naturalidade || '',
+                            RG: p.RG || p.rg || '',
+                            CPF: p.CPF || p.cpf || '',
+                            Profissao: p.Profissao || p.profissao || '',
+                            Instrucao: p.Instrucao || p.instrucao || p.escolaridade || '',
+                            Telefone: p.Telefone || p.telefone || '',
+                            Mae: p.Mae || p.mae || '',
+                            Pai: p.Pai || p.pai || '',
+                            Endereco: p.Endereco || p.endereco || '',
+                            TipoPenal: p.TipoPenal || p.tipopenal || '',
+                            Fianca: p.Fianca || p.fianca || '',
+                            FiancaExt: p.FiancaExt || p.fianca_ext || '',
+                            FiancaPago: p.FiancaPago || p.fianca_pago || false
+                        }
                     });
 
                     this.vinculos.vitimas = (data.vitimas || []).map(mapVinculo);
@@ -1931,184 +1952,9 @@ window.OcorrenciasApp = {
             return;
         }
 
-        // Captura os valores dos campos principais
-        const data = $('#inputData').val();
-        const dataComp = $('#inputDataComp').val();
-        const dataExtenso = $('#inputDataExt').val();
-        const cidade = $('#inputCidade').val();
-        const delegado = $('#inputDelegado').val();
-        const escrivao = $('#inputEscrivao').val();
-        const delegacia = $('#inputDelegacia').val();
-        const boe = $('#inputBOE').val();
-        const apreensao = $('#inputApreensao').val();
+        // ✅ CAPTURA CENTRALIZADA DE DADOS (Substitui toda a lógica manual anterior)
+        const dados = DocumentoService.capturarDadosGlobais();
 
-        // Cria um objeto com todos os dados necessários
-        const dados = {
-            // Dados do formulário principal
-            data: data,
-            data_comp: dataComp,
-            data_ext: dataExtenso,
-            cidade: cidade,
-            delegado: delegado,
-            escrivao: escrivao,
-            delegacia: delegacia,
-            boe: boe,
-            apreensao: apreensao,
-            // Campos que podem ser usados em documentos genéricos
-            ip: $('#inputIP').val(),
-            boe_pm: $('#inputBOEPM').val(),
-            policial_1: $('#inputPolicial1').val(),
-            policial_2: $('#inputPolicial2').val(),
-            local_fato: $('#inputEndFato').val(),
-            data_fato: (() => {
-                const d = $('#inputDataFato').val();
-                if (d && d.includes('-')) {
-                    const p = d.split('-');
-                    return `${p[2]}/${p[1]}/${p[0]}`;
-                }
-                return d;
-            })()
-        };
-
-        // ✅ INSERIR DADOS DAS VÍTIMAS DO CHIP (MÚLTIPLOS CHIPS)
-        // Isso permite gerar documentos com múltiplas vítimas
-        if (window.envolvidosChips && window.envolvidosChips.vitimas && window.envolvidosChips.vitimas.length > 0) {
-            dados.lista_vitimas = []; // Inicializa array para múltiplas vítimas
-
-            window.envolvidosChips.vitimas.forEach((vitimaChip, index) => {
-                let chipDados = {};
-
-                // 1. Converter "dados" se for Array
-                if (Array.isArray(vitimaChip.dados)) {
-                    vitimaChip.dados.forEach(field => {
-                        chipDados[field.name] = field.value;
-                    });
-                } else if (typeof vitimaChip.dados === 'object') {
-                    chipDados = { ...vitimaChip.dados };
-                }
-
-                // 2. Merge com dados raiz
-                Object.assign(chipDados, vitimaChip);
-
-                // 3. Normalização
-                let dadosNormalizados = {};
-                const mapCampos = {
-                    'nome': ['Nome', 'nome'],
-                    'nascimento': ['Nascimento', 'nascimento', 'data_nascimento'],
-                    'idade': ['Idade', 'idade'],
-                    'rg': ['RG', 'rg'],
-                    'cpf': ['CPF', 'cpf'],
-                    'pai': ['Pai', 'pai'],
-                    'mae': ['Mae', 'mae'],
-                    'endereco': ['Endereco', 'endereco']
-                };
-
-                Object.keys(mapCampos).forEach(targetKey => {
-                    const sourceKeys = mapCampos[targetKey];
-                    dadosNormalizados[targetKey] = 'NÃO INFORMADO'; // Valor padrão
-                    for (const source of sourceKeys) {
-                        if (chipDados[source]) {
-                            dadosNormalizados[targetKey] = chipDados[source];
-                            break;
-                        }
-                    }
-                });
-
-                // Tratamento de data nascimento
-                if (dadosNormalizados.nascimento && dadosNormalizados.nascimento.includes('-')) {
-                    const parts = dadosNormalizados.nascimento.split('-');
-                    if (parts.length === 3) {
-                        dadosNormalizados.nascimento = `${parts[2]}/${parts[1]}/${parts[0]}`;
-                    }
-                }
-
-                // Adiciona à lista de vítimas
-                dados.lista_vitimas.push(dadosNormalizados);
-
-                // Se for a primeira vítima, preenche também os campos principais (fallback/legacy)
-                if (index === 0) {
-                    Object.keys(dadosNormalizados).forEach(key => {
-                        if (!dados[key] || dados[key] === 'NÃO INFORMADO') {
-                            dados[key] = dadosNormalizados[key];
-                        }
-                    });
-                }
-            });
-        }
-
-        // ✅ INSERIR TESTEMUNHAS DINAMICAMENTE
-        if (window.envolvidosChips && window.envolvidosChips.testemunhas) {
-            window.envolvidosChips.testemunhas.forEach((testemunhaChip, index) => {
-                const key = `testemunha${index + 1}`;
-                let chipDados = {};
-
-                // 1. Converter "dados" se for Array (serializeArray de formulário)
-                if (Array.isArray(testemunhaChip.dados)) {
-                    testemunhaChip.dados.forEach(field => {
-                        chipDados[field.name] = field.value;
-                    });
-                } else if (typeof testemunhaChip.dados === 'object') {
-                    chipDados = { ...testemunhaChip.dados };
-                }
-
-                // 2. Merge com dados raiz do chip (para casos vindos do banco via carregarVinculosDoBoe)
-                Object.assign(chipDados, testemunhaChip);
-
-                // 3. Normalização COMPLETA de campos (Mapeamento DB -> Blade)
-                const mapCampos = {
-                    'nome': ['Nome', 'nome'],
-                    'alcunha': ['Alcunha', 'alcunha', 'apelido'],
-                    'rg': ['RG', 'rg'],
-                    'cpf': ['CPF', 'cpf'],
-                    'pai': ['Pai', 'pai'],
-                    'mae': ['Mae', 'mae'],
-                    'endereco': ['Endereco', 'endereco'],
-                    'profissao': ['Profissao', 'profissao'],
-                    'naturalidade': ['Naturalidade', 'naturalidade'],
-                    'estcivil': ['EstCivil', 'estcivil', 'estado_civil'],
-                    'instrucao': ['Instrucao', 'instrucao', 'grau_instrucao'],
-                    'telefone': ['Telefone', 'telefone']
-                };
-
-                // Aplica o mapeamento
-                Object.keys(mapCampos).forEach(targetKey => {
-                    const sourceKeys = mapCampos[targetKey];
-                    // Tenta encontrar valor em qualquer uma das chaves de origem
-                    for (const source of sourceKeys) {
-                        if (chipDados[source]) {
-                            chipDados[targetKey] = chipDados[source];
-                            break;
-                        }
-                    }
-                    if (!chipDados[targetKey]) chipDados[targetKey] = 'NÃO INFORMADO';
-                });
-
-                // 4. Tratamento especial para Datas (Nascimento)
-                if (chipDados.Nascimento || chipDados.nascimento) {
-                    const rawDate = chipDados.Nascimento || chipDados.nascimento;
-                    if (rawDate && rawDate.includes('-')) {
-                        // Converte YYYY-MM-DD para DD/MM/YYYY
-                        const parts = rawDate.split('-');
-                        if (parts.length === 3) {
-                            chipDados.nascimento = `${parts[2]}/${parts[1]}/${parts[0]}`;
-                        }
-                    } else if (rawDate) {
-                        chipDados.nascimento = rawDate;
-                    }
-                } else {
-                    chipDados.nascimento = 'NÃO INFORMADO';
-                }
-
-                // 5. Tratamento para Idade (se não tiver, calcula ou deixa vazio)
-                if (!chipDados.idade && chipDados.nascimento && chipDados.nascimento !== 'NÃO INFORMADO') {
-                    // Tenta calcular idade se possível (opcional, ou deixa vazio)
-                    // chipDados.idade = ...
-                }
-                if (!chipDados.idade) chipDados.idade = 'NÃO INFORMADO';
-
-                dados[key] = chipDados;
-            });
-        }
 
 
         // ✅ NOVO: Detecta se é "COMPLETO" e gera ambos os documentos

@@ -126,3 +126,4 @@
     <script src="{{ asset('js/pages/pericias/Traumatologico_IML.js') }}"></script>
 </body>
 </html>
+
