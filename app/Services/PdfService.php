@@ -16,7 +16,7 @@ class PdfService
      */
     public static function generatePdf($html, $filename = 'documento.pdf')
     {
-        // NOVO: Delegar a geração do PDF para Python (Playwright) com qualidade superior
+        // NOVO: Delegar a geração do PDF para o Motor FastAPI
         $tempHtml = sys_get_temp_dir() . '/pdf_input_' . uniqid() . '.html';
         $tempPdf = sys_get_temp_dir() . '/pdf_output_' . uniqid() . '.pdf';
         
@@ -25,17 +25,17 @@ class PdfService
         
         file_put_contents($tempHtml, $html);
         
-        $scriptPath = base_path('scripts/python/gerar_pdf.py');
-        $pythonCmd = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? 'python' : 'python3';
-        $command = escapeshellcmd($pythonCmd) . " " . escapeshellarg($scriptPath) . " " . escapeshellarg($tempHtml) . " " . escapeshellarg($tempPdf) . " 2>&1";
-        
-        $output = \shell_exec($command);
-        $jsonStartPos = strpos($output, '{');
-        if ($jsonStartPos !== false) {
-             $outputJson = substr($output, $jsonStartPos);
-             $result = json_decode($outputJson, true);
-        } else {
-             $result = null;
+        try {
+            $motorUrl = env('MOTOR_URL', 'http://localhost:8001') . '/generate-pdf';
+            $response = \Illuminate\Support\Facades\Http::timeout(60)->post($motorUrl, [
+                'input_html_path' => $tempHtml,
+                'output_pdf_path' => $tempPdf
+            ]);
+            
+            $result = $response->successful() ? $response->json() : null;
+        } catch (\Exception $e) {
+            $result = null;
+            Log::error("API FastAPI indisponível para gerar PDF: " . $e->getMessage());
         }
         
         // Limpar HTML temporario apenas, PDF sera lido pela resposta
@@ -48,7 +48,8 @@ class PdfService
                 'Content-Disposition' => 'inline; filename="' . $filename . '"'
             ]);
         } else {
-            Log::error("Falha ao gerar PDF com Python (Usando Fallback DOMPDF): " . $output);
+            $errorMsg = isset($response) ? $response->body() : 'Sem resposta do servidor Python';
+            Log::error("Falha ao gerar PDF com Python (Usando Fallback DOMPDF): " . $errorMsg);
             
             // Fallback para o antigo DomPDF
             $options = new Options();

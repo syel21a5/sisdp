@@ -166,28 +166,25 @@ class BoeExtractorService
                 }
             }
 
-            // 3. Prepara e executa o comando Python (SEMPRE forçando 'apfd' para o cache ser universal)
-            $scriptPath = base_path('scripts/python/boe_extractor.py');
-            $pythonCmd = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? 'python' : 'python3';
-            
-            // Forçamos o type 'apfd' para que o Python extraia tudo de uma vez e salve no cache
-            $command = escapeshellcmd($pythonCmd) . " " . escapeshellarg($scriptPath) . " --type apfd " . escapeshellarg($tmpPath) . " 2>&1";
-            
-            $output = \shell_exec($command);
+            // 3. Prepara e executa o comando via API FASTAPI (Python Microservice)
+            // Em vez de invocar o processo python na mão, enviamos para o Motor local ou remoto.
+            $motorUrl = env('MOTOR_URL', 'http://localhost:8001') . '/extract-boe';
+            $response = \Illuminate\Support\Facades\Http::timeout(120)->post($motorUrl, [
+                'file_path' => $tmpPath,
+                'type' => 'apfd' // Forçamos o type 'apfd' para cache universal
+            ]);
             
             // Limpeza
             @unlink($tmpPath);
 
-            // 4. Verifica o output do shell
-            if (!$output) {
-                return ['success' => false, 'message' => "Falha silenciosa ao executar o extrator Python.", 'status' => 500];
+            // 4. Verifica o output da requisição
+            if (!$response->successful()) {
+                Log::error("Microserviço Python falhou (apfd): " . $response->body());
+                return ['success' => false, 'message' => "Falha ao conectar no Motor Python ou erro interno.", 'status' => 500];
             }
 
-            // 5. Faz o parse do JSON do Python (usa regex para ignorar linhas de log como [BOE-IA])
-            $json = null;
-            if (preg_match('/\{.*\}/s', $output, $matches)) {
-                $json = json_decode($matches[0], true);
-            }
+            // 5. Faz o parse do JSON do Python
+            $json = $response->json();
 
             if (is_array($json) && isset($json['success'])) {
 
@@ -227,7 +224,7 @@ class BoeExtractorService
                     ];
                 }
             } else {
-                Log::error("Script Python falhou brutalmente (apfd):\n" . $output);
+                Log::error("Script Python falhou brutalmente (apfd):\n" . $response->body());
                 return [
                     'success' => true, 
                     'dados' => [],
@@ -260,13 +257,20 @@ class BoeExtractorService
                 return null;
             }
             
-            // Para PDF, usa Python para ler só a primeira página (ultra-rápido ~200ms)
-            $pythonCmd = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? 'python' : 'python3';
-            $pyCode = 'import fitz,re,sys;doc=fitz.open(sys.argv[1]);t=doc[0].get_text();m=re.search(r"N[^\d]+(\d+[A-Z]\d+)",t,re.I);m=m if m else re.search(r"\b(\d{2,}[A-Z]\d{5,})\b",t,re.I);m=m if m else re.search(r"BOLETIM DE OCORR[ÊE]NCIA N[ºO]?:\s*(\d{10,})\b",t,re.I);print(m.group(1) if m else "")';
-            $cmd = escapeshellcmd($pythonCmd) . ' -c ' . escapeshellarg($pyCode) . ' ' . escapeshellarg($filePath) . ' 2>/dev/null';
+            // Para PDF ou TXT complexo, usa a API FastAPI para ler só a primeira página ultra-rápido
+            try {
+                $motorUrl = env('MOTOR_URL', 'http://localhost:8001') . '/quick-extract';
+                $response = \Illuminate\Support\Facades\Http::timeout(5)->post($motorUrl, [
+                    'file_path' => $filePath
+                ]);
+                if ($response->successful() && $response->json('boe')) {
+                    return $response->json('boe');
+                }
+            } catch (\Exception $apiEx) {
+                Log::warning("API quick-extract indisponível. Fallback desativado: " . $apiEx->getMessage());
+            }
             
-            $result = trim(\shell_exec($cmd) ?? '');
-            return $result ?: null;
+            return null;
         } catch (\Exception $e) {
             Log::warning("quickExtractBoeNumber falhou: " . $e->getMessage());
             return null;

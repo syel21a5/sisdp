@@ -746,8 +746,10 @@ $(document).ready(function () {
 
                     if (dados.condutor && dados.condutor.length > 0) {
                         dados.condutor.forEach(nome => {
-                            if (!OcorrenciasApp.envolvidos.condutores.some(p => OcorrenciasApp.normalizarNome(p) === OcorrenciasApp.normalizarNome(nome))) {
-                                OcorrenciasApp.envolvidos.condutores.push(nome);
+                            if (nome && nome.trim().length > 2 && !nome.toUpperCase().includes('NÃO INFORMADO') && !nome.toUpperCase().includes('NAO INFORMADO')) {
+                                if (!OcorrenciasApp.envolvidos.condutores.some(p => OcorrenciasApp.normalizarNome(p) === OcorrenciasApp.normalizarNome(nome))) {
+                                    OcorrenciasApp.envolvidos.condutores.push(nome.trim());
+                                }
                             }
                         });
                         OcorrenciasApp.atualizarChips('condutores');
@@ -755,24 +757,30 @@ $(document).ready(function () {
 
                     if (dados.vitimas && dados.vitimas.length > 0) {
                         dados.vitimas.forEach(nome => {
-                            if (!OcorrenciasApp.envolvidos.vitimas.some(p => OcorrenciasApp.normalizarNome(p) === OcorrenciasApp.normalizarNome(nome))) {
-                                OcorrenciasApp.envolvidos.vitimas.push(nome);
+                            if (nome && nome.trim().length > 2 && !nome.toUpperCase().includes('NÃO INFORMADO') && !nome.toUpperCase().includes('NAO INFORMADO')) {
+                                if (!OcorrenciasApp.envolvidos.vitimas.some(p => OcorrenciasApp.normalizarNome(p) === OcorrenciasApp.normalizarNome(nome))) {
+                                    OcorrenciasApp.envolvidos.vitimas.push(nome.trim());
+                                }
                             }
                         });
                         OcorrenciasApp.atualizarChips('vitimas');
                     }
                     if (dados.autores && dados.autores.length > 0) {
                         dados.autores.forEach(nome => {
-                            if (!OcorrenciasApp.envolvidos.autores.some(p => OcorrenciasApp.normalizarNome(p) === OcorrenciasApp.normalizarNome(nome))) {
-                                OcorrenciasApp.envolvidos.autores.push(nome);
+                            if (nome && nome.trim().length > 2 && !nome.toUpperCase().includes('NÃO INFORMADO') && !nome.toUpperCase().includes('NAO INFORMADO')) {
+                                if (!OcorrenciasApp.envolvidos.autores.some(p => OcorrenciasApp.normalizarNome(p) === OcorrenciasApp.normalizarNome(nome))) {
+                                    OcorrenciasApp.envolvidos.autores.push(nome.trim());
+                                }
                             }
                         });
                         OcorrenciasApp.atualizarChips('autores');
                     }
                     if (dados.testemunhas && dados.testemunhas.length > 0) {
                         dados.testemunhas.forEach(nome => {
-                            if (!OcorrenciasApp.envolvidos.testemunhas.some(p => OcorrenciasApp.normalizarNome(p) === OcorrenciasApp.normalizarNome(nome))) {
-                                OcorrenciasApp.envolvidos.testemunhas.push(nome);
+                            if (nome && nome.trim().length > 2 && !nome.toUpperCase().includes('NÃO INFORMADO') && !nome.toUpperCase().includes('NAO INFORMADO')) {
+                                if (!OcorrenciasApp.envolvidos.testemunhas.some(p => OcorrenciasApp.normalizarNome(p) === OcorrenciasApp.normalizarNome(nome))) {
+                                    OcorrenciasApp.envolvidos.testemunhas.push(nome.trim());
+                                }
                             }
                         });
                         OcorrenciasApp.atualizarChips('testemunhas');
@@ -780,8 +788,10 @@ $(document).ready(function () {
                     if (dados.outros && dados.outros.length > 0) {
                         if (!OcorrenciasApp.envolvidos.outros) OcorrenciasApp.envolvidos.outros = [];
                         dados.outros.forEach(nome => {
-                            if (!OcorrenciasApp.envolvidos.outros.some(p => OcorrenciasApp.normalizarNome(p) === OcorrenciasApp.normalizarNome(nome))) {
-                                OcorrenciasApp.envolvidos.outros.push(nome);
+                            if (nome && nome.trim().length > 2 && !nome.toUpperCase().includes('NÃO INFORMADO') && !nome.toUpperCase().includes('NAO INFORMADO')) {
+                                if (!OcorrenciasApp.envolvidos.outros.some(p => OcorrenciasApp.normalizarNome(p) === OcorrenciasApp.normalizarNome(nome))) {
+                                    OcorrenciasApp.envolvidos.outros.push(nome.trim());
+                                }
                             }
                         });
                         OcorrenciasApp.atualizarChips('outros');
@@ -996,8 +1006,10 @@ $(document).ready(function () {
                         if (arr.length > 0) {
                             if (!OcorrenciasApp.envolvidos[tipoPlural]) OcorrenciasApp.envolvidos[tipoPlural] = [];
                             arr.forEach(function(nome) {
-                                if (!OcorrenciasApp.envolvidos[tipoPlural].some(p => OcorrenciasApp.normalizarNome(p) === OcorrenciasApp.normalizarNome(nome))) {
-                                    OcorrenciasApp.envolvidos[tipoPlural].push(nome);
+                                if (nome && nome.trim().length > 2 && !nome.toUpperCase().includes('NÃO INFORMADO') && !nome.toUpperCase().includes('NAO INFORMADO')) {
+                                    if (!OcorrenciasApp.envolvidos[tipoPlural].some(p => OcorrenciasApp.normalizarNome(p) === OcorrenciasApp.normalizarNome(nome))) {
+                                        OcorrenciasApp.envolvidos[tipoPlural].push(nome.trim());
+                                    }
                                 }
                             });
                             OcorrenciasApp.atualizarChips(tipoPlural);

@@ -46,11 +46,10 @@ def generate_pdf(input_html_path, output_pdf_path):
             browser.close()
     except Exception as e:
         if 'Executable doesn\'t exist at' in str(e) or 'playwright install' in str(e):
-            print(json.dumps({"success": False, "status": "Instalando navegador Chromium interno, aguarde... isso só acontece na primeira vez."}), file=sys.stderr)
+            # Tenta instalar silenciosamente na primeira vez
             subprocess.check_call([sys.executable, "-m", "playwright", "install", "chromium"])
         else:
-            print(json.dumps({"success": False, "error": f"Erro inicializando chromium: {str(e)}"}))
-            sys.exit(1)
+            return {"success": False, "error": f"Erro inicializando chromium: {str(e)}"}
 
     try:
         with sync_playwright() as p:
@@ -145,16 +144,15 @@ def generate_pdf(input_html_path, output_pdf_path):
             )
             browser.close()
             
-        print(json.dumps({
+        return {
             "success": True, 
             "path": os.path.abspath(output_pdf_path)
-        }))
+        }
     except Exception as e:
-        print(json.dumps({
+        return {
             "success": False,
             "error": f"Erro ao gerar PDF: {str(e)}"
-        }))
-        sys.exit(1)
+        }
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
@@ -168,4 +166,7 @@ if __name__ == "__main__":
         print(json.dumps({"success": False, "error": f"Arquivo HTML nao encontrado: {input_html}"}))
         sys.exit(1)
         
-    generate_pdf(input_html, output_pdf)
+    result = generate_pdf(input_html, output_pdf)
+    print(json.dumps(result))
+    if not result.get("success"):
+        sys.exit(1)

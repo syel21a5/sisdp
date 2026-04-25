@@ -1558,11 +1558,12 @@ window.OcorrenciasApp = {
                         });
                     });
 
-                    this.envolvidos.vitimas = (data.vitimas || []).map(p => p.Nome || p.nome || '');
-                    this.envolvidos.autores = (data.autores || []).map(p => p.Nome || p.nome || '');
-                    this.envolvidos.testemunhas = (data.testemunhas || []).map(p => p.Nome || p.nome || '');
-                    this.envolvidos.condutores = (data.condutor || []).map(p => p.Nome || p.nome || '');
-                    this.envolvidos.outros = (data.outros || []).map(p => p.Nome || p.nome || '');
+                    const validarNome = (nome) => nome && typeof nome === 'string' && nome.trim().length > 2 && !nome.toUpperCase().includes('NÃO INFORMADO') && !nome.toUpperCase().includes('NAO INFORMADO');
+                    this.envolvidos.vitimas = (data.vitimas || []).map(p => p.Nome || p.nome || '').filter(validarNome);
+                    this.envolvidos.autores = (data.autores || []).map(p => p.Nome || p.nome || '').filter(validarNome);
+                    this.envolvidos.testemunhas = (data.testemunhas || []).map(p => p.Nome || p.nome || '').filter(validarNome);
+                    this.envolvidos.condutores = (data.condutor || []).map(p => p.Nome || p.nome || '').filter(validarNome);
+                    this.envolvidos.outros = (data.outros || []).map(p => p.Nome || p.nome || '').filter(validarNome);
 
                     // ✅ CORREÇÃO: Preservar TODOS os dados da pessoa nos vínculos
                     // O campo 'detalhes' é usado pelo sincronizarComChipsModule para popular os chips
@@ -1594,11 +1595,11 @@ window.OcorrenciasApp = {
                         }
                     });
 
-                    this.vinculos.vitimas = (data.vitimas || []).map(mapVinculo);
-                    this.vinculos.autores = (data.autores || []).map(mapVinculo);
-                    this.vinculos.testemunhas = (data.testemunhas || []).map(mapVinculo);
-                    this.vinculos.condutores = (data.condutor || []).map(mapVinculo);
-                    this.vinculos.outros = (data.outros || []).map(mapVinculo);
+                    this.vinculos.vitimas = (data.vitimas || []).filter(p => validarNome(p.Nome || p.nome)).map(mapVinculo);
+                    this.vinculos.autores = (data.autores || []).filter(p => validarNome(p.Nome || p.nome)).map(mapVinculo);
+                    this.vinculos.testemunhas = (data.testemunhas || []).filter(p => validarNome(p.Nome || p.nome)).map(mapVinculo);
+                    this.vinculos.condutores = (data.condutor || []).filter(p => validarNome(p.Nome || p.nome)).map(mapVinculo);
+                    this.vinculos.outros = (data.outros || []).filter(p => validarNome(p.Nome || p.nome)).map(mapVinculo);
 
                     // ✅ MERGE: Restaurar os envolvidos manuais que não vieram do banco
                     ['vitimas', 'autores', 'testemunhas', 'condutores', 'outros'].forEach(tipo => {
@@ -2111,11 +2112,16 @@ window.OcorrenciasApp = {
             }
         });
 
-        // ✅ NOVO: Se o usuário alterar o BOE manualmente, resetamos o ID para evitar que ele 
-        // edite/sobrescreva um registro por engano. Isso força o uso do botão "SALVAR" para o novo número.
-        $('#inputBOE, #inputBOEPM').on('input', () => {
-            if (this.currentId) {
-                console.log('⚠️ [script] BOE alterado manualmente. Resetando currentId para evitar sobreposição.');
+        // ✅ CORREÇÃO: Evitar resetar o ID apenas por clicar/focar no campo de BO PM ou BO PC.
+        // Vamos checar se o valor realmente foi alterado (change) no BOE PC principal e só então resetar, 
+        // e guardar o valor inicial para comparar.
+        let valBOEInicial = '';
+        $('#inputBOE').on('focus', function() {
+            valBOEInicial = $(this).val();
+        }).on('change', () => {
+            const boeAtual = $('#inputBOE').val();
+            if (this.currentId && boeAtual !== valBOEInicial) {
+                console.log('⚠️ [script] BOE PC principal alterado manualmente. Resetando currentId para evitar sobreposição.');
                 this.currentId = null;
                 this.atualizarEstadoBotoes();
             }
@@ -2793,10 +2799,15 @@ window.OcorrenciasApp = {
         const formDocumentos = $('#formDocumentos').serializeArray();
         const formApreensao = $('#formApreensao').serializeArray();
         const allData = formData.concat(formDocumentos, formApreensao);
+        
+        // ✅ CORREÇÃO: Utilizar Method Spoofing do Laravel.
+        // Enviar arrays (como autores[]) via HTTP PUT direto causa falha no parse do PHP,
+        // o que resultava no backend recebendo arrays vazios e apagando os chips (pruning).
+        allData.push({ name: '_method', value: 'PUT' });
 
         $.ajax({
             url: `${rotas.inicio.atualizar}/${this.currentId}`,
-            method: "PUT",
+            method: "POST",
             data: allData,
             success: (response) => {
                 if (response.success) {

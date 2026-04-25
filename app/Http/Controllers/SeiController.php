@@ -42,16 +42,16 @@ class SeiController extends Controller
         $sessionFile = \storage_path("app/public/sei_sessions/{$jobId}/auth.json");
         File::ensureDirectoryExists(dirname($sessionFile));
 
-        $baseUrl = escapeshellarg($request->base_url);
-        $orgao = $request->orgao ? ' --orgao ' . escapeshellarg($request->orgao) : '';
-        $command = "\"{$this->pythonCommand}\" \"{$this->scriptPath}\" --action login --base_url {$baseUrl} --session_file " . escapeshellarg($sessionFile) . $orgao;
-
-        $credentials = [
+        $payload = [
+            'action' => 'login',
+            'base_url' => $request->base_url,
+            'session_file' => $sessionFile,
+            'orgao' => $request->orgao,
             'usuario' => $request->usuario,
             'senha' => $request->senha,
         ];
 
-        return $this->streamPythonExecution($command, $credentials, $jobId);
+        return $this->streamPythonExecution($payload, $jobId);
     }
 
     public function listarSeis(Request $request)
@@ -141,23 +141,23 @@ class SeiController extends Controller
         $seisFile = \storage_path("app/public/sei_temp/{$jobId}/seis.json");
         File::put($seisFile, json_encode(array_values($request->seis), JSON_UNESCAPED_UNICODE));
 
-        $orgao = $request->orgao ? ' --orgao ' . escapeshellarg($request->orgao) : '';
-        $command = "\"{$this->pythonCommand}\" \"{$this->scriptPath}\" --action check --base_url " . escapeshellarg($baseUrl) .
-            ' --session_file ' . escapeshellarg($sessionFile) .
-            ' --seis_file ' . escapeshellarg($seisFile) .
-            ' --output_dir ' . escapeshellarg($outputDir) .
-            ' --keywords ' . escapeshellarg($keywords) . 
-            ' --job_id ' . escapeshellarg($jobId) . $orgao;
+        $payload = [
+            'action' => 'check',
+            'base_url' => $baseUrl,
+            'session_file' => $sessionFile,
+            'seis_file' => $seisFile,
+            'output_dir' => $outputDir,
+            'keywords' => $keywords,
+            'job_id' => $jobId,
+            'orgao' => $request->orgao,
+        ];
 
-        $credentials = null;
         if ($request->usuario && $request->senha) {
-            $credentials = [
-                'usuario' => $request->usuario,
-                'senha' => $request->senha,
-            ];
+            $payload['usuario'] = $request->usuario;
+            $payload['senha'] = $request->senha;
         }
 
-        return $this->streamPythonExecution($command, $credentials, $jobId);
+        return $this->streamPythonExecution($payload, $jobId);
     }
 
     public function screenshot($jobId, $filename)
@@ -187,45 +187,48 @@ class SeiController extends Controller
         return response()->json(['success' => true, 'message' => 'Comando de parada enviado']);
     }
 
-    private function streamPythonExecution(string $command, ?array $credentials = null, ?string $jobId = null)
+    private function streamPythonExecution(array $payload, ?string $jobId = null)
     {
-        return \response()->stream(function () use ($command, $credentials, $jobId) {
+        return \response()->stream(function () use ($payload, $jobId) {
             try {
-                $process = Process::fromShellCommandline($command);
-                $process->setTimeout(900);
-                $process->setEnv($this->env);
+                $motorUrl = env('MOTOR_URL', 'http://localhost:8001') . '/sei-robot';
 
-                if ($credentials) {
-                    $process->setInput(json_encode($credentials));
-                }
-
-                $process->run(function ($type, $buffer) use ($jobId) {
-                    if ($type === Process::ERR) {
-                        $msg = trim((string) $buffer);
-                        if ($msg !== '') {
-                            echo json_encode(['success' => false, 'message' => $msg, 'status' => 'error']) . "\n";
-                        }
-                        if (ob_get_level() > 0) {
-                            ob_flush();
-                        }
-                        flush();
-                        return;
-                    }
+                $ch = curl_init($motorUrl);
+                curl_setopt($ch, CURLOPT_POST, 1);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+                curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Accept: text/event-stream']);
+                curl_setopt($ch, CURLOPT_WRITEFUNCTION, function($ch, $buffer) use ($jobId) {
                     if (strpos($buffer, '{') !== false) {
-                        $data = json_decode($buffer, true);
-                        if ($data) {
-                            if (($data['status'] ?? '') === 'screenshot' && isset($data['data']['filename']) && $jobId) {
-                                $data['data']['url'] = \route('sei.screenshot', ['jobId' => $jobId, 'filename' => $data['data']['filename']]);
+                        $lines = explode("\n", $buffer);
+                        foreach($lines as $line) {
+                            $line = trim($line);
+                            if ($line) {
+                                $data = json_decode($line, true);
+                                if ($data) {
+                                    if (($data['status'] ?? '') === 'screenshot' && isset($data['data']['filename']) && $jobId) {
+                                        $data['data']['url'] = \route('sei.screenshot', ['jobId' => $jobId, 'filename' => $data['data']['filename']]);
+                                    }
+                                    echo json_encode($data) . "\n";
+                                }
                             }
-                            echo json_encode($data) . "\n";
                         }
                     }
-
                     if (ob_get_level() > 0) {
                         ob_flush();
                     }
                     flush();
+                    return strlen($buffer);
                 });
+                
+                curl_exec($ch);
+                
+                if(curl_errno($ch)) {
+                    $errorMsg = curl_error($ch);
+                    echo json_encode(['success' => false, 'message' => "Erro de conexão com Motor Python: " . $errorMsg, 'status' => 'error']) . "\n";
+                }
+                
+                curl_close($ch);
+
             } catch (\Throwable $e) {
                 echo json_encode(['success' => false, 'message' => $e->getMessage(), 'status' => 'error']) . "\n";
             }
