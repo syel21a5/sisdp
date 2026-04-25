@@ -48,14 +48,14 @@ class InfopolController extends Controller
         // Garante diretório da sessão
         File::ensureDirectoryExists(dirname($sessionFile));
 
-        $command = "\"{$this->pythonCommand}\" \"{$this->scriptPath}\" --action login --session_file ".escapeshellarg($sessionFile);
-
-        $credentials = [
+        $payload = [
+            'action' => 'login',
+            'session_file' => $sessionFile,
             'usuario' => $request->usuario,
             'senha' => $request->senha
         ];
 
-        return $this->streamPythonExecution($command, $credentials, $jobId);
+        return $this->streamPythonExecution($payload, $jobId);
     }
 
     /**
@@ -75,14 +75,16 @@ class InfopolController extends Controller
             return response()->json(['success' => false, 'message' => 'Sessão não encontrada. Conecte-se novamente.', 'status' => 'expired'], 401);
         }
 
-        $nome = escapeshellarg($request->nome);
-        $inicio = escapeshellarg($request->inicio ?? '');
-        $fim = escapeshellarg($request->fim ?? '');
-        $delegacia = escapeshellarg($request->delegacia ?? '');
+        $payload = [
+            'action' => 'search',
+            'nome' => $request->nome,
+            'inicio' => $request->inicio ?? '',
+            'fim' => $request->fim ?? '',
+            'delegacia' => $request->delegacia ?? '',
+            'session_file' => $sessionFile
+        ];
 
-        $command = "\"{$this->pythonCommand}\" \"{$this->scriptPath}\" --action search --nome {$nome} --inicio {$inicio} --fim {$fim} --delegacia {$delegacia} --session_file ".escapeshellarg($sessionFile);
-
-        return $this->streamPythonExecution($command, null, $jobId);
+        return $this->streamPythonExecution($payload, $jobId);
     }
 
     /**
@@ -102,52 +104,61 @@ class InfopolController extends Controller
         
         File::ensureDirectoryExists($outputDir);
 
-        $nome = escapeshellarg($request->nome);
-        $inicio = escapeshellarg($request->inicio ?? '');
-        $fim = escapeshellarg($request->fim ?? '');
-        $indices = escapeshellarg($request->indices);
-        $outputDirEscaped = escapeshellarg($outputDir);
+        $payload = [
+            'action' => 'download',
+            'nome' => $request->nome,
+            'inicio' => $request->inicio ?? '',
+            'fim' => $request->fim ?? '',
+            'indices' => $request->indices,
+            'session_file' => $sessionFile,
+            'output_dir' => $outputDir
+        ];
 
-        $command = "\"{$this->pythonCommand}\" \"{$this->scriptPath}\" --action download --nome {$nome} --inicio {$inicio} --fim {$fim} --indices {$indices} --session_file ".escapeshellarg($sessionFile)." --output_dir {$outputDirEscaped}";
-
-        return $this->streamPythonExecution($command, null, $jobId);
+        return $this->streamPythonExecution($payload, $jobId);
     }
 
     /**
      * Helper para executar o Python e realizar o streaming da saída.
      */
-    private function streamPythonExecution($command, $credentials = null, $jobId = null)
+    private function streamPythonExecution(array $payload, ?string $jobId = null)
     {
-        return response()->stream(function () use ($command, $credentials, $jobId) {
+        return response()->stream(function () use ($payload, $jobId) {
             try {
-                $process = Process::fromShellCommandline($command);
-                $process->setTimeout(600);
-                $process->setEnv($this->env);
-                
-                if ($credentials) {
-                    $process->setInput(json_encode($credentials));
-                }
+                $motorUrl = env('MOTOR_URL', 'http://localhost:8001') . '/infopol-robot';
 
-                $process->run(function ($type, $buffer) use ($jobId) {
-                    // Se for JSON de progresso/resultado, repassa
+                $ch = curl_init($motorUrl);
+                curl_setopt($ch, CURLOPT_POST, 1);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+                curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Accept: text/event-stream']);
+                curl_setopt($ch, CURLOPT_WRITEFUNCTION, function($ch, $buffer) use ($jobId) {
                     if (strpos($buffer, '{') !== false) {
-                        $data = json_decode($buffer, true);
-                        if ($data) {
-                            if (($data['status'] ?? '') === 'finished') {
-                                $data['download_url'] = route('infopol.download', ['jobId' => $jobId]);
+                        $lines = explode("\n", $buffer);
+                        foreach($lines as $line) {
+                            $line = trim($line);
+                            if ($line) {
+                                $data = json_decode($line, true);
+                                if ($data) {
+                                    if (($data['status'] ?? '') === 'finished' && $jobId) {
+                                        $data['download_url'] = route('infopol.download', ['jobId' => $jobId]);
+                                    }
+                                    echo json_encode($data) . "\n";
+                                }
                             }
-                            echo json_encode($data) . "\n";
-                        } else {
-                            echo $buffer;
                         }
-                    } else {
-                        // Log de texto comum para debug (opcional)
-                        // echo json_encode(['message' => $buffer, 'status' => 'raw']) . "\n";
                     }
-                    
                     if (ob_get_level() > 0) ob_flush();
                     flush();
+                    return strlen($buffer);
                 });
+                
+                curl_exec($ch);
+                
+                if(curl_errno($ch)) {
+                    $errorMsg = curl_error($ch);
+                    echo json_encode(['success' => false, 'message' => "Erro de conexão com Motor Python: " . $errorMsg, 'status' => 'error']) . "\n";
+                }
+                
+                curl_close($ch);
 
             } catch (\Exception $e) {
                 echo json_encode(['success' => false, 'message' => $e->getMessage(), 'status' => 'error']) . "\n";

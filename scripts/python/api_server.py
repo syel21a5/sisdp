@@ -164,6 +164,54 @@ async def sei_robot(request: SeiRobotRequest):
 
     return StreamingResponse(run_and_stream(), media_type="text/event-stream")
 
+class InfopolRobotRequest(BaseModel):
+    action: str
+    session_file: str
+    nome: Optional[str] = None
+    inicio: Optional[str] = None
+    fim: Optional[str] = None
+    delegacia: Optional[str] = None
+    indices: Optional[str] = None
+    output_dir: Optional[str] = None
+    usuario: Optional[str] = None
+    senha: Optional[str] = None
+
+@app.post("/infopol-robot")
+async def infopol_robot(request: InfopolRobotRequest):
+    async def run_and_stream():
+        script_path = os.path.join(os.path.dirname(__file__), "baixar_boes.py")
+        args = [sys.executable, script_path, "--action", request.action, "--session_file", request.session_file]
+        
+        if request.nome: args.extend(["--nome", request.nome])
+        if request.inicio: args.extend(["--inicio", request.inicio])
+        if request.fim: args.extend(["--fim", request.fim])
+        if request.delegacia: args.extend(["--delegacia", request.delegacia])
+        if request.indices: args.extend(["--indices", request.indices])
+        if request.output_dir: args.extend(["--output_dir", request.output_dir])
+
+        process = await asyncio.create_subprocess_exec(
+            *args,
+            stdin=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        
+        if request.usuario and request.senha:
+            creds = json.dumps({"usuario": request.usuario, "senha": request.senha})
+            process.stdin.write((creds + "\n").encode())
+            await process.stdin.drain()
+        process.stdin.close()
+
+        while True:
+            line = await process.stdout.readline()
+            if not line:
+                break
+            yield line
+
+        await process.wait()
+
+    return StreamingResponse(run_and_stream(), media_type="text/event-stream")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("api_server:app", host="127.0.0.1", port=8001, reload=True)
