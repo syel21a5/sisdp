@@ -130,6 +130,17 @@ REGRAS IMPORTANTES DE FORMATAÇÃO:
         if (preg_match('/\{.*\}/s', $jsonLimpo, $matches)) {
             $dados = json_decode($matches[0], true);
             if (json_last_error() === JSON_ERROR_NONE) {
+                // TRAVA DE SEGURANÇA: Limitar endereços a 200 caracteres
+                if (isset($dados['end_fato']) && strlen($dados['end_fato']) > 200) {
+                    $dados['end_fato'] = substr($dados['end_fato'], 0, 197) . "...";
+                }
+                if (isset($dados['envolvidos_detalhes']) && is_array($dados['envolvidos_detalhes'])) {
+                    foreach ($dados['envolvidos_detalhes'] as $nome => $detalhe) {
+                        if (isset($detalhe['endereco']) && strlen($detalhe['endereco']) > 200) {
+                            $dados['envolvidos_detalhes'][$nome]['endereco'] = substr($detalhe['endereco'], 0, 197) . "...";
+                        }
+                    }
+                }
                 return $dados;
             }
             Log::error("Falha ao decodificar JSON da IA: " . json_last_error_msg());

@@ -69,15 +69,27 @@ def remover_acentos(texto: str) -> str:
     return ''.join(c for c in nfkd if not unicodedata.combining(c))
 
 def _formatar_endereco(end_raw: str) -> str:
-    """Reformata endereço do BOE mantendo partes originais mas limpando pontuação.
-    Ex: 'RUA X ,99;CIDADE;PE' -> 'RUA X, 99; CIDADE/PE'
     """
-    if not end_raw: return ""
+    Reformata endereço do BOE limpando pontuação e lixo de formulário.
+    Ex: 'RUA X, 200; BAIRRO; CIDADE; PE; BRASIL; PROXIMO A LOJA Ramo de Atividade: ...' 
+    -> 'RUA X, 200, BAIRRO, CIDADE-PE (PROXIMO A LOJA)'
+    """
+    if not end_raw:
+        return ""
     
-    # 1. Separa por ; e limpa cada parte
-    partes = [p.strip() for p in end_raw.split(';') if p.strip()]
+    # 1. LIMPEZA DE LIXO (Stop words de formulário)
+    lixo_form = [
+        r"Ramo de Atividade:", r"Nome do Representante:", r"Cargo do Representante:",
+        r"Pessoa de Contato:", r"Telefone de Contato:", r"C\.P\.F\. / C\.N\.P\.J\.:",
+        r"Identidade / Org\. Exp\.:", r"Data de Nascimento:", r"Sexo:", r"Estado Civil:"
+    ]
+    for pattern in lixo_form:
+        end_raw = re.split(pattern, end_raw, flags=re.IGNORECASE)[0].strip()
+
+    # 2. Separa por ; ou , e limpa cada parte
+    partes = [p.strip() for p in re.split(r'[;]', end_raw) if p.strip()]
     
-    # 2. Mapa de estados para sigla
+    # 3. Mapa de estados para sigla
     st_map = {
         'ACRE':'AC','ALAGOAS':'AL','AMAPA':'AP','AMAPÁ':'AP','AMAZONAS':'AM','BAHIA':'BA',
         'CEARA':'CE','CEARÁ':'CE','DISTRITO FEDERAL':'DF','ESPIRITO SANTO':'ES','ESPÍRITO SANTO':'ES',
@@ -86,35 +98,55 @@ def _formatar_endereco(end_raw: str) -> str:
         'PARAÍBA':'PB','PARANA':'PR','PARANÁ':'PR','PERNAMBUCO':'PE','PIAUI':'PI','PIAUÍ':'PI',
         'RIO DE JANEIRO':'RJ','RIO GRANDE DO NORTE':'RN','RIO GRANDE DO SUL':'RS',
         'RONDONIA':'RO','RONDÔNIA':'RO','RORAIMA':'RR','SANTA CATARINA':'SC',
-        'SAO PAULO':'SP','SÃO PAULO':'SP','SERGIPE':'SE','TOCANTINS':'TO'
+        'SAO PAULO':'SP','SÃO PAULO':'SP','SERGIPE':'SE','TOCANTINS':'TO',
+        'BRASIL': ''
     }
     ufs = set(st_map.values())
     
-    # 3. Processa cada parte
     final_parts = []
+    ponto_referencia = ""
+    
     i = 0
     while i < len(partes):
-        p = partes[i]
+        p = partes[i].strip()
+        p_upper = p.upper()
         
-        # Ajusta vírgula: "RUA X ,99" -> "RUA X, 99"
+        # Ignora partes vazias ou redundantes
+        if p == "0" or p_upper == "BRASIL" or not p:
+            i += 1
+            continue
+
+        # Identifica Ponto de Referência
+        if "PROXIMO A" in p_upper or "AO LADO" in p_upper or "EM FRENTE" in p_upper:
+            ponto_referencia = p
+            i += 1
+            continue
+        
+        # Ajusta vírgula
         p = re.sub(r'\s*,\s*', ', ', p).strip()
         
-        # Verifica se esta parte é cidade e a próxima é UF ou Estado por extenso
+        # Verifica Cidade-UF
         if i + 1 < len(partes):
             prox_raw = partes[i+1].upper().strip()
-            # Converte para sigla se for nome completo
             prox_uf = st_map.get(prox_raw, prox_raw)
             
-            if prox_uf in ufs:
-                # Une Cidade/UF
-                p = f"{p}/{prox_uf}"
-                i += 1 # Pula a próxima parte (UF)
+            if prox_uf in ufs and prox_uf != "":
+                p = f"{p}-{prox_uf}"
+                i += 1 
         
-        final_parts.append(p)
+        if p not in final_parts:
+            final_parts.append(p)
         i += 1
         
-    # 4. Une por "; " (espaço após ponto e vírgula)
-    return "; ".join(final_parts)
+    res = ", ".join(final_parts)
+    
+    if ponto_referencia:
+        res += f" ({ponto_referencia})"
+        
+    if len(res) > 200:
+        res = res[:197] + "..."
+        
+    return res.upper()
 
 
 def parse_boe_python(texto: str) -> dict:
