@@ -21,7 +21,7 @@ var rotasImpressaoInicio = {
     'PERICIA EM LOCAL DE CRIME': '/pericia-local-de-crime/--DADOS--',
     'OFICIOS MANDADO DE PRISAO': "/numero-oficio/gerar",
     'ROL DE TESTEMUNHAS': "/rol-de-testemunhas-gerar",
-    'DESPACHO DE CONCLUSAO': "/despacho-conclusao/--DADOS--"
+    'DESPACHO DE CONCLUSAO': "/despacho-conclusao-gerar"
 };
 
 // ROTAS PARA A ABA CONDUTOR (APFD)

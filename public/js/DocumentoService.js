@@ -94,6 +94,29 @@ const DocumentoService = {
             if (p.length === 3) norm.nascimento = `${p[2]}/${p[1]}/${p[0]}`;
         }
 
+        // 5. CÁLCULO AUTOMÁTICO DE IDADE (Se tiver nascimento mas não tiver idade)
+        if (norm.nascimento && (!norm.idade || norm.idade === 'NÃO INFORMADO')) {
+            const partes = norm.nascimento.split('/');
+            if (partes.length === 3) {
+                const dia = parseInt(partes[0]);
+                const mes = parseInt(partes[1]);
+                const ano = parseInt(partes[2]);
+                
+                if (!isNaN(dia) && !isNaN(mes) && !isNaN(ano)) {
+                    const hoje = new Date();
+                    const nasc = new Date(ano, mes - 1, dia);
+                    let idade = hoje.getFullYear() - nasc.getFullYear();
+                    const m = hoje.getMonth() - nasc.getMonth();
+                    if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) {
+                        idade--;
+                    }
+                    if (idade >= 0 && idade < 150) {
+                        norm.idade = String(idade);
+                    }
+                }
+            }
+        }
+
         return norm;
     },
 

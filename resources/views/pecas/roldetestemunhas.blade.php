@@ -60,24 +60,35 @@
                     @php
                         $pessoa = $dadosArray[$chave];
                         $nome = $pessoa['nome'] ?? '';
+                        
+                        // Função auxiliar para formatar campos vazios
+                        $fmt = function($val) {
+                            $val = trim($val);
+                            return (empty($val) || $val === 'NÃO INFORMADO') ? 'NÃO INFORMADO' : mb_strtoupper($val, 'UTF-8');
+                        };
+                        
+                        $fmtRaw = function($val) {
+                            $val = trim($val);
+                            return (empty($val) || $val === 'NÃO INFORMADO') ? 'NÃO INFORMADO' : $val;
+                        };
                     @endphp
                     @if ($nome && $nome !== 'NÃO INFORMADO')
                         @php $contador++; @endphp
                         <p style="text-align: justify; line-height: 1.6; margin: 0.2em 0; padding: 0;">
-                            <strong>NOME:</strong> {{ mb_strtoupper($pessoa['nome'] ?? 'NÃO INFORMADO', 'UTF-8') }}, 
-                            <strong>ALCUNHA:</strong> {{ mb_strtoupper($pessoa['alcunha'] ?? 'NÃO INFORMADO', 'UTF-8') }}, 
-                            <strong>NASCIMENTO:</strong> {{ $pessoa['nascimento'] ?? 'NÃO INFORMADO' }}, 
-                            <strong>IDADE:</strong> {{ $pessoa['idade'] ?? 'NÃO INFORMADO' }}, 
-                            <strong>ESTADO CIVIL:</strong> {{ mb_strtoupper($pessoa['estcivil'] ?? 'NÃO INFORMADO', 'UTF-8') }}, 
-                            <strong>NATURALIDADE:</strong> {{ mb_strtoupper($pessoa['naturalidade'] ?? 'NÃO INFORMADO', 'UTF-8') }}, 
-                            <strong>RG:</strong> {{ $pessoa['rg'] ?? 'NÃO INFORMADO' }}, 
-                            <strong>CPF:</strong> {{ $pessoa['cpf'] ?? 'NÃO INFORMADO' }}, 
-                            <strong>PROFISSÃO:</strong> {{ mb_strtoupper($pessoa['profissao'] ?? 'NÃO INFORMADO', 'UTF-8') }}, 
-                            <strong>INSTRUÇÃO:</strong> {{ mb_strtoupper($pessoa['instrucao'] ?? 'NÃO INFORMADO', 'UTF-8') }}, 
-                            <strong>TELEFONE:</strong> {{ $pessoa['telefone'] ?? 'NÃO INFORMADO' }}, 
-                            <strong>MÃE:</strong> {{ mb_strtoupper($pessoa['mae'] ?? 'NÃO INFORMADO', 'UTF-8') }}, 
-                            <strong>PAI:</strong> {{ mb_strtoupper($pessoa['pai'] ?? 'NÃO INFORMADO', 'UTF-8') }}, 
-                            <strong>ENDEREÇO:</strong> {{ mb_strtoupper($pessoa['endereco'] ?? 'NÃO INFORMADO', 'UTF-8') }};
+                            <strong>NOME:</strong> {{ $fmt($pessoa['nome'] ?? '') }}, 
+                            <strong>ALCUNHA:</strong> {{ $fmt($pessoa['alcunha'] ?? '') }}, 
+                            <strong>NASCIMENTO:</strong> {{ $fmtRaw($pessoa['nascimento'] ?? '') }}, 
+                            <strong>IDADE:</strong> {{ $fmtRaw($pessoa['idade'] ?? '') }}, 
+                            <strong>ESTADO CIVIL:</strong> {{ $fmt($pessoa['estcivil'] ?? '') }}, 
+                            <strong>NATURALIDADE:</strong> {{ $fmt($pessoa['naturalidade'] ?? '') }}, 
+                            <strong>RG:</strong> {{ $fmtRaw($pessoa['rg'] ?? '') }}, 
+                            <strong>CPF:</strong> {{ $fmtRaw($pessoa['cpf'] ?? '') }}, 
+                            <strong>PROFISSÃO:</strong> {{ $fmt($pessoa['profissao'] ?? '') }}, 
+                            <strong>INSTRUÇÃO:</strong> {{ $fmt($pessoa['instrucao'] ?? '') }}, 
+                            <strong>TELEFONE:</strong> {{ $fmtRaw($pessoa['telefone'] ?? '') }}, 
+                            <strong>MÃE:</strong> {{ $fmt($pessoa['mae'] ?? '') }}, 
+                            <strong>PAI:</strong> {{ $fmt($pessoa['pai'] ?? '') }}, 
+                            <strong>ENDEREÇO:</strong> {{ $fmt($pessoa['endereco'] ?? '') }};
                         </p>
                         <p><br></p>
                     @endif

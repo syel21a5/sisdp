@@ -17,7 +17,37 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
     <!-- Seu CSS personalizado -->
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}?v={{ time() }}">
+
+    <style>
+        /* Correção agressiva para o fundo claro no módulo de celular */
+        html[data-bs-theme="dark"] #formCelular {
+            background-color: transparent !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            border: none !important;
+            padding: 0 !important;
+        }
+        
+        html[data-bs-theme="dark"] #formCelular .form-label {
+            color: var(--sdp-text-main, #f8fafc) !important;
+        }
+
+        html[data-bs-theme="dark"] .tab-pane#dados-celular .card,
+        html[data-bs-theme="dark"] .tab-pane#dados-celular .card-body {
+            background-color: transparent !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            border: none !important;
+        }
+    </style>
+
+    <!-- Previne o flash branco lendo o tema antes do render -->
+    <script>
+        if (localStorage.getItem('sisdp_theme') === 'dark') {
+            document.documentElement.setAttribute('data-bs-theme', 'dark');
+        }
+    </script>
 </head>
 <body>
     <!-- Menu Lateral -->
@@ -143,11 +173,7 @@
             <div class="tab-content mt-3">
                 <!-- DADOS DO CELULAR -->
                 <div class="tab-pane fade show active" id="dados-celular" role="tabpanel">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-primary text-white py-2">
-                            <h5 class="mb-0"><i class="bi bi-phone me-2"></i>Cadastro de Celular</h5>
-                        </div>
-                        <div class="card-body py-3">
+                    <x-card title="Cadastro de Celular" icon="bi-phone" headerClass="bg-primary">
                             <form id="formCelular">
                                 @csrf
                                 <input type="hidden" name="id" id="celular_id">
@@ -237,15 +263,10 @@
                                     </button>
                                 </div>
                             </form>
-                        </div>
-                    </div>
+                    </x-card>
 
                     <!-- Área de Pesquisa -->
-                    <div class="card border-0 shadow-sm mt-3">
-                        <div class="card-header bg-light py-2">
-                            <h5 class="mb-0"><i class="bi bi-search me-2"></i>Pesquisa de Celulares</h5>
-                        </div>
-                        <div class="card-body py-3">
+                    <x-card title="Pesquisa de Celulares" icon="bi-search" headerClass="bg-light text-dark" class="mt-3">
                             <div class="row g-2 mb-2">
                                 <div class="col-md-3">
                                     <select class="form-select" id="filtroCelular">
@@ -274,7 +295,7 @@
                             @endif
 
                             <!-- Empty State -->
-                            <div id="emptyStatePesquisaCelular" class="text-center py-5 rounded bg-light border border-dashed text-muted mt-3">
+                            <div id="emptyStatePesquisaCelular" class="text-center py-5 rounded border border-dashed text-muted mt-3">
                                 <i class="bi bi-search display-4 text-secondary mb-3 opacity-50"></i>
                                 <h5 class="fw-normal">Nenhum resultado exibido</h5>
                                 <p class="mb-0 small">Utilize o campo acima para buscar por celulares cadastrados.</p>
@@ -304,16 +325,14 @@
                                     </tbody>
                                 </table>
                             </div>
-                        </div>
-                        </div>
-                    </div>
+                            </div>
+                    </x-card>
                 </div>
 
                 <!-- CONTROLE DE CELULARES -->
                 <div class="tab-pane fade" id="controle-celular" role="tabpanel">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-primary text-white py-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                            <h5 class="mb-0"><i class="bi bi-bar-chart-line me-2"></i>Controle de Celulares por Status</h5>
+                    <x-card title="Controle de Celulares por Status" icon="bi-bar-chart-line" headerClass="bg-primary text-white" headerExtraClass="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <x-slot name="headerActions">
                             <div class="d-flex gap-2">
                                 <button type="button" class="btn btn-sm btn-light text-success fw-semibold" id="btnExportarExcelCelular" title="Baixar planilha Excel">
                                     <i class="bi bi-file-earmark-excel me-1"></i> Excel
@@ -322,42 +341,22 @@
                                     <i class="bi bi-file-earmark-pdf me-1"></i> PDF
                                 </button>
                             </div>
-                        </div>
-                        <div class="card-body">
+                        </x-slot>
+
 
                             <!-- Cards de Resumo -->
                             <div class="row mb-4 g-3">
                                 <div class="col-6 col-md-3">
-                                    <div class="card bg-danger text-white h-100 shadow-sm card-status-clicavel" data-status="APREENDIDO" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" title="Clique para ver detalhes">
-                                        <div class="card-body text-center py-3">
-                                            <h2 class="card-title mb-1 fw-bold" id="contador-apreendido">0</h2>
-                                            <p class="card-text mb-0 small">Apreendidos</p>
-                                        </div>
-                                    </div>
+                                    <x-status-card color="danger" status="APREENDIDO" id="contador-apreendido" label="Apreendidos" />
                                 </div>
                                 <div class="col-6 col-md-3">
-                                    <div class="card bg-success text-white h-100 shadow-sm card-status-clicavel" data-status="DEVOLVIDO" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" title="Clique para ver detalhes">
-                                        <div class="card-body text-center py-3">
-                                            <h2 class="card-title mb-1 fw-bold" id="contador-devolvido">0</h2>
-                                            <p class="card-text mb-0 small">Devolvidos</p>
-                                        </div>
-                                    </div>
+                                    <x-status-card color="success" status="DEVOLVIDO" id="contador-devolvido" label="Devolvidos" />
                                 </div>
                                 <div class="col-6 col-md-3">
-                                    <div class="card bg-warning text-dark h-100 shadow-sm card-status-clicavel" data-status="EM PERÍCIA" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" title="Clique para ver detalhes">
-                                        <div class="card-body text-center py-3">
-                                            <h2 class="card-title mb-1 fw-bold" id="contador-analise">0</h2>
-                                            <p class="card-text mb-0 small">Em Perícia</p>
-                                        </div>
-                                    </div>
+                                    <x-status-card color="warning" status="EM PERÍCIA" id="contador-analise" label="Em Perícia" />
                                 </div>
                                 <div class="col-6 col-md-3">
-                                    <div class="card bg-secondary text-white h-100 shadow-sm card-status-clicavel" data-status="TODOS" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" title="Clique para limpar os filtros e listar todos">
-                                        <div class="card-body text-center py-3">
-                                            <h2 class="card-title mb-1 fw-bold" id="contador-total">0</h2>
-                                            <p class="card-text mb-0 small">Total</p>
-                                        </div>
-                                    </div>
+                                    <x-status-card color="secondary" status="TODOS" id="contador-total" label="Total" title="Clique para limpar os filtros e listar todos" />
                                 </div>
                             </div>
 
@@ -394,7 +393,7 @@
                                 <!-- Gráfico de Rosca -->
                                 <div class="col-md-4">
                                     <div class="card border shadow-sm h-100">
-                                        <div class="card-header bg-light py-2">
+                                        <div class="card-header py-2">
                                             <h6 class="mb-0"><i class="bi bi-pie-chart me-1"></i>Distribuição por Status</h6>
                                         </div>
                                         <div class="card-body d-flex align-items-center justify-content-center" style="min-height:220px;">
@@ -406,7 +405,7 @@
                                 <!-- Tabela de Celulares por Status -->
                                 <div class="col-md-8">
                                     <div class="card border shadow-sm h-100">
-                                        <div class="card-header bg-light py-2">
+                                        <div class="card-header py-2">
                                             <h6 class="mb-0"><i class="bi bi-table me-1"></i>Detalhamento por Status</h6>
                                         </div>
                                         <div class="card-body p-0">
@@ -436,25 +435,14 @@
                             </div>
 
                             <!-- Modal para Detalhes do Status -->
-                            <div class="modal fade" id="modalDetalhesStatusCelular" tabindex="-1" aria-hidden="true">
-                                <div class="modal-dialog modal-xl">
-                                    <div class="modal-content">
-                                        <div class="modal-header bg-primary text-white">
-                                            <h5 class="modal-title" id="modalDetalhesStatusCelularTitulo">Detalhes dos Celulares</h5>
-                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <div id="conteudoDetalhesStatusCelular">
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-                                        </div>
-                                    </div>
+                            <x-modal id="modalDetalhesStatusCelular" title="Detalhes dos Celulares" size="modal-xl" headerClass="bg-primary text-white" closeWhite="true">
+                                <div id="conteudoDetalhesStatusCelular">
                                 </div>
-                            </div>
-                        </div>
-                    </div>
+                                <x-slot name="footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                                </x-slot>
+                            </x-modal>
+                    </x-card>
                 </div>
             </div>
 

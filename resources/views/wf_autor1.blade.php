@@ -33,7 +33,7 @@
                         name="Nascimento" id="inputDataNascimentoAutor1">
                 </div>
                 <div class="col-md-3">
-                    <input type="text" class="form-control" placeholder="Idade" id="inputIdadeAutor1" readonly>
+                    <input type="text" class="form-control" placeholder="Idade" id="inputIdadeAutor1" name="Idade" readonly>
                 </div>
                 <div class="col-md-3">
                     <select class="form-control" name="EstCivil" id="inputEstadoCivilAutor1">
@@ -118,7 +118,7 @@
 
                 <!-- Campo de autocomplete para documentos -->
                 <div class="position-relative flex-grow-1"
-                    style="min-width: 395px; max-width: 495px;">
+                    style="min-width: 200px; max-width: 500px;">
                     <div class="input-group">
                         <input type="text" class="form-control" id="termoDocumentoAutor1"
                             placeholder="Digite o documento (ex: INTERROGATÓRIO)...">

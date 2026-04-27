@@ -42,45 +42,53 @@
 
         <div class="editor-area">
             <div id="editor" class="preservar-espacamento">
-                <p style="text-align: center; background-color: #d0d0d0; padding: 6px 10px; font-weight: bold; border: 1px solid #000;">DESPACHO</p>
+                <p><br></p>
+                <p><br></p>
+                <p style="text-align: center; background-color: #d0d0d0; padding: 6px 10px; font-weight: bold; border: 1px solid #000; font-size: 18px;">DESPACHO</p>
                 <p><br></p>
                 <p style="text-align: justify;">Senhor Escrivão(ã), junte aos autos a(s) peça(s) abaixo relacionada(s):</p>
                 <ol>
-                    <li>Solicitação dos antecedentes criminais ao IITB;</li>
-                    <li>Ofício encaminhando boletim individual ao IITB;</li>
-                    <li>Boletim individual do(a) envolvido(a);</li>
                     <li>Rol de testemunhas;</li>
                     <li>Relatório conclusivo de procedimento policial;</li>
                     <li>Termo de remessa.</li>
                 </ol>
                 <p style="text-align: justify;">Em seguida, remeta-se os Autos à Justiça para as demais providências legais pertinentes.</p>
+                <p><br></p>
                 <p style="text-align: center;"><strong>CUMPRA-SE</strong></p>
-                <p style="text-align: center;">{{ $dadosArray['cidade'] ?? 'Afogados da Ingazeira' }}, {{ $dadosArray['data_ext'] ?? 'DATA' }}</p>
+                <p style="text-align: center;">{{ mb_convert_case($dadosArray['cidade'] ?? 'Afogados da Ingazeira', MB_CASE_TITLE, 'UTF-8') }}, {{ $dadosArray['data_comp'] ?? 'DATA' }}</p>
+                <p><br></p>
+                <p><br></p>
                 <p style="text-align: center;"><strong>{{ $dadosArray['delegado'] ?? 'DELEGADO' }}</strong></p>
                 <p style="text-align: center;">Delegado(a) de Polícia</p>
 
                 <div style="page-break-before: always;"></div>
+                <p><br></p>
+                <p><br></p>
 
                 <p style="text-align: center; background-color: #d0d0d0; padding: 6px 10px; font-weight: bold; border: 1px solid #000;">DATA</p>
-                <p style="text-align: center;">Ao(s) {{ $dadosArray['data_ext'] ?? 'DATA' }}, recebo estes autos do(a) Delegado(a)</p>
-                <p style="text-align: center;">que preside o presente Inquérito. Do que, para constar, lavro este termo.</p>
+                <p style="text-align: center;">Ao(s) {{ $dadosArray['data_comp'] ?? 'DATA' }}, recebo estes autos do(a) Delegado(a) que preside o presente Inquérito. Do que, para constar, lavro este termo.</p>
                 <p style="text-align: center;">Eu, _________________, Escrivão(ã) que o digitei.</p>
+                <p><br></p>
 
                 <p style="text-align: center; background-color: #d0d0d0; padding: 6px 10px; font-weight: bold; border: 1px solid #000;">JUNTADA</p>
-                <p style="text-align: center;">Ao(s) {{ $dadosArray['data_ext'] ?? 'DATA' }}, faço juntada dos documentos</p>
-                <p style="text-align: center;">que adiante se seguem. Do que, para constar, lavro este termo.</p>
+                <p style="text-align: center;">Ao(s) {{ $dadosArray['data_comp'] ?? 'DATA' }}, faço juntada dos documentos que adiante se seguem. Do que, para constar, lavro este termo.</p>
                 <p style="text-align: center;">Eu, _________________, Escrivão(ã) que o digitei.</p>
+                <p><br></p>
 
                 <p style="text-align: center; background-color: #d0d0d0; padding: 6px 10px; font-weight: bold; border: 1px solid #000;">CERTIDÃO</p>
-                <p style="text-align: center;">Certifico, que nesta data, dei fiel cumprimento ao</p>
-                <p style="text-align: center;">despacho retro do Delegado(a) que preside o presente Inquérito, aonde me reporto e DOU FÉ.</p>
+                <p style="text-align: center;">Certifico, que nesta data, dei fiel cumprimento ao despacho retro do Delegado(a) que preside o presente Inquérito, aonde me reporto e DOU FÉ.</p>
                 <p style="text-align: center;">Eu, _________________, Escrivão(ã) que o digitei.</p>
 
                 <div style="page-break-before: always;"></div>
+                <p><br></p>
+                <p><br></p>
+                <p><br></p>
+                <p><br></p>
+                <p><br></p>
+                <p><br></p>
 
                 <p style="text-align: center; background-color: #d0d0d0; padding: 6px 10px; font-weight: bold; border: 1px solid #000;">CONCLUSÃO</p>
-                <p style="text-align: center;">Ao(s) {{ $dadosArray['data_ext'] ?? 'DATA' }}, faço estes autos conclusos</p>
-                <p style="text-align: center;">ao(a) Delegado(a) desta {{ $dadosArray['delegacia'] ?? 'DELEGACIA' }}, do que para constar, lavro este termo.</p>
+                <p style="text-align: center;">Ao(s) {{ $dadosArray['data_comp'] ?? 'DATA' }}, faço estes autos conclusos ao(a) Delegado(a) desta {{ $dadosArray['delegacia'] ?? 'DELEGACIA' }}, do que para constar, lavro este termo.</p>
                 <p style="text-align: center;">Eu, __________________ Escrivão(ã) que o digitei.</p>
             </div>
 
@@ -115,4 +123,3 @@
     <script src="{{ asset('js/pages/pecas/DespachoConclusao.js') }}"></script>
 </body>
 </html>
-

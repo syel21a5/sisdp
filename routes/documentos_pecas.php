@@ -120,5 +120,14 @@ Route::middleware(['auth', 'permission:pecas'])->group(function () {
         return redirect()->to('/rol-de-testemunhas/' . $key);
     })->name('rol.testemunhas.view.post');
 
+    // ✅ ROTA POST PARA DESPACHO DE CONCLUSAO (PRG Pattern)
+    Route::post('/despacho-conclusao-gerar', function (\Illuminate\Http\Request $request) {
+        $dadosArray = $request->input('dados', []);
+        $dadosArray = is_string($dadosArray) ? json_decode($dadosArray, true) : $dadosArray;
+        $key = 'desp_' . substr(md5(json_encode($dadosArray)), 0, 10);
+        \Illuminate\Support\Facades\Cache::put($key, $dadosArray, 3600);
+        return redirect()->to('/despacho-conclusao/' . $key);
+    })->name('despacho.conclusao.view.post');
+
 });
 

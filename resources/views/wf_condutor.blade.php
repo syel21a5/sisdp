@@ -27,7 +27,7 @@
                     <input type="text" class="form-control date-mask" placeholder="Data de Nascimento (dd/mm/aaaa)" name="Nascimento" id="inputDataNascimento">
                 </div>
                 <div class="col-xl-3 col-lg-6 col-md-6">
-                    <input type="text" class="form-control" placeholder="Idade" id="inputIdade" readonly>
+                    <input type="text" class="form-control" placeholder="Idade" id="inputIdade" name="Idade" readonly>
                 </div>
                 <div class="col-xl-3 col-lg-6 col-md-6">
                     <select class="form-control" name="EstCivil" id="inputEstadoCivil">

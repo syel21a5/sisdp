@@ -161,6 +161,7 @@ window.adicionarVitimaChip = function () {
         alcunha: $('#inputAlcunhaVitima1').val(),
         rg: $('#inputRGVitima1').val(),
         cpf: $('#inputCPFVitima1').val(),
+        idade: $('#inputIdadeVitima1').val(),
         dados: $('#formVitima1').serializeArray()
     };
 
@@ -209,6 +210,7 @@ window.adicionarAutorChip = function () {
         alcunha: $('#inputAlcunhaAutor1').val(),
         rg: $('#inputRGAutor1').val(),
         cpf: $('#inputCPFAutor1').val(),
+        idade: $('#inputIdadeAutor1').val(),
         dados: $('#formAutor1').serializeArray()
     };
 
@@ -257,8 +259,11 @@ window.adicionarTestemunhaChip = function () {
         alcunha: $('#inputAlcunhaTestemunha1').val(),
         rg: $('#inputRGTestemunha1').val(),
         cpf: $('#inputCPFTestemunha1').val(),
+        idade: $('#inputIdadeTestemunha1').val(),
         dados: $('#formTestemunha1').serializeArray()
     };
+
+    window.envolvidosChips.testemunhas.push(testemunha);
 
     // Sincroniza com OcorrenciasApp e salva vínculo automaticamente se tiver ID de banco
     if (window.OcorrenciasApp && window.OcorrenciasApp.envolvidos) {
@@ -303,8 +308,11 @@ window.adicionarCondutorChip = function () {
         alcunha: $('#inputAlcunha').val(),
         rg: $('#inputRG').val(),
         cpf: $('#inputCPF').val(),
+        idade: $('#inputIdade').val(),
         dados: $('#formCondutor').serializeArray()
     };
+
+    window.envolvidosChips.condutores.push(condutor);
 
     // Sincroniza com OcorrenciasApp e salva vínculo automaticamente se tiver ID de banco
     if (window.OcorrenciasApp && window.OcorrenciasApp.envolvidos) {

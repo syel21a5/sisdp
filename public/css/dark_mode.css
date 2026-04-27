@@ -1,0 +1,219 @@
+
+/* ============================================= */
+/* MODO FOCO DE LEITURA (DARK MODE) - PREMIUM SLATE */
+/* Inspirado no design Infopol / Dashboard Moderno  */
+/* ============================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+/* === DEFINIÇÃO DE VARIÁVEIS DARK === */
+html[data-bs-theme="dark"] {
+    --sdp-bg: #0f172a;           /* Slate 900 */
+    --sdp-card-bg: rgba(30, 41, 59, 0.7); /* Slate 800 semi-transparente */
+    --sdp-border: rgba(255, 255, 255, 0.08);
+    --sdp-text-main: #f1f5f9;    /* Slate 100 */
+    --sdp-text-muted: #94a3b8;   /* Slate 400 */
+    --sdp-accent: #3b82f6;       /* Blue 500 */
+    --sdp-sidebar: #0f172a;
+    --sdp-input-bg: rgba(15, 23, 42, 0.6);
+}
+
+/* === FUNDOS E TIPOGRAFIA === */
+html[data-bs-theme="dark"] body,
+html[data-bs-theme="dark"] .main-content {
+    background-color: var(--sdp-bg) !important;
+    color: var(--sdp-text-main) !important;
+    font-family: 'Outfit', 'Inter', system-ui, sans-serif !important;
+}
+
+/* === CONTAINER PRINCIPAL (A GRANDE MUDANÇA) === */
+html[data-bs-theme="dark"] .container,
+html[data-bs-theme="dark"] .main-content > .container,
+html[data-bs-theme="dark"] main.container {
+    background-color: var(--sdp-card-bg) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid var(--sdp-border) !important;
+    color: var(--sdp-text-main) !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5) !important;
+    border-radius: 12px !important;
+    padding: 30px !important;
+    margin-top: 30px !important;
+    margin-bottom: 30px !important;
+}
+
+/* === SIDEBAR (MODERNA) === */
+html[data-bs-theme="dark"] .sidebar {
+    background: var(--sdp-sidebar) !important;
+    border-right: 1px solid var(--sdp-border) !important;
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.2) !important;
+}
+
+html[data-bs-theme="dark"] .sidebar-header {
+    background: transparent !important;
+    border-bottom: 1px solid var(--sdp-border) !important;
+    padding: 25px 20px !important;
+}
+
+html[data-bs-theme="dark"] .sidebar-menu a {
+    color: var(--sdp-text-muted) !important;
+    font-weight: 500 !important;
+    border-radius: 12px !important;
+    margin: 4px 15px !important;
+    transition: all 0.3s ease !important;
+}
+
+html[data-bs-theme="dark"] .sidebar-menu li.active a,
+html[data-bs-theme="dark"] .sidebar-menu a:hover {
+    background: rgba(59, 132, 246, 0.1) !important;
+    color: var(--sdp-accent) !important;
+}
+
+/* === CABEÇALHO === */
+html[data-bs-theme="dark"] .header-container,
+html[data-bs-theme="dark"] .page-header {
+    border-bottom: 1px solid var(--sdp-border) !important;
+}
+
+html[data-bs-theme="dark"] .page-title {
+    color: var(--sdp-text-main) !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.5px !important;
+}
+
+html[data-bs-theme="dark"] .system-info,
+html[data-bs-theme="dark"] .system-date,
+html[data-bs-theme="dark"] .system-user {
+    color: var(--sdp-text-muted) !important;
+}
+
+/* === CARDS E PAINÉIS INTERNOS === */
+html[data-bs-theme="dark"] .card {
+    background-color: rgba(15, 23, 42, 0.4) !important;
+    border: 1px solid var(--sdp-border) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+}
+
+html[data-bs-theme="dark"] .card-header {
+    background-color: transparent !important;
+    border-bottom: 1px solid var(--sdp-border) !important;
+    color: var(--sdp-text-main) !important;
+    font-weight: 700 !important;
+    padding: 1.2rem 1.5rem !important;
+}
+
+/* === INPUTS E FORMULÁRIOS (ESTILO DASHBOARD) === */
+html[data-bs-theme="dark"] .form-control,
+html[data-bs-theme="dark"] .form-select {
+    background-color: var(--sdp-input-bg) !important;
+    border: 1px solid var(--sdp-border) !important;
+    color: #fff !important;
+    border-radius: 10px !important;
+    padding: 0.6rem 1rem !important;
+    font-size: 0.9rem !important;
+    transition: all 0.3s ease !important;
+}
+
+html[data-bs-theme="dark"] .form-control:focus,
+html[data-bs-theme="dark"] .form-select:focus {
+    background-color: rgba(15, 23, 42, 0.8) !important;
+    border-color: var(--sdp-accent) !important;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15) !important;
+    outline: none !important;
+}
+
+html[data-bs-theme="dark"] .form-control::placeholder {
+    color: #475569 !important;
+}
+
+html[data-bs-theme="dark"] input[readonly],
+html[data-bs-theme="dark"] textarea[readonly] {
+    background-color: rgba(0, 0, 0, 0.2) !important;
+    color: var(--sdp-text-muted) !important;
+}
+
+html[data-bs-theme="dark"] label,
+html[data-bs-theme="dark"] .form-label {
+    color: var(--sdp-text-muted) !important;
+    font-weight: 600 !important;
+    font-size: 0.75rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.8px !important;
+    margin-bottom: 8px !important;
+}
+
+html[data-bs-theme="dark"] .input-group-text {
+    background-color: rgba(30, 41, 59, 0.9) !important;
+    border: 1px solid var(--sdp-border) !important;
+    color: var(--sdp-text-muted) !important;
+}
+
+/* === ABAS E NAVEGAÇÃO === */
+html[data-bs-theme="dark"] .nav-tabs {
+    border-bottom: 1px solid var(--sdp-border) !important;
+    gap: 10px !important;
+}
+
+html[data-bs-theme="dark"] .nav-tabs .nav-link {
+    background: transparent !important;
+    border: none !important;
+    color: var(--sdp-text-muted) !important;
+    font-weight: 600 !important;
+    padding: 10px 20px !important;
+    border-radius: 8px !important;
+    transition: all 0.3s ease !important;
+}
+
+html[data-bs-theme="dark"] .nav-tabs .nav-link.active {
+    background: rgba(59, 132, 246, 0.1) !important;
+    color: var(--sdp-accent) !important;
+}
+
+/* === TABELAS === */
+html[data-bs-theme="dark"] .table {
+    --bs-table-bg: transparent !important;
+    color: var(--sdp-text-main) !important;
+}
+
+html[data-bs-theme="dark"] .table thead th {
+    background-color: rgba(0, 0, 0, 0.2) !important;
+    color: #ffffff !important;
+    border-bottom: 1px solid var(--sdp-border) !important;
+}
+
+html[data-bs-theme="dark"] .table tbody td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important;
+    padding: 15px !important;
+}
+
+/* === MODAIS === */
+html[data-bs-theme="dark"] .modal-content {
+    background-color: #1e293b !important;
+    backdrop-filter: blur(20px) !important;
+    border: 1px solid var(--sdp-border) !important;
+    border-radius: 20px !important;
+}
+
+/* === OVERRIDES DE CLASSES UTILITÁRIAS === */
+html[data-bs-theme="dark"] .bg-white,
+html[data-bs-theme="dark"] .bg-light {
+    background-color: transparent !important;
+}
+
+html[data-bs-theme="dark"] .text-dark {
+    color: var(--sdp-text-main) !important;
+}
+
+/* === BOTÃO DE TOGGLE CUSTOMIZADO === */
+#btnDarkModeToggle {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+    border: 1px solid var(--sdp-border) !important;
+    color: #fbbf24 !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4) !important;
+    transition: all 0.3s ease, transform 0.2s ease !important;
+}
+
+#btnDarkModeToggle:hover {
+    transform: scale(1.1) !important;
+}

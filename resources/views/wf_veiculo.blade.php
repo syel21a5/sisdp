@@ -18,6 +18,13 @@
 
     <!-- Seu CSS personalizado -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+
+    <!-- Previne o flash branco lendo o tema antes do render -->
+    <script>
+        if (localStorage.getItem('sisdp_theme') === 'dark') {
+            document.documentElement.setAttribute('data-bs-theme', 'dark');
+        }
+    </script>
 </head>
 <body>
     <!-- Menu Lateral -->

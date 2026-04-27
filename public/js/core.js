@@ -216,3 +216,49 @@ window.confirmarExclusaoGenerica = function (mensagem, callback) {
         modal.hide();
     });
 };
+
+// === MODO FOCO DE LEITURA (DARK MODE) GLOBAL ===
+$(document).ready(function() {
+    // 1. Criar o botão flutuante e injetar no body
+    const darkModeBtnHtml = `
+        <button id="btnDarkModeToggle" class="btn btn-dark shadow-lg" title="Alternar Modo Noturno" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">
+            <i class="bi bi-moon-stars-fill fs-5"></i>
+        </button>
+    `;
+    $('body').append(darkModeBtnHtml);
+
+    const $html = $('html');
+    const $btn = $('#btnDarkModeToggle');
+    const $icon = $btn.find('i');
+
+    // 2. Função para aplicar o tema visualmente
+    function aplicarTema(isDark) {
+        if (isDark) {
+            $html.attr('data-bs-theme', 'dark');
+            $icon.removeClass('bi-moon-stars-fill').addClass('bi-sun-fill text-warning');
+            $btn.removeClass('btn-dark').addClass('btn-light');
+        } else {
+            $html.removeAttr('data-bs-theme');
+            $icon.removeClass('bi-sun-fill text-warning').addClass('bi-moon-stars-fill');
+            $btn.removeClass('btn-light').addClass('btn-dark');
+        }
+    }
+
+    // 3. Verificar estado salvo no localStorage
+    const savedTheme = localStorage.getItem('sisdp_theme');
+    if (savedTheme === 'dark') {
+        aplicarTema(true);
+    }
+
+    // 4. Ação do clique no botão
+    $btn.on('click', function() {
+        const isDark = $html.attr('data-bs-theme') === 'dark';
+        if (isDark) {
+            aplicarTema(false);
+            localStorage.setItem('sisdp_theme', 'light');
+        } else {
+            aplicarTema(true);
+            localStorage.setItem('sisdp_theme', 'dark');
+        }
+    });
+});

@@ -40,6 +40,13 @@
             color: #157347 !important;
         }
     </style>
+
+    <!-- Previne o flash branco lendo o tema antes do render -->
+    <script>
+        if (localStorage.getItem('sisdp_theme') === 'dark') {
+            document.documentElement.setAttribute('data-bs-theme', 'dark');
+        }
+    </script>
 </head>
 
 <body>
@@ -315,7 +322,7 @@
 
                                     <!-- Campo de autocomplete para documentos - MESMO ESTILO DO CONDUTOR -->
                                     <div class="position-relative flex-grow-1"
-                                        style="min-width: 395px; max-width: 495px;">
+                                        style="min-width: 200px; max-width: 500px;">
                                         <div class="input-group">
                                             <input type="text" class="form-control" id="termoDocumentoInicio"
                                                 placeholder="Digite o documento (ex: DECLARAÇÃO)...">
@@ -424,7 +431,7 @@
                                     <div class="card-body p-3">
                                         <div class="input-group">
                                             <span class="input-group-text bg-white border-end-0"><i class="bi bi-filter"></i></span>
-                                            <select class="form-select flex-grow-0 border-start-0" id="ddlFiltro" style="width: auto; max-width: 150px;">
+                                            <select class="form-select flex-grow-0 border-start-0" id="ddlFiltro" style="min-width: 90px; max-width: 150px;">
                                                 <option value="BOE" selected>BOE</option>
                                                 <option value="IP">IP</option>
                                             </select>
