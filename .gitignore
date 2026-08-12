@@ -50,3 +50,6 @@ __pycache__/
 
 # Workflows do sisdp de produção (não devem subir no sisdepol)
 /.github
+/.secrets
+/scripts/sync_bidirecional.sh
+/scripts/sync_bidirecional.log
