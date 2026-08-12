@@ -843,33 +843,6 @@ $(document).ready(function () {
                         veiculos: window.pendentesIA_Veiculos.length
                     });
 
-                    // ✅ AUTO-HIDRATAÇÃO (Motor Nativo): envolver os já populados -> sugestões PENDENTES
-                    var boeNativo = isPM ? $('#inputBOEPM').val() : $('#inputBOE').val();
-                    if (boeNativo) {
-                        var dadosEnvolvidos = {
-                            condutores: OcorrenciasApp.envolvidos.condutores || [],
-                            vitimas: OcorrenciasApp.envolvidos.vitimas || [],
-                            autores: OcorrenciasApp.envolvidos.autores || [],
-                            testemunhas: OcorrenciasApp.envolvidos.testemunhas || [],
-                            outros: OcorrenciasApp.envolvidos.outros || []
-                        };
-                        $.ajax({
-                            url: '/boe/vinculos/auto-hidratar',
-                            method: 'POST',
-                            data: {
-                                _token: $('meta[name="csrf-token"]').attr('content'),
-                                boe: String(boeNativo).trim(),
-                                dados: dadosEnvolvidos
-                            },
-                            success: function (respNativo) {
-                                if (respNativo.status === 'success' && respNativo.resumo && respNativo.resumo.criados > 0) {
-                                    window.mostrarSucesso('⚡ ' + respNativo.resumo.criados + ' envolvido(s) sugerido(s). Aprove/rejeite na revisão de vínculos.');
-                                    if (typeof carregarSugestoesPendentes === 'function') carregarSugestoesPendentes();
-                                }
-                            }
-                        });
-                    }
-
                     // ✅ FIX: Processar e armazenar detalhes de extração ANTES da conciliação
                     ['vitimas', 'autores', 'testemunhas', 'condutores', 'outros'].forEach(function (tipo) {
                         const arr = OcorrenciasApp.envolvidos[tipo] || [];
@@ -1089,38 +1062,6 @@ $(document).ready(function () {
                     var modal = bootstrap.Modal.getInstance(document.getElementById('modalImportarBoe'));
                     if (modal) modal.hide();
 
-                    // ✅ AUTO-HIDRATAÇÃO: envia os envolvidos extraídos como SUGESTÕES PENDENTES
-                    // (nunca aprovados — o usuário valida depois na tela de vínculos)
-                    var boeAuto = isPM ? (dados.boe || $('#inputBOEPM').val()) : (dados.boe || $('#inputBOE').val());
-                    if (boeAuto) {
-                        var payloadDados = {
-                            condutores: dados.condutor || dados.condutores || [],
-                            vitimas: dados.vitimas || [],
-                            autores: dados.autores || [],
-                            testemunhas: dados.testemunhas || [],
-                            outros: dados.outros || []
-                        };
-                        $.ajax({
-                            url: '/boe/vinculos/auto-hidratar',
-                            method: 'POST',
-                            data: {
-                                _token: $('meta[name="csrf-token"]').attr('content'),
-                                boe: String(boeAuto).trim(),
-                                dados: payloadDados
-                            },
-                            success: function (respAutoh) {
-                                if (respAutoh.status === 'success') {
-                                    var n = respAutoh.resumo ? respAutoh.resumo.criados : 0;
-                                    if (n > 0) {
-                                        window.mostrarSucesso('⚡ ' + n + ' envolvido(s) sugerido(s). Aprove/rejeite na revisão de vínculos.');
-                                    }
-                                    // Atualiza a tela de sugestões pendentes, se a função existir
-                                    if (typeof carregarSugestoesPendentes === 'function') carregarSugestoesPendentes();
-                                }
-                            },
-                            error: function () { /* silencioso: não quebra o fluxo da extração */ }
-                        });
-                    }
                 } else {
                     window.mostrarErro(response.message || 'Falha ao processar com IA.');
                 }
