@@ -34,6 +34,23 @@ class BoeVincularController extends Controller
                 'outros' => []
             ];
 
+            // Buscar o cadprincipal (procedimento) para saber o id e verificar oitivas
+            $cadprincipalInfo = DB::table('cadprincipal')->where('BOE', $boe)->first();
+            $cadprincipalId = $cadprincipalInfo ? $cadprincipalInfo->id : null;
+
+            // Pré-carregar pessoas que têm oitiva/interrogatório salvo neste procedimento
+            $pessoasComOitiva = [];
+            if ($cadprincipalId) {
+                $pessoasComOitiva = DB::table('apfd_pessoas_detalhes')
+                    ->where('cadprincipal_id', $cadprincipalId)
+                    ->where(function ($q) {
+                        $q->whereNotNull('interrogatorio')->where('interrogatorio', '!=', '');
+                    })
+                    ->pluck('pessoa_id')
+                    ->flip()
+                    ->all();
+            }
+
             foreach ($vinculos as $v) {
                 $pessoa = $pessoas->get($v->pessoa_id);
                 if ($pessoa) {
@@ -42,6 +59,8 @@ class BoeVincularController extends Controller
                     $dadosPessoa['status_aprovacao'] = $v->status_aprovacao ?? 'aprovado';
                     $dadosPessoa['criado_por'] = $v->criado_por;
                     $dadosPessoa['criado_por_nome'] = $v->criado_por ? ($criadores[$v->criado_por] ?? 'Desconhecido') : null;
+                    // Flag: esta pessoa já tem oitiva/interrogatório salvo neste procedimento?
+                    $dadosPessoa['tem_oitiva'] = $cadprincipalId && isset($pessoasComOitiva[$v->pessoa_id]);
 
                     switch (strtoupper($v->tipo_vinculo)) {
                         case 'CONDUTOR':
@@ -753,6 +772,59 @@ class BoeVincularController extends Controller
                 'status' => 'error',
                 'message' => 'Falha ao auto-hidratar: ' . $e->getMessage(),
             ], 500);
+        }
+    }
+
+    /**
+     * Retorna os dados já extraídos de um BOE a partir do cache de extração
+     * (boe_pcpe_{BOE}_apfd.json). Evita o retrabalho de extrair novamente
+     * quando o BOE já foi processado em outra tela (ex: /ip-apfd).
+     */
+    public function dadosExtraidos($boe)
+    {
+        try {
+            if (!$boe || !trim($boe)) {
+                return response()->json(['success' => false, 'message' => 'BOE não informado.'], 400);
+            }
+
+            $boeLimpo = preg_replace('/[^A-Za-z0-9]/', '', $boe);
+            $cacheDir = storage_path('app/boe_cache');
+
+            // Procura o cache mais completo: apfd (mestre) ou ia como fallback
+            $candidatos = [
+                $cacheDir . "/boe_pcpe_{$boeLimpo}_apfd.json",
+                $cacheDir . "/boe_pcpe_{$boeLimpo}_ia.json",
+                $cacheDir . "/boe_pm_{$boeLimpo}_apfd.json",
+                $cacheDir . "/boe_pm_{$boeLimpo}_ia.json",
+            ];
+
+            $arquivo = null;
+            foreach ($candidatos as $c) {
+                if (file_exists($c)) { $arquivo = $c; break; }
+            }
+
+            if (!$arquivo) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Este BOE ainda não foi extraído/processado. Use "Colar Texto" ou "Enviar PDF" para extrair os dados.',
+                    'boe_buscado' => $boe,
+                ], 404);
+            }
+
+            $dados = json_decode(file_get_contents($arquivo), true);
+            if (!is_array($dados) || empty($dados)) {
+                return response()->json(['success' => false, 'message' => 'Cache do BOE vazio ou inválido.'], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'dados'    => $dados,
+                'cache_file' => basename($arquivo),
+            ]);
+
+        } catch (\Throwable $e) {
+            Log::error('Erro ao consultar dados extraídos do BOE: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Erro interno ao buscar dados do BOE.'], 500);
         }
     }
 

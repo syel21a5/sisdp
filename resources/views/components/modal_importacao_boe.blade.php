@@ -24,6 +24,13 @@
                             <i class="bi bi-file-earmark-pdf-fill me-2"></i> Enviar Arquivo PDF
                         </button>
                     </li>
+                    @if(strtolower($suffix ?? '') === 'intimacao')
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-3 fw-bold" id="tab-buscar{{ $suffix ?? '' }}" data-bs-toggle="tab" data-bs-target="#content-buscar{{ $suffix ?? '' }}" type="button" role="tab">
+                            <i class="bi bi-search me-2"></i> Buscar BOE Já Extraído
+                        </button>
+                    </li>
+                    @endif
                 </ul>
                 
                 <div class="tab-content" id="boeImportTabsContent{{ $suffix ?? '' }}">
@@ -46,6 +53,24 @@
                             </div>
                         </div>
                     </div>
+
+                    @if(strtolower($suffix ?? '') === 'intimacao')
+                    <!-- Aba Buscar BOE Já Extraído -->
+                    <div class="tab-pane fade" id="content-buscar{{ $suffix ?? '' }}" role="tabpanel">
+                        <div class="card bg-light border-0 shadow-sm p-4 text-center" style="border-radius: 0.75rem;">
+                            <i class="bi bi-database-check text-success mb-3" style="font-size: 3rem;"></i>
+                            <h6 class="fw-bold">Reutilizar BOE Já Processado</h6>
+                            <p class="text-muted small mb-3">Digite o número do BOE que <strong>você já extraiu</strong> em outra tela (ex: IP/APFD). Os dados serão carregados automaticamente, <strong>sem precisar colar ou extrair de novo</strong>.</p>
+                            <div class="input-group input-group-lg mx-auto" style="max-width: 460px;">
+                                <input type="text" class="form-control" id="inputBoeBuscar{{ $suffix ?? '' }}" placeholder="Ex: 26E0257002301" style="border-radius: 0.5rem 0 0 0.5rem;">
+                                <button type="button" class="btn btn-success px-4 fw-bold" id="btnBuscarBoeExtraido{{ $suffix ?? '' }}" style="border-radius: 0 0.5rem 0.5rem 0;" title="Carregar dados deste BOE">
+                                    <i class="bi bi-search me-1"></i> Buscar
+                                </button>
+                            </div>
+                            <div id="buscarBoeFeedback{{ $suffix ?? '' }}" class="mt-3 small"></div>
+                        </div>
+                    </div>
+                    @endif
                 </div>
             </div>
 

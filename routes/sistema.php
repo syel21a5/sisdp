@@ -214,12 +214,20 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/buscar-autor3/{boe}', [BoeVincularController::class, 'buscarAutor3PorBoe'])->where('boe', '.*');
     });
 
+    // Buscar dados já extraídos de um BOE (cache de extração) - evita retrabalho nas telas
+    Route::get('/boe/dados-extraidos/{boe}', [BoeVincularController::class, 'dadosExtraidos'])->name('boe.dados-extraidos')->where('boe', '.*');
+
     // Rotas para detalhes APFD por pessoa
     Route::prefix('apfd/detalhes')->group(function () {
         Route::post('/salvar', [\App\Http\Controllers\ApfdPessoaDetalheController::class, 'salvar']);
         Route::get('/buscar/{cadprincipal_id}/{pessoa_id}/{papel}', [\App\Http\Controllers\ApfdPessoaDetalheController::class, 'buscar']);
         Route::get('/listar/{cadprincipal_id}', [\App\Http\Controllers\ApfdPessoaDetalheController::class, 'listarPorCadprincipal']);
+        // Buscar o texto da oitiva usando o nº do BOE (converte BOE -> cadprincipal) + pessoa + papel
+        Route::get('/por-boe/{boe}/{pessoa_id}/{papel}', [\App\Http\Controllers\ApfdPessoaDetalheController::class, 'buscarPorBoe'])->where('boe', '.*');
     });
+
+    // Buscar dados completos de uma pessoa (p/ montar documento de oitiva)
+    Route::get('/pessoa/{id}', [\App\Http\Controllers\PessoaController::class, 'porId']);
 
     // ✅ ROTAS DE USUÁRIOS E ADMIN (COMPLETAS)
     Route::middleware([\App\Http\Middleware\AdminAccess::class])->group(function () {

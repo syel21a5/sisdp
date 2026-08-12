@@ -79,7 +79,7 @@
                 <p style="line-height: 1.6; margin: 0.2em 0; padding: 0;">&nbsp;</p>
                 <p style="text-align: justify; line-height: 1.6; margin: 0.2em 0; padding: 0;">
                     Após a qualificação supra, passou a ser cientificado pela Autoridade Policial das imputações feitas a sua pessoa, bem como dos direitos a si assegurados, dispostos no <strong>Art. 5º INCS. LXI, LXII, LXIII e LXIV da Constituição Federal em vigor, em especial o direito de permanecer em silêncio sem que disso advenha em prejuízo de sua defesa. Interrogado nos termos do Art. 188 do Código de Processo Penal pátrio às perguntas da Autoridade passou a declarar:</strong> QUE não tem advogado nem indica um para este ato; QUE:
-                    <span style="background-color: cyan;">ESCREVER AQUI O INTERROGATÓRIO</span>
+                    <span id="conteudo-interrogatorio">@if(!empty($dadosArray['_conteudo_salvo'])){!! $dadosArray['_conteudo_salvo'] !!}@else <span style="background-color: cyan;">ESCREVER AQUI O INTERROGATÓRIO</span>@endif</span>
                     . Nada mais havendo a acrescentar, lido e achado conforme, o presente termo é lavrado em referência ao Boletim de Ocorrência nº
                     <strong>{{ !empty($dadosArray['boe']) ? $dadosArray['boe'] : 'NÃO INFORMADO' }}</strong>,
                     e vai devidamente assinado pela Autoridade Policial, pelo interrogado e por mim escrivão que o digitei.
@@ -135,7 +135,11 @@
             pai: @json(isset($dadosArray['pai']) ? $dadosArray['pai'] : ''),
             endereco: @json(isset($dadosArray['endereco']) ? $dadosArray['endereco'] : ''),
             boe: @json(isset($dadosArray['boe']) ? $dadosArray['boe'] : ''),
-            data_ext: @json(isset($dadosArray['data_ext']) ? $dadosArray['data_ext'] : 'NÃO INFORMADO')
+            data_ext: @json(isset($dadosArray['data_ext']) ? $dadosArray['data_ext'] : 'NÃO INFORMADO'),
+            _pessoa_id: @json(isset($dadosArray['_pessoa_id']) ? $dadosArray['_pessoa_id'] : ''),
+            _boe: @json(isset($dadosArray['_boe']) ? $dadosArray['_boe'] : ''),
+            _papel: @json(isset($dadosArray['_papel']) ? $dadosArray['_papel'] : ''),
+            _conteudo_salvo: @json(isset($dadosArray['_conteudo_salvo']) ? $dadosArray['_conteudo_salvo'] : '')
         };
     </script>
 

@@ -301,100 +301,137 @@ window.initIntimacaoIfPresent = function () {
             suffix: 'Intimacao',
             extractUrl: '/intimacao/importar-boe-texto',
             onSuccess: function(response) {
-                // ✅ Fecha o modal de forma ROBUSTA (remove backdrop que pode travar a tela)
-                const modalEl = document.getElementById('modalImportarBoeIntimacao');
-                const modal = bootstrap.Modal.getInstance(modalEl);
-                if (modal) {
-                    modal.hide();
-                }
-
-                // ✅ FORÇA remoção do backdrop (camada escura) que pode ficar travando a tela
-                setTimeout(() => {
-                    document.body.classList.remove('modal-open');
-                    const backdrops = document.querySelectorAll('.modal-backdrop');
-                    backdrops.forEach(backdrop => backdrop.remove());
-                    console.log('✅ Modal fechado e backdrop removido');
-                }, 300);
-
-                mostrarModalSucesso('Análise concluída com sucesso! Verifique os envolvidos na lista.');
-
+                fecharModalImportacao();
                 const dados = response.dados || {};
-
-                // Preenche BOE se disponível
-                if (dados.boe) {
-                    $('#inputReferenciaIntimacao').val(dados.boe);
+                if (!dados || Object.keys(dados).length === 0) {
+                    mostrarModalErro('Nenhum dado retornado pela extração.');
+                    return;
                 }
-
-                // Unifica todos os envolvidos em uma lista única para chips
-                let todosEnvolvidos = [];
-
-                if (dados.vitimas) {
-                    dados.vitimas.forEach(nome => todosEnvolvidos.push({ nome: nome, tipo: 'VITIMA' }));
-                }
-                if (dados.autores) {
-                    dados.autores.forEach(nome => todosEnvolvidos.push({ nome: nome, tipo: 'AUTOR' }));
-                }
-                if (dados.testemunhas) {
-                    dados.testemunhas.forEach(nome => todosEnvolvidos.push({ nome: nome, tipo: 'TESTEMUNHA' }));
-                }
-                if (dados.condutor) {
-                    dados.condutor.forEach(nome => todosEnvolvidos.push({ nome: nome, tipo: 'CONDUTOR' }));
-                }
-                if (dados.outros) {
-                    dados.outros.forEach(nome => todosEnvolvidos.push({ nome: nome, tipo: 'ENVOLVIDO' }));
-                }
-
-                // MERGE COM DETALHES vindos do backend (IA já fez a extração completa)
-                if (dados.envolvidos_detalhes) {
-                    console.log('🔍 Aplicando detalhes extraídos pelo backend...');
-
-                    // Caso seja BOE da PMPE, os papéis não são identificados, mas os nomes estão nos detalhes!
-                    Object.keys(dados.envolvidos_detalhes).forEach(nomeChave => {
-                        const jaExiste = todosEnvolvidos.some(p => p.nome === nomeChave);
-                        if (!jaExiste) {
-                            todosEnvolvidos.push({ nome: nomeChave, tipo: 'ENVOLVIDO' });
-                        }
-                    });
-
-                    todosEnvolvidos = todosEnvolvidos.map(pessoa => {
-                        const detalhe = dados.envolvidos_detalhes[pessoa.nome] || null;
-
-                        if (detalhe) {
-                            return {
-                                ...pessoa,
-                                endereco:     detalhe.endereco     || '',
-                                telefone:     detalhe.telefone     || '',
-                                rg:           detalhe.rg           || '',
-                                cpf:          detalhe.cpf          || '',
-                                pai:          detalhe.pai          || '',
-                                mae:          detalhe.mae          || '',
-                                nascimento:   detalhe.nascimento   || '',
-                                naturalidade: detalhe.naturalidade || ''
-                            };
-                        }
-                        return pessoa;
-                    });
-                }
-
-                if (todosEnvolvidos.length > 0) {
-                    console.log('✅ Renderizando', todosEnvolvidos.length, 'chips...');
-                    renderizarChipsIntimacao(todosEnvolvidos);
-
-                    // Verifica imediatamente se já existem salvos no banco
-                    const boeAtual = dados.boe || $('#inputReferenciaIntimacao').val();
-                    if (boeAtual) {
-                        if (!$('#inputReferenciaIntimacao').val()) $('#inputReferenciaIntimacao').val(boeAtual);
-                        verificarEnvolvidosSalvos(boeAtual);
-                    }
-
-                } else {
-                    mostrarModalErro('Nenhum envolvido identificado no texto.');
-                }
+                preencherIntimacaoComDados(dados);
             }
         });
     } else {
         console.error('CoreExtractor não foi carregado! A extração via botão não funcionará.');
     }
+
+    // 🎯 Função compartilhada: preenche a intimação a partir de dados extraídos do BOE
+    // (usada pela extração normal E pelo botão "Buscar BOE Já Extraído")
+    function preencherIntimacaoComDados(dados) {
+        try {
+            dados = dados || {};
+
+            // Preenche BOE se disponível
+            if (dados.boe) {
+                $('#inputReferenciaIntimacao').val(dados.boe);
+            }
+
+            // Unifica todos os envolvidos em uma lista única para chips
+            let todosEnvolvidos = [];
+
+            if (dados.vitimas) dados.vitimas.forEach(nome => todosEnvolvidos.push({ nome: nome, tipo: 'VITIMA' }));
+            if (dados.autores) dados.autores.forEach(nome => todosEnvolvidos.push({ nome: nome, tipo: 'AUTOR' }));
+            if (dados.testemunhas) dados.testemunhas.forEach(nome => todosEnvolvidos.push({ nome: nome, tipo: 'TESTEMUNHA' }));
+            if (dados.condutor) dados.condutor.forEach(nome => todosEnvolvidos.push({ nome: nome, tipo: 'CONDUTOR' }));
+            if (dados.outros) dados.outros.forEach(nome => todosEnvolvidos.push({ nome: nome, tipo: 'ENVOLVIDO' }));
+
+            // MERGE COM DETALHES vindos do backend (IA já fez a extração completa)
+            if (dados.envolvidos_detalhes) {
+                console.log('🔍 Aplicando detalhes extraídos pelo backend...');
+
+                // Caso seja BOE da PMPE, os papéis não são identificados, mas os nomes estão nos detalhes!
+                Object.keys(dados.envolvidos_detalhes).forEach(nomeChave => {
+                    const jaExiste = todosEnvolvidos.some(p => p.nome === nomeChave);
+                    if (!jaExiste) todosEnvolvidos.push({ nome: nomeChave, tipo: 'ENVOLVIDO' });
+                });
+
+                todosEnvolvidos = todosEnvolvidos.map(pessoa => {
+                    const detalhe = dados.envolvidos_detalhes[pessoa.nome] || null;
+                    if (detalhe) {
+                        return {
+                            ...pessoa,
+                            endereco:     detalhe.endereco     || '',
+                            telefone:     detalhe.telefone     || '',
+                            rg:           detalhe.rg           || '',
+                            cpf:          detalhe.cpf          || '',
+                            pai:          detalhe.pai          || '',
+                            mae:          detalhe.mae          || '',
+                            nascimento:   detalhe.nascimento   || '',
+                            naturalidade: detalhe.naturalidade || ''
+                        };
+                    }
+                    return pessoa;
+                });
+            }
+
+            if (todosEnvolvidos.length > 0) {
+                console.log('✅ Renderizando', todosEnvolvidos.length, 'chips...');
+                renderizarChipsIntimacao(todosEnvolvidos);
+
+                // Verifica imediatamente se já existem salvos no banco
+                const boeAtual = dados.boe || $('#inputReferenciaIntimacao').val();
+                if (boeAtual) {
+                    if (!$('#inputReferenciaIntimacao').val()) $('#inputReferenciaIntimacao').val(boeAtual);
+                    verificarEnvolvidosSalvos(boeAtual);
+                }
+
+                mostrarModalSucesso('Dados do BOE carregados! Clique em um chip para preencher a intimação.');
+            } else {
+                mostrarModalErro('Nenhum envolvido identificado neste BOE.');
+            }
+        } catch (e) {
+            console.error('Erro ao preencher intimação:', e);
+            mostrarModalErro('Erro ao preencher os dados. Tente novamente.');
+        }
+    }
+
+    // ✅ Fechar modal importação de forma robusta
+    function fecharModalImportacao() {
+        const modalEl = document.getElementById('modalImportarBoeIntimacao');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+        setTimeout(() => {
+            document.body.classList.remove('modal-open');
+            document.querySelectorAll('.modal-backdrop').forEach(bd => bd.remove());
+            console.log('✅ Modal fechado e backdrop removido');
+        }, 300);
+    }
+
+    // 🎯 Botão "Buscar BOE Já Extraído" dentro do modal
+    $('#btnBuscarBoeExtraidoIntimacao').off('click').on('click', function () {
+        const boe = $('#inputBoeBuscarIntimacao').val().trim();
+        const $btn = $(this);
+        const $fb = $('#buscarBoeFeedbackIntimacao');
+
+        if (!boe) {
+            $fb.html('<span class="text-warning"><i class="bi bi-exclamation-triangle me-1"></i>Digite o número do BOE.</span>');
+            return;
+        }
+
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>Buscando...');
+        $fb.html('<span class="text-muted"><i class="bi bi-hourglass-split me-1"></i>Consultando dados já extraídos...</span>');
+
+        $.ajax({
+            url: '/boe/dados-extraidos/' + encodeURIComponent(boe),
+            method: 'GET',
+            success: function (resp) {
+                if (resp && resp.success && resp.dados) {
+                    $fb.html('<span class="text-success"><i class="bi bi-check-circle me-1"></i>Dados encontrados! Carregando...</span>');
+                    fecharModalImportacao();
+                    // Limpa sugestões antigas antes de preencher
+                    $('#chipsIntimacaoContainer').empty();
+                    preencherIntimacaoComDados(resp.dados);
+                } else {
+                    $fb.html('<span class="text-danger"><i class="bi bi-x-circle me-1"></i>Não foi possível carregar os dados deste BOE.</span>');
+                    $btn.prop('disabled', false).html('<i class="bi bi-search me-1"></i> Buscar');
+                }
+            },
+            error: function (xhr) {
+                const msg = (xhr.responseJSON && xhr.responseJSON.message) || 'Este BOE ainda não foi extraído.';
+                $fb.html('<span class="text-danger"><i class="bi bi-x-circle me-1"></i>' + msg + '</span>');
+                $btn.prop('disabled', false).html('<i class="bi bi-search me-1"></i> Buscar');
+            }
+        });
+    });
 
     function buscarEnvolvidosBoe(boe) {
         // Função mantida vazia se não for mais usada ou pode ser removida

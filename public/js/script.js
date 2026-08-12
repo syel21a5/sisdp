@@ -533,6 +533,8 @@ window.OcorrenciasApp = {
             const statusOriginal = vinculo ? (vinculo.status_aprovacao || 'aprovado') : 'aprovado';
             const criadoPorNome = vinculo ? vinculo.criado_por_nome : null;
             const isMinhaSugestao = criadoPorNome && currentUserName && this.normalizarNome(criadoPorNome) === this.normalizarNome(currentUserName);
+            // 🎯 Indicador de oitiva: pessoa tem oitiva/interrogatório salvo neste BOE?
+            const temOitiva = !!(vinculo && vinculo.tem_oitiva);
             
             // Para efeitos de botões e cor orange, ignoramos se for o dono ou se for minha própria sugestão
             const isPendenteParaMim = statusOriginal === 'pendente' && !isOwner && !isMinhaSugestao;
@@ -564,6 +566,7 @@ window.OcorrenciasApp = {
                         .chip-red { background: linear-gradient(135deg, #dc3545, #9c2532); border-color: #b02a37; }
                         .chip-orange { background: linear-gradient(135deg, #fd7e14, #ca6510); border-color: #d9620b; color: white !important;}
                         .chip-orange .badge.bg-light { color: #000 !important; background: rgba(255,255,255,0.85) !important; }
+                        .chip-com-oitiva { outline: 2px solid #198754; outline-offset: 1px; box-shadow: 0 0 0 3px rgba(25,135,84,0.25); }
                         
                         .chip-premium .btn-link {
                             color: rgba(255,255,255,0.6) !important;
@@ -608,6 +611,10 @@ window.OcorrenciasApp = {
             const btnRefresh = `<button type="button" class="btn btn-sm btn-link text-white ms-1 btn-refresh-chip p-0" data-tipo="${tipo}" data-index="${index}" title="Atualizar do Banco"><i class="bi bi-arrow-repeat"></i></button>`;
             const btnSwitch = `<button type="button" class="btn btn-sm btn-link text-white ms-1 btn-switch-chip p-0" data-tipo="${tipo}" data-index="${index}" title="Trocar Papel"><i class="bi bi-arrow-left-right"></i></button>`;
 
+            // 🎯 Botão de Oitiva/Depoimento (📝): abre o termo certo p/ a pessoa, com o texto salvo carregado
+            const pessoaIdChip = vinculo ? (vinculo.pessoa_id || '') : '';
+            const btnOitiva = `<button type="button" class="btn btn-sm btn-link text-white ms-1 btn-oitiva-chip p-0" data-tipo="${tipo}" data-index="${index}" data-pessoa-id="${pessoaIdChip}" data-bo="${($('#inputBOE').val() || '').trim()}" title="${temOitiva ? 'Ver/Editar Oitiva (salva)' : 'Gerar Oitiva/Depoimento'}" style="font-size: 0.9rem;">${temOitiva ? '📝✅' : '📝'}</button>`;
+
             // ✅ Botões de aprovação/rejeição (apenas para o dono, em chips pendentes reais)
             let btnAprovar = '';
             let btnRejeitar = '';
@@ -625,10 +632,16 @@ window.OcorrenciasApp = {
             // Botões extras (edit/switch/refresh) - non-owners still see edit but not switch
             let extraBtn = '';
             if (isOwner) {
-                extraBtn = btnEdit + btnPrompt + btnSwitch + btnRefresh;
+                extraBtn = btnEdit + btnPrompt + btnOitiva + btnSwitch + btnRefresh;
             } else {
-                extraBtn = btnEdit + btnPrompt;
+                extraBtn = btnEdit + btnPrompt + btnOitiva;
             }
+
+            // 🎯 Indicador visual: borda verde + ponto quando a pessoa TEM oitiva salva
+            const classeOitiva = temOitiva ? ' chip-com-oitiva' : '';
+            const indicadorOitiva = temOitiva
+                ? '<span class="badge" style="background:#198754;color:#fff;font-size:0.6rem;padding:1px 5px;border-radius:10px;margin-top:1px;">OITIVA</span>'
+                : '';
 
             // ✅ Layout flexível para acomodar o label embaixo do nome quando for sugestão
             let nomeArea = `<span class="lh-1" style="margin-top:2px;">${nome.toUpperCase()}</span>`;
@@ -639,12 +652,20 @@ window.OcorrenciasApp = {
                     <div class="d-flex flex-column justify-content-center">
                         <span class="lh-1" style="margin-top:2px;">${nome.toUpperCase()}</span>
                         ${labelSugestao}
+                        ${indicadorOitiva}
+                    </div>
+                `;
+            } else {
+                nomeArea = `
+                    <div class="d-flex flex-column justify-content-center">
+                        <span class="lh-1" style="margin-top:2px;">${nome.toUpperCase()}</span>
+                        ${indicadorOitiva}
                     </div>
                 `;
             }
 
             const chip = $(`
-                <div class="chip-envolvido ${classeBadge} mb-1 me-1 d-inline-flex align-items-center" title="${nome}">
+                <div class="chip-envolvido ${classeBadge}${classeOitiva} mb-1 me-1 d-inline-flex align-items-center" title="${nome}${temOitiva ? ' (tem oitiva salva)' : ''}">
                     <div class="ms-1 d-flex flex-column justify-content-center h-100">
                         ${nomeArea}
                     </div>
@@ -740,6 +761,39 @@ window.OcorrenciasApp = {
             const tipo = btn.data('tipo');
             const index = btn.data('index');
             this.atualizarChipDoBanco(tipo, index);
+        });
+
+        // 🎯 Handler do botão 📝 Oitiva/Depoimento: abre o termo certo p/ a pessoa, com texto salvo carregado
+        container.find('.btn-oitiva-chip').on('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const btn = $(e.currentTarget);
+            const tipo = btn.data('tipo');
+            const index = btn.data('index');
+            const pessoaId = btn.data('pessoa-id') || '';
+            const boe = btn.data('bo') || $('#inputBOE').val() || '';
+
+            if (!pessoaId) {
+                window.mostrarErro('Esta pessoa não está salva no cadastro. Salve/vinculue antes de gerar a oitiva.');
+                return;
+            }
+
+            // Define o papel p/ escolher o termo certo
+            const papel = tipo.replace(/s$/, '').toUpperCase(); // condutores->CONDUTOR, vitimas->VITIMA...
+            const termo = (papel === 'AUTOR' || papel === 'CONDUTOR') ? 'interrogatorio' : 'depoimento';
+
+            // Busca o texto salvo da oitiva e abre o editor já com o conteúdo
+            $.ajax({
+                url: `/apfd/detalhes/por-boe/${encodeURIComponent(boe)}/${pessoaId}/${papel}`,
+                method: 'GET',
+                success: (resp) => {
+                    const textoSalvo = (resp && resp.success && resp.data && resp.data.interrogatorio) ? resp.data.interrogatorio : '';
+                    this.abrirEditorOitiva(termo, boe, pessoaId, papel, textoSalvo);
+                },
+                error: () => {
+                    this.abrirEditorOitiva(termo, boe, pessoaId, papel, '');
+                }
+            });
         });
 
         container.find('.btn-edit-chip').on('click', (e) => {
@@ -1531,6 +1585,84 @@ window.OcorrenciasApp = {
     },
 
     // ✅ Novo: Carregar vínculos do BOE e hidratar chips com vinculo_id
+    // 🎯 Abre o editor de oitiva/depoimento/interrogatório p/ a pessoa, já com o texto salvo (se houver)
+    abrirEditorOitiva: function (termo, boe, pessoaId, papel, textoSalvo) {
+        // Monta os dados globais do documento (cabeçalho, delegado, etc.) + dados da pessoa
+        let dados = {};
+        if (typeof DocumentoService !== 'undefined' && DocumentoService.capturarDadosGlobais) {
+            try { dados = DocumentoService.capturarDadosGlobais(); } catch (e) { dados = {}; }
+        }
+
+        // Garante o BOE nos dados
+        dados.boe = boe || dados.boe || '';
+
+        // Encontra os dados da pessoa no cadastro (nome, rg, cpf, endereço...) pelo pessoa_id
+        // Para isso, consulta a pessoa no backend e mescla nos dados do documento
+        const self = this;
+        $.ajax({
+            url: '/pessoa/' + pessoaId,
+            method: 'GET',
+            success: function (resp) {
+                if (resp && resp.data) {
+                    const p = resp.data;
+                    Object.assign(dados, {
+                        nome: p.Nome || dados.nome || '',
+                        alcunha: p.Alcunha || '',
+                        nascimento: p.Nascimento || '',
+                        idade: self.calcularIdade(p.Nascimento) || '',
+                        estcivil: p.EstCivil || '',
+                        naturalidade: p.Naturalidade || '',
+                        rg: p.RG || '',
+                        cpf: p.CPF || '',
+                        profissao: p.Profissao || '',
+                        instrucao: p.Instrucao || '',
+                        telefone: p.Telefone || '',
+                        mae: p.Mae || '',
+                        pai: p.Pai || '',
+                        endereco: p.Endereco || ''
+                    });
+                }
+                self._abrirEditorComSessao(termo, boe, pessoaId, papel, textoSalvo, dados);
+            },
+            error: function () {
+                self._abrirEditorComSessao(termo, boe, pessoaId, papel, textoSalvo, dados);
+            }
+        });
+    },
+
+    // 🎯 Cria a sessão temporária do documento e abre o editor com o texto salvo injetado
+    _abrirEditorComSessao: function (termo, boe, pessoaId, papel, textoSalvo, dados) {
+        // Adiciona metadados para o editor saber quem é (salvar depois)
+        dados._pessoa_id = pessoaId;
+        dados._boe = boe;
+        dados._papel = papel;
+        // Se tem texto salvo, coloca na sessão p/ o editor preencher
+        if (textoSalvo) dados._conteudo_salvo = textoSalvo;
+
+        const urlRota = { interrogatorio: '/interrogatorio', depoimento: '/depoimento', declaracao: '/declaracao' };
+        const urlBase = (urlRota[termo] || '/depoimento') + '/--DADOS--';
+
+        if (typeof DocumentoService !== 'undefined' && DocumentoService.gerar) {
+            DocumentoService.gerar(urlBase, dados);
+        } else {
+            window.open((urlRota[termo] || '/depoimento') + '/' + btoa(JSON.stringify(dados)), '_blank');
+        }
+    },
+
+    calcularIdade: function (nasc) {
+        if (!nasc) return '';
+        try {
+            const d = new Date(String(nasc).split('/').reverse().join('-') + (('T' + nasc) ? '' : ''));
+            if (isNaN(d)) {
+                // tenta formato ISO
+                const d2 = new Date(nasc);
+                if (isNaN(d2)) return '';
+                return Math.floor((Date.now() - d2.getTime()) / (365.25 * 24 * 3600 * 1000));
+            }
+            return Math.floor((Date.now() - d.getTime()) / (365.25 * 24 * 3600 * 1000));
+        } catch (e) { return ''; }
+    },
+
     carregarVinculosDoBoe: function (boe) {
         if (!boe || boe === 'N/A') return;
         $.ajax({

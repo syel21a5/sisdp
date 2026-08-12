@@ -10,13 +10,24 @@ class ApfdPessoaDetalheController extends Controller
     public function salvar(Request $request)
     {
         $request->validate([
-            'cadprincipal_id' => 'required|integer',
+            'cadprincipal_id' => 'nullable|integer',
             'pessoa_id' => 'required|integer',
-            'papel' => 'required|string|in:AUTOR,VITIMA,TESTEMUNHA',
+            'papel' => 'required|string|in:AUTOR,VITIMA,TESTEMUNHA,CONDUTOR,OUTRO',
             'interrogatorio' => 'nullable|string',
             'nota_culpa' => 'nullable|string',
-            'dados_complementares' => 'nullable'
+            'dados_complementares' => 'nullable',
+            'boe' => 'nullable|string'
         ]);
+
+        // Resolve o cadprincipal_id pelo BOE (usado quando salvo a partir do editor de documento)
+        $cadprincipalId = $request->cadprincipal_id;
+        if (!$cadprincipalId && $request->boe) {
+            $cad = DB::table('cadprincipal')->where('BOE', $request->boe)->first();
+            $cadprincipalId = $cad ? $cad->id : null;
+        }
+        if (!$cadprincipalId) {
+            return response()->json(['success' => false, 'message' => 'Procedimento não identificado (BOE/cadprincipal_id).'], 422);
+        }
 
         $data = [
             'interrogatorio' => $request->interrogatorio,
@@ -26,20 +37,20 @@ class ApfdPessoaDetalheController extends Controller
         ];
 
         $exists = DB::table('apfd_pessoas_detalhes')
-            ->where('cadprincipal_id', $request->cadprincipal_id)
+            ->where('cadprincipal_id', $cadprincipalId)
             ->where('pessoa_id', $request->pessoa_id)
             ->where('papel', $request->papel)
             ->exists();
 
         if ($exists) {
             DB::table('apfd_pessoas_detalhes')
-                ->where('cadprincipal_id', $request->cadprincipal_id)
+                ->where('cadprincipal_id', $cadprincipalId)
                 ->where('pessoa_id', $request->pessoa_id)
                 ->where('papel', $request->papel)
                 ->update($data);
         } else {
             DB::table('apfd_pessoas_detalhes')->insert(array_merge([
-                'cadprincipal_id' => $request->cadprincipal_id,
+                'cadprincipal_id' => $cadprincipalId,
                 'pessoa_id' => $request->pessoa_id,
                 'papel' => $request->papel,
                 'created_at' => now()
@@ -68,6 +79,37 @@ class ApfdPessoaDetalheController extends Controller
         ];
 
         return response()->json(['success' => true, 'data' => $dados]);
+    }
+
+    /**
+     * Busca o texto da oitiva (interrogatorio) de uma pessoa num procedimento,
+     * localizando o cadprincipal pelo nº do BOE.
+     */
+    public function buscarPorBoe($boe, $pessoaId, $papel)
+    {
+        try {
+            $cad = DB::table('cadprincipal')->where('BOE', $boe)->first();
+            if (!$cad) {
+                return response()->json(['success' => false, 'message' => 'Procedimento (BOE) não localizado.'], 404);
+            }
+
+            $registro = DB::table('apfd_pessoas_detalhes')
+                ->where('cadprincipal_id', $cad->id)
+                ->where('pessoa_id', $pessoaId)
+                ->where('papel', $papel)
+                ->first();
+
+            if (!$registro || empty($registro->interrogatorio)) {
+                return response()->json(['success' => true, 'data' => ['interrogatorio' => '', 'nota_culpa' => '']]);
+            }
+
+            return response()->json(['success' => true, 'data' => [
+                'interrogatorio' => $registro->interrogatorio,
+                'nota_culpa' => $registro->nota_culpa,
+            ]]);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => 'Erro ao buscar oitiva: ' . $e->getMessage()], 500);
+        }
     }
 
     public function listarPorCadprincipal($cadprincipalId)

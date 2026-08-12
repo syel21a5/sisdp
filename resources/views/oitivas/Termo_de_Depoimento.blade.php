@@ -79,7 +79,11 @@
                 <p style="line-height: 1.6; margin: 0.2em 0; padding: 0;">&nbsp;</p>
                 <p style="text-align: justify; line-height: 1.6; margin: 0.2em 0; padding: 0;">
                     Compromissada na forma da lei e advertida das penas cominadas ao falso testemunho prometeu dizer a verdade do que soubesse e lhe fosse perguntada. Aos costumes nada disse. Inquirida pela Autoridade Policial passou a responder: QUE,
-                    <span style="background-color: cyan;">ESCREVER AQUI O DEPOIMENTO</span>
+                    @if(!empty($dadosArray['_conteudo_salvo']))
+                    <span id="conteudo-depoimento">{!! $dadosArray['_conteudo_salvo'] !!}</span>
+                    @else
+                    <span id="conteudo-depoimento" style="background-color: cyan;">ESCREVER AQUI O DEPOIMENTO</span>
+                    @endif
                     . Nada mais havendo a acrescentar, lido e achado conforme, o presente termo é lavrado em referência ao Boletim de Ocorrência nº
                     <strong>{{ !empty($dadosArray['boe']) ? $dadosArray['boe'] : 'NÃO INFORMADO' }}</strong>,
                     e vai devidamente assinado pela Autoridade Policial, pela testemunha, e por mim escrivão que o digitei.
@@ -135,7 +139,11 @@
             pai: @json(isset($dadosArray['pai']) ? $dadosArray['pai'] : ''),
             endereco: @json(isset($dadosArray['endereco']) ? $dadosArray['endereco'] : ''),
             boe: @json(isset($dadosArray['boe']) ? $dadosArray['boe'] : ''),
-            data_ext: @json(isset($dadosArray['data_ext']) ? $dadosArray['data_ext'] : 'NÃO INFORMADO')
+            data_ext: @json(isset($dadosArray['data_ext']) ? $dadosArray['data_ext'] : 'NÃO INFORMADO'),
+            _pessoa_id: @json(isset($dadosArray['_pessoa_id']) ? $dadosArray['_pessoa_id'] : ''),
+            _boe: @json(isset($dadosArray['_boe']) ? $dadosArray['_boe'] : ''),
+            _papel: @json(isset($dadosArray['_papel']) ? $dadosArray['_papel'] : ''),
+            _conteudo_salvo: @json(isset($dadosArray['_conteudo_salvo']) ? $dadosArray['_conteudo_salvo'] : '')
         };
     </script>
 

@@ -144,4 +144,17 @@ class PessoaController extends Controller
         \Illuminate\Support\Facades\Log::error("Erro Python Fuzzy Search: " . $output);
         return response()->json([]);
     }
+
+    /**
+     * Retorna os dados completos de uma pessoa pelo IdCad (usado para montar
+     * o documento de oitiva/depoimento de um envolvido específico).
+     */
+    public function porId($id)
+    {
+        $pessoa = DB::table('cadpessoa')->where('IdCad', $id)->first();
+        if (!$pessoa) {
+            return response()->json(['success' => false, 'message' => 'Pessoa não encontrada'], 404);
+        }
+        return response()->json(['success' => true, 'data' => $pessoa]);
+    }
 }
