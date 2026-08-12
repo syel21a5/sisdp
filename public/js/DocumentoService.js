@@ -11,6 +11,72 @@ const DocumentoService = {
     _camposUpperCase: ['nome', 'alcunha', 'mae', 'pai', 'profissao', 'naturalidade', 'estcivil', 'instrucao', 'endereco'],
 
     /**
+     * 🎯 SALVA OITIVA: grava o texto da oitiva de um envolvido (pessoa + BOE)
+     * no banco (apfd_pessoas_detalhes.interrogatorio).
+     * Usado pelo botão "SALVAR OITIVA" dos editores de depoimento/interrogatório/declaração.
+     * Se não tiver _pessoa_id, resolve pelo nome + BOE automaticamente.
+     * @param {Object} dados - dadosParaImpressao do editor.
+     * @param {string} conteudoHtml - HTML do editor.
+     * @param {string} campoConteudoId - id do elemento que contém a oitiva digitada.
+     */
+    salvarOitiva: function (dados, conteudoHtml, campoConteudoId) {
+        let pessoaId = dados._pessoa_id || '';
+        const boe = dados._boe || dados.boe || '';
+        let papel = dados._papel || '';
+        const nome = dados.nome || '';
+
+        console.log('🔍 [OITIVA] salvarOitiva:', { pessoaId, boe, papel, nome });
+
+        if (!boe || !nome) {
+            alert('⚠️ Não foi possível salvar: falta o nº do BOE ou o nome da pessoa no editor.');
+            return;
+        }
+
+        // Extrai o texto digitado (remove o cabeçalho fixo do termo)
+        let textoOitiva = '';
+        try {
+            const el = document.getElementById(campoConteudoId);
+            // Se o span existe isolado, usa só ele (oitiva). Senão, usa o corpo inteiro do editor.
+            if (el && el.closest('#editor') && el.parentElement.children.length <= 5) {
+                textoOitiva = el.innerHTML.trim();
+            } else {
+                textoOitiva = conteudoHtml.trim(); // documento completo (qualificação + oitiva)
+            }
+        } catch (e) {
+            textoOitiva = conteudoHtml;
+        }
+
+        const limpo = textoOitiva.replace(/<[^>]*>/g, '').trim();
+        if (!limpo || limpo.toUpperCase().includes('ESCREVER AQUI')) {
+            alert('✍️ Digite o texto da oitiva antes de salvar.');
+            return;
+        }
+
+        // Se não tem pessoa_id, resolve pelo nome + BOE
+        if (!pessoaId || !papel) {
+            $.ajax({
+                url: '/boe/resolver-pessoa',
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                data: { boe: boe, nome: nome, _token: $('meta[name="csrf-token"]').attr('content') },
+                success: function (resp) {
+                    if (resp && resp.success) {
+                        _gravarOitiva(resp.pessoa_id, boe, papel || resp.papel || 'VITIMA', textoOitiva);
+                    } else {
+                        alert('❌ ' + ((resp && resp.message) || 'Não foi possível identificar a pessoa no BOE.'));
+                    }
+                },
+                error: function (xhr) {
+                    console.error('❌ [OITIVA] Erro resolver-pessoa:', xhr.responseText);
+                    alert('❌ Não foi possível identificar a pessoa. Verifique o console (F12).');
+                }
+            });
+        } else {
+            _gravarOitiva(pessoaId, boe, papel, textoOitiva);
+        }
+    },
+
+    /**
      * ✅ MAPA DE ALIASES para encontrar campos independente do nome
      */
     _mapCampos: {
@@ -462,7 +528,7 @@ const DocumentoService = {
      * @param {string} selector - Seletor do elemento (ex: '#editor')
      * @param {Function} onPrint - Função a ser chamada ao clicar em Gerar PDF
      */
-    initTinyMCE: function(selector, onPrint) {
+    initTinyMCE: function(selector, onPrint, onSave) {
         tinymce.init({
             selector: selector,
             language: 'pt_BR',
@@ -471,7 +537,7 @@ const DocumentoService = {
             branding: false,
             min_height: 800,
             plugins: 'advlist autolink lists link image charmap preview anchor pagebreak searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media table help',
-            toolbar: 'undo redo | pastetext removeformat | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | table bullist numlist outdent indent | link image | pagebreak charmap fullscreen | gerarpdf',
+            toolbar: 'undo redo | pastetext removeformat | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | table bullist numlist outdent indent | link image | pagebreak charmap fullscreen | gerarpdf | salvaroitiva',
             menubar: 'file edit view insert format tools table help',
             font_size_formats: '8pt 10pt 12pt 14pt 18pt 24pt 36pt',
             
@@ -540,6 +606,16 @@ const DocumentoService = {
                     }
                 });
 
+                editor.ui.registry.addButton('salvaroitiva', {
+                    text: '💾 SALVAR OITIVA',
+                    icon: 'save',
+                    tooltip: 'Salvar o texto desta oitiva no banco (vinculado à pessoa e a este BOE)',
+                    onAction: function (_) {
+                        if (onSave) onSave();
+                        else alert('O salvamento da oitiva não está disponível para este documento.');
+                    }
+                });
+
                 editor.on('init', function() {
                     setTimeout(() => {
                         const btns = document.querySelectorAll('.tox-tbtn');
@@ -556,6 +632,18 @@ const DocumentoService = {
                                 const iconPath = btn.querySelector('.tox-icon svg');
                                 if(iconPath) iconPath.style.fill = '#ffffff';
                             }
+                            if(btn.innerText.includes('SALVAR OITIVA')){
+                                btn.style.backgroundColor = '#0d6efd';
+                                btn.style.color = '#ffffff';
+                                btn.style.fontWeight = 'bold';
+                                btn.style.padding = '0 15px';
+                                btn.style.borderRadius = '5px';
+                                btn.style.width = 'auto';
+                                btn.style.minWidth = 'fit-content';
+                                btn.style.marginLeft = '8px';
+                                const iconPath = btn.querySelector('.tox-icon svg');
+                                if(iconPath) iconPath.style.fill = '#ffffff';
+                            }
                         });
                     }, 1000);
                 });
@@ -563,3 +651,34 @@ const DocumentoService = {
         });
     }
 };
+
+/**
+ * 🎯 Função interna: grava a oitiva no banco (apfd_pessoas_detalhes.interrogatorio)
+ */
+function _gravarOitiva(pessoaId, boe, papel, textoOitiva) {
+    $.ajax({
+        url: '/apfd/detalhes/salvar',
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+        data: {
+            cadprincipal_id: 0,
+            pessoa_id: pessoaId,
+            papel: papel,
+            boe: boe,
+            interrogatorio: textoOitiva,
+            _token: $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function (resp) {
+            console.log('✅ [OITIVA] Oitiva salva no banco:', resp);
+            if (resp && resp.success) {
+                alert('✅ Oitiva salva com sucesso! Você pode reabrir pelo botão 📝 no chip.');
+            } else {
+                alert('❌ ' + ((resp && resp.message) || 'Erro ao salvar a oitiva.'));
+            }
+        },
+        error: function (xhr) {
+            console.error('❌ [OITIVA] Erro ao salvar oitiva:', xhr.responseText);
+            alert('❌ Erro ao salvar a oitiva. Verifique o console (F12).');
+        }
+    });
+}

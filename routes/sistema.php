@@ -216,6 +216,8 @@ Route::middleware(['auth'])->group(function () {
 
     // Buscar dados já extraídos de um BOE (cache de extração) - evita retrabalho nas telas
     Route::get('/boe/dados-extraidos/{boe}', [BoeVincularController::class, 'dadosExtraidos'])->name('boe.dados-extraidos')->where('boe', '.*');
+    // Resolver pessoa_id + papel a partir do nome + BOE (usado no editor de oitiva)
+    Route::post('/boe/resolver-pessoa', [BoeVincularController::class, 'resolverPessoaPorNome'])->name('boe.resolver-pessoa');
 
     // Rotas para detalhes APFD por pessoa
     Route::prefix('apfd/detalhes')->group(function () {

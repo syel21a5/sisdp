@@ -828,4 +828,53 @@ class BoeVincularController extends Controller
         }
     }
 
+    /**
+     * Resolve o pessoa_id e o papel de um envolvido pelo NOME + BOE.
+     * Usado quando o editor de oitiva é aberto por um caminho que não
+     * passa o _pessoa_id diretamente (ex: formulário de busca de documento do chip).
+     */
+    public function resolverPessoaPorNome(Request $request)
+    {
+        try {
+            $request->validate([
+                'boe' => 'required|string',
+                'nome' => 'required|string',
+            ]);
+
+            $boe = $request->boe;
+            $nome = mb_strtoupper(trim($request->nome), 'UTF-8');
+
+            // Busca a pessoa na cadpessoa pelo nome
+            $pessoa = DB::table('cadpessoa')->where('Nome', $nome)->first();
+            if (!$pessoa) {
+                // fallback: busca por similaridade simples (LIKE)
+                $pessoa = DB::table('cadpessoa')->where('Nome', 'like', '%' . $nome . '%')->first();
+            }
+            if (!$pessoa) {
+                return response()->json(['success' => false, 'message' => 'Pessoa não encontrada no cadastro pelo nome informado.'], 404);
+            }
+
+            $pessoaId = $pessoa->IdCad;
+
+            // Descobre o papel pelo vínculo no BOE
+            $vinculo = DB::table('boe_pessoas_vinculos')
+                ->where('boe', $boe)
+                ->where('pessoa_id', $pessoaId)
+                ->first();
+
+            $papel = $vinculo ? $vinculo->tipo_vinculo : null;
+
+            return response()->json([
+                'success' => true,
+                'pessoa_id' => $pessoaId,
+                'papel' => $papel,
+                'nome' => $pessoa->Nome,
+            ]);
+
+        } catch (\Throwable $e) {
+            Log::error('Erro ao resolver pessoa por nome/BOE: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Erro ao resolver a pessoa.'], 500);
+        }
+    }
+
 }

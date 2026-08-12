@@ -773,7 +773,11 @@ window.OcorrenciasApp = {
             const pessoaId = btn.data('pessoa-id') || '';
             const boe = btn.data('bo') || $('#inputBOE').val() || '';
 
+            console.log('🟢 [OITIVA] Clicou no 📝:', { tipo, index, pessoaId, boe });
+            window.__oitivaDebug = { tipo, index, pessoaId, boe };
+
             if (!pessoaId) {
+                console.warn('⚠️ [OITIVA] Sem pessoa_id:', { tipo, index });
                 window.mostrarErro('Esta pessoa não está salva no cadastro. Salve/vinculue antes de gerar a oitiva.');
                 return;
             }
@@ -1587,10 +1591,13 @@ window.OcorrenciasApp = {
     // ✅ Novo: Carregar vínculos do BOE e hidratar chips com vinculo_id
     // 🎯 Abre o editor de oitiva/depoimento/interrogatório p/ a pessoa, já com o texto salvo (se houver)
     abrirEditorOitiva: function (termo, boe, pessoaId, papel, textoSalvo) {
+        console.log('🟢 [OITIVA] abrirEditorOitiva:', { termo, boe, pessoaId, papel, temTexto: !!textoSalvo });
         // Monta os dados globais do documento (cabeçalho, delegado, etc.) + dados da pessoa
         let dados = {};
         if (typeof DocumentoService !== 'undefined' && DocumentoService.capturarDadosGlobais) {
-            try { dados = DocumentoService.capturarDadosGlobais(); } catch (e) { dados = {}; }
+            try { dados = DocumentoService.capturarDadosGlobais(); console.log('✅ [OITIVA] capturarDadosGlobais OK'); } catch (e) { console.warn('⚠️ [OITIVA] capturarDadosGlobais falhou:', e); dados = {}; }
+        } else {
+            console.warn('⚠️ [OITIVA] DocumentoService não carregado');
         }
 
         // Garante o BOE nos dados
