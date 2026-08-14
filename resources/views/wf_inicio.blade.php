@@ -170,15 +170,15 @@
             @endif
             @endif
 
-            <!-- BOTÃO DE SAIR - SEMPRE ACESSÍVEL -->
-            <li class="sidebar-footer">
-                <form action="{{ route('logout') }}" method="POST">
-                    @csrf
-                    <button type="submit" class="btn-logout-sidebar">
-                        <i class="bi bi-box-arrow-right"></i> Sair do Sistema
-                    </button>
-                </form>
+            <!-- BOTÃO ASSISTENTE IA -->
+            <li class="mt-3 mb-2" style="padding: 0 15px;">
+                <button type="button" class="btn w-100" data-bs-toggle="offcanvas" data-bs-target="#offcanvasCopilot" aria-controls="offcanvasCopilot" style="background-color: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid rgba(255, 255, 255, 0.2); text-align: left; display: flex; align-items: center; padding: 12px 15px; border-radius: 8px; transition: all 0.3s ease;">
+                    <i class="bi bi-robot me-2" style="font-size: 1.2rem; color: #0dcaf0;"></i> 
+                    <span style="font-weight: 500;">Assistente IA</span>
+                </button>
             </li>
+
+
         </ul>
     </div>
 
@@ -754,6 +754,60 @@
                 </div>
             </div>
 
+            <!-- ✅ MODAL CONFIGURAÇÕES PESSOAIS (NOVO) -->
+            <div class="modal fade" id="modalConfigPessoais" tabindex="-1" aria-labelledby="modalConfigPessoaisLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header" style="background: linear-gradient(135deg, #1e3c72, #2a5298); color: white;">
+                            <h5 class="modal-title fw-bold" id="modalConfigPessoaisLabel">
+                                <i class="bi bi-gear-fill me-2"></i> Minhas Configurações Padrão
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="text-muted small mb-4">
+                                <i class="bi bi-info-circle-fill me-1"></i> 
+                                Os dados preenchidos aqui ficarão salvos <strong>na sua conta</strong> e serão inseridos automaticamente em novos formulários de procedimentos para agilizar o preenchimento.
+                            </p>
+                            <form id="formConfigPessoais">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Delegado</label>
+                                        <input type="text" class="form-control" id="configDelegado" placeholder="Ex: Nome Completo">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Escrivão</label>
+                                        <input type="text" class="form-control" id="configEscrivao" placeholder="Ex: Nome Completo">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Delegacia / Circunscrição</label>
+                                        <input type="text" class="form-control" id="configDelegacia" placeholder="Ex: 167ª Circunscrição">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Cidade</label>
+                                        <input type="text" class="form-control" id="configCidade" placeholder="Ex: Afogados da Ingazeira">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-primary">Policial 1</label>
+                                        <input type="text" class="form-control" id="configPolicial1" placeholder="Ex: Nome Completo">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-primary">Policial 2</label>
+                                        <input type="text" class="form-control" id="configPolicial2" placeholder="Ex: Nome Completo">
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success fw-bold px-4" id="btnSalvarConfigPessoais">
+                                <i class="bi bi-save me-1"></i> Salvar e Aplicar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Modal para Importação Híbrida de BOE (Texto ou PDF) substituído por Componente -->
             @include('components.modal_importacao_boe')
 
@@ -974,6 +1028,7 @@
                                 <option value="vitimas">Vítima</option>
                                 <option value="autores">Autor</option>
                                 <option value="testemunhas">Testemunha</option>
+                                <option value="outros">Outros</option>
                             </select>
                         </div>
                         <div class="modal-footer">
@@ -985,6 +1040,40 @@
             </div>
 
             <!-- Modal de Alerta Removido -->
+
+            <!-- Modal de Escolha de Oitiva (Novo) -->
+            <div class="modal fade" id="modalEscolherOitiva" tabindex="-1" aria-labelledby="modalEscolherOitivaLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title" id="modalEscolherOitivaLabel"><i class="bi bi-file-earmark-text"></i> Escolher Tipo de Termo</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="mb-3">Selecione qual documento deseja gerar/editar para <strong id="nomeOitivaModal" class="text-primary"></strong>:</p>
+                            
+                            <div class="list-group">
+                                <label class="list-group-item list-group-item-action cursor-pointer">
+                                    <input class="form-check-input me-1" type="radio" name="radioTipoOitiva" value="depoimento" id="radioDepoimento">
+                                    <strong>Termo de Depoimento</strong> <small class="text-muted d-block ms-4">Padrão para Condutores e Testemunhas</small>
+                                </label>
+                                <label class="list-group-item list-group-item-action cursor-pointer">
+                                    <input class="form-check-input me-1" type="radio" name="radioTipoOitiva" value="declaracao" id="radioDeclaracao">
+                                    <strong>Termo de Declaração</strong> <small class="text-muted d-block ms-4">Padrão para Vítimas e Menores</small>
+                                </label>
+                                <label class="list-group-item list-group-item-action cursor-pointer">
+                                    <input class="form-check-input me-1" type="radio" name="radioTipoOitiva" value="interrogatorio" id="radioInterrogatorio">
+                                    <strong>Termo de Interrogatório</strong> <small class="text-muted d-block ms-4">Padrão para Autores</small>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-primary fw-bold" id="btnConfirmarOitivaModal"><i class="bi bi-check2-circle"></i> Abrir Editor</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
         </div>
     </div>
@@ -1063,6 +1152,7 @@
     <script src="{{ asset('js/vinculos_completo.js') }}"></script>
     <script src="{{ asset('js/script.js') }}?v={{ time() }}_fix4"></script>
     <script src="{{ asset('js/menu_lateral.js') }}"></script>
+    <script src="{{ asset('js/config_pessoais.js') }}?v={{ time() }}"></script>
     <script src="{{ asset('js/script_apfd.js') }}?v={{ time() }}_fix3"></script>
     <script>
         // Lógica de Alertas de Pendências com Filtros e Paginação
@@ -1509,5 +1599,43 @@
         }
     })();
     </script>
+    </script>
+
+    <!-- Offcanvas do Copiloto IA -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasCopilot" aria-labelledby="offcanvasCopilotLabel" style="width: 400px; background-color: #1e1e2d; color: #fff; border-right: 1px solid rgba(255, 255, 255, 0.1);">
+        <div class="offcanvas-header" style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+            <h5 class="offcanvas-title" id="offcanvasCopilotLabel">
+                <i class="bi bi-robot text-info me-2"></i>Sisdepol Assistente IA
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body d-flex flex-column" style="padding: 0;">
+            <!-- Área de Mensagens -->
+            <div id="copilotChatBox" class="flex-grow-1 p-3" style="overflow-y: auto; display: flex; flex-direction: column; gap: 15px; background-color: #1a1a27;">
+                <!-- Mensagem de boas vindas -->
+                <div class="d-flex align-items-start">
+                    <div class="bg-primary text-white p-2 rounded-3" style="max-width: 85%; font-size: 0.9rem; border-bottom-left-radius: 0 !important;">
+                        Olá! Eu sou o assistente virtual do Sisdepol. Posso ajudar a analisar o BOE, preencher dados ou abrir oitivas automaticamente. O que deseja fazer?
+                    </div>
+                </div>
+            </div>
+            <!-- Área de Digitação -->
+            <div class="p-3" style="border-top: 1px solid rgba(255, 255, 255, 0.1); background-color: #1e1e2d;">
+                <form id="copilotForm">
+                    <div class="input-group">
+                        <textarea class="form-control" id="copilotInput" rows="1" placeholder="Digite seu comando..." style="background-color: rgba(255, 255, 255, 0.05); color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); resize: none;"></textarea>
+                        <button class="btn btn-info" type="submit" id="btnCopilotSend">
+                            <i class="bi bi-send"></i>
+                        </button>
+                    </div>
+                    <div class="mt-2 text-end">
+                        <small class="text-muted" style="font-size: 0.75rem;">Powered by DeepSeek AI</small>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script src="{{ asset('js/copilot.js') }}?v={{ time() }}"></script>
 </body>
 </html>

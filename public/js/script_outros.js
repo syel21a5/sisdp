@@ -523,7 +523,7 @@ $(document).ready(function () {
         const documentosOutro = [
             "TERMO DE DECLARACAO",
             "TERMO DE DEPOIMENTO",
-            "TERMO DE INTERROGATORIO",
+
             "AUTO DE APRESENTACAO E APREENSAO",
             "TERMO DE RESTITUICAO",
             "TERMO DE RENUNCIA E DESISTENCIA DE REPRESENTACAO",

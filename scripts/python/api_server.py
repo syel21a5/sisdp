@@ -45,6 +45,14 @@ def quick_extract(request: ExtractRequest):
     
     return {"boe": m.group(1) if m else None}
 
+@app.post("/read-text")
+def read_text(request: ExtractRequest):
+    if not os.path.exists(request.file_path):
+        raise HTTPException(status_code=404, detail="Arquivo não encontrado")
+    
+    texto_raw = boe_extractor.ler_arquivo(request.file_path, clean_mode=False)
+    return {"text": texto_raw}
+
 @app.post("/extract-boe")
 def extract_boe(request: ExtractRequest):
     if not os.path.exists(request.file_path):

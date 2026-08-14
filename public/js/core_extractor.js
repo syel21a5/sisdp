@@ -46,14 +46,8 @@ const CoreExtractor = (function() {
                 self.processarExtracao('ia');
             });
 
-            // Oculta o botão da IA quando a aba PDF é clicada
             $('button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
-                const targetId = $(e.target).attr('data-bs-target');
-                if (targetId && targetId.includes('pdf')) {
-                    $(self.selectors.btnIA).hide();
-                } else {
-                    $(self.selectors.btnIA).show();
-                }
+                $(self.selectors.btnIA).show();
             });
         }
 
@@ -66,13 +60,6 @@ const CoreExtractor = (function() {
 
             let formData = new FormData();
             let isEmpty = true;
-
-            // A inteligência artificial aceita apenas texto, segundo a regra de negócios
-            if (motor === 'ia' && (isTabPdf || isTabPdfPM)) {
-                if (window.mostrarErro) window.mostrarErro("A Inteligência Artificial funciona apenas com texto. Use a aba de Texto e cole o conteúdo.");
-                else alert("A Inteligência Artificial funciona apenas com texto.");
-                return null;
-            }
 
             if (isTabTexto) {
                 const texto = $(this.selectors.txtBoe).val().trim();
@@ -88,8 +75,12 @@ const CoreExtractor = (function() {
             } else if (isTabPdf) {
                 const file = $(this.selectors.pdfBoe)[0].files[0];
                 if(file) {
-                    formData.append('pdfBOE', file);
-                    formData.append('tipo', 'pdf_pc');
+                    if (motor === 'ia') {
+                        formData.append('pdfBOE', file);
+                    } else {
+                        formData.append('pdfBOE', file);
+                        formData.append('tipo', 'pdf_pc');
+                    }
                     isEmpty = false;
                 }
             } else if (isTabTextoPM) {
@@ -106,8 +97,12 @@ const CoreExtractor = (function() {
             } else if (isTabPdfPM) {
                 const file = $(this.selectors.pdfBoePM)[0].files[0];
                 if(file) {
-                    formData.append('pdfBOE', file);
-                    formData.append('tipo', 'pdf_pm');
+                    if (motor === 'ia') {
+                        formData.append('pdfBOE', file);
+                    } else {
+                        formData.append('pdfBOE', file);
+                        formData.append('tipo', 'pdf_pm');
+                    }
                     isEmpty = false;
                 }
             }

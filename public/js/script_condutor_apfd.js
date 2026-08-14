@@ -5,7 +5,6 @@ $(document).ready(function () {
         // ✅ DOCUMENTOS INDIVIDUAIS
         "TERMO DE DECLARACAO": "/declaracao/--DADOS--",
         "TERMO DE DEPOIMENTO": "/depoimento/--DADOS--",
-        "TERMO DE INTERROGATORIO": "/interrogatorio/--DADOS--",
         "CERTIDAO DE ASSINATURA INDIVIDUAL": "/certidao-assinaturas-individual/--DADOS--",
         "AUTO DE APRESENTACAO E APREENSAO": "/auto-apreensao/--DADOS--",
         "TERMO DE RESTITUICAO": "/documentos/termo-restituicao/--DADOS--",
@@ -636,7 +635,6 @@ $(document).ready(function () {
         const documentos = [
             "TERMO DE DECLARACAO",
             "TERMO DE DEPOIMENTO",
-            "TERMO DE INTERROGATORIO",
             "AUTO DE APRESENTACAO E APREENSAO",
             "TERMO DE RESTITUICAO",
             "TERMO DE RENUNCIA E DESISTENCIA DE REPRESENTACAO",

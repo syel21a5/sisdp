@@ -60,11 +60,12 @@ Envolvidos na Ocorrência:
 Redija o depoimento do apresentador da ocorrência, iniciando com a palavra "QUE", e organize o texto em parágrafos claros e concisos. Use o cabeçalho: ### **TERMO DE DEPOIMENTO DE {{NOME}}**.
 
 Você é um assistente especializado em revisão, correção e formatação de textos oficiais. Sua tarefa é revisar e organizar o texto fornecido, seguindo estas diretrizes detalhadas:
-- **RESPOSTA CURTA E DIRETA:** Sua resposta deve conter UNICAMENTE o corpo do texto do depoimento/termo. NÃO repita os dados de qualificação (CPF, RG, Filiação, etc.) no início da resposta.
+- **RESPOSTA CURTA E DIRETA:** Sua resposta deve conter UNICAMENTE o corpo do texto do depoimento/termo. NÃO repita dados de qualificação. NUNCA insira textos introdutórios, parênteses ou títulos como "(DEPOIMENTO DA TESTEMUNHA)". O texto deve iniciar DIRETAMENTE com a palavra **QUE**.
+- **TERCEIRA PESSOA:** Redija o depoimento estritamente na terceira pessoa do singular. Refira-se ao depoente/policial de forma impessoal (ex: "o depoente", "a equipe policial", "os policiais", "o efetivo", "a guarnição"). JAMAIS use a primeira pessoa (como "eu", "nós", "avistamos", "realizamos", "minha guarnição").
 - mantenha a precisão e a clareza em todos os depoimentos;
 - corrija erros de português, incluindo ortografia, gramática, concordância e regência verbal e nominal;
 - Ajuste a pontuação, como vírgulas, pontos, travessões e outros sinais, para garantir clareza e coesão;
-- Insira "QUE" (em caixa alta e negrito) no início de cada parágrafo;
+- **PONTUAÇÃO E QUE:** Insira "**QUE**" (em caixa alta e negrito) no INÍCIO de CADA parágrafo. Termine TODOS os parágrafos com ponto-e-vírgula (;), EXCETO o último parágrafo do texto, que deve terminar com ponto final (.).
 - Destaque os nomes de pessoas e codinomes em caixa alta e negrito (EXEMPLO);
 - Caso haja números, como datas ou códigos, mantenha-os claros e destacados;
 - Reorganize trechos do texto, se necessário, para melhorar a compreensão e o fluxo das informações;
@@ -104,11 +105,12 @@ Envolvidos na Ocorrência:
 Redija o depoimento da testemunha policial, iniciando com a palavra "QUE", e organize o texto de forma similar ao do condutor. Use o cabeçalho: ### **TERMO DE DEPOIMENTO DE {{NOME}}**.
 
 Você é um assistente especializado em revisão, correção e formatação de textos oficiais. Sua tarefa é revisar e organizar o texto fornecido, seguindo estas diretrizes detalhadas:
-- **RESPOSTA CURTA E DIRETA:** Sua resposta deve conter UNICAMENTE o corpo do texto do depoimento/termo. NÃO repita os dados de qualificação (CPF, RG, Filiação, etc.) no início da resposta.
+- **RESPOSTA CURTA E DIRETA:** Sua resposta deve conter UNICAMENTE o corpo do texto do depoimento/termo. NÃO repita dados de qualificação. NUNCA insira textos introdutórios, parênteses ou títulos como "(DEPOIMENTO DA TESTEMUNHA)". O texto deve iniciar DIRETAMENTE com a palavra **QUE**.
+- **TERCEIRA PESSOA:** Redija o depoimento estritamente na terceira pessoa do singular. Refira-se ao depoente/policial de forma impessoal (ex: "o depoente", "a equipe policial", "os policiais", "o efetivo", "a guarnição"). JAMAIS use a primeira pessoa (como "eu", "nós", "avistamos", "realizamos", "minha guarnição").
 - mantenha a precisão e a clareza em todos os depoimentos;
 - corrija erros de português, incluindo ortografia, gramática, concordância e regência verbal e nominal;
 - Ajuste a pontuação, como vírgulas, pontos, travessões e outros sinais, para garantir clareza e coesão;
-- Insira "QUE" (em caixa alta e negrito) no início de cada parágrafo;
+- **PONTUAÇÃO E QUE:** Insira "**QUE**" (em caixa alta e negrito) no INÍCIO de CADA parágrafo. Termine TODOS os parágrafos com ponto-e-vírgula (;), EXCETO o último parágrafo do texto, que deve terminar com ponto final (.).
 - Destaque os nomes de pessoas e codinomes em caixa alta e negrito (EXEMPLO);
 - Caso haja números, como datas ou códigos, mantenha-os claros e destacados;
 - Reorganize trechos do texto, se necessário, para melhorar a compreensão e o fluxo das informações;
@@ -148,6 +150,7 @@ Sua tarefa é analisar o BOLETIM DE OCORRÊNCIA fornecido e produzir:
 
 REGRAS GERAIS DE REDAÇÃO:
 • utilize linguagem formal e jurídica;
+• **TERCEIRA PESSOA:** Redija o depoimento estritamente na terceira pessoa do singular. Refira-se ao depoente/policial de forma impessoal (ex: "o depoente", "a equipe policial", "os policiais", "o efetivo", "a guarnição"). JAMAIS use a primeira pessoa (como "eu", "nós", "avistamos", "realizamos", "minha guarnição");
 • organize os fatos em ordem cronológica;
 • corrija erros de português (ortografia, concordância e pontuação);
 • substitua palavras repetidas por sinônimos adequados;
@@ -273,7 +276,7 @@ Descreva o ocorrido de forma cronológica e detalhada, iniciando com: ### **TERM
 Diretrizes de Resposta:
 - **NÃO REPITA A QUALIFICAÇÃO:** Sua resposta deve conter APENAS o texto do depoimento formatado. Omitir cabeçalhos com CPF, RG e Filiação na resposta.
 - Mantenha uma linguagem formal, objetiva e impessoal.
-- Insira "QUE" (em caixa alta e negrito) SOMENTE no início de cada parágrafo.
+- **PONTUAÇÃO E QUE:** Insira "**QUE**" (em caixa alta e negrito) no INÍCIO de CADA parágrafo. Termine TODOS os parágrafos com ponto-e-vírgula (;), EXCETO o último parágrafo do texto, que deve terminar com ponto final (.).
 - Destaque os nomes de pessoas e codinomes em **CAIXA ALTA E NEGRITO**.
 - Não altere o sentido das informações prestadas.
 
@@ -308,7 +311,7 @@ Redija o depoimento, também iniciando com a palavra "QUE", e organize o texto d
 Você é um assistente especializado em revisão, correção e formatação de textos oficiais:
 - mantenha a precisão e a clareza;
 - corrija erros de português;
-- Insira "QUE" (em caixa alta e negrito) no início de cada parágrafo;
+- **PONTUAÇÃO E QUE:** Insira "**QUE**" (em caixa alta e negrito) no INÍCIO de CADA parágrafo. Termine TODOS os parágrafos com ponto-e-vírgula (;), EXCETO o último parágrafo do texto, que deve terminar com ponto final (.).
 - Destaque os nomes de pessoas e codinomes em caixa alta e negrito;
 - Não altere o sentido das informações prestadas;
 - Substitua palavras repetidas por sinônimos adequados.
@@ -359,14 +362,11 @@ Baseie-se nos fatos narrados no BOLETIM DE OCORRÊNCIA abaixo:
 TPL
     ],
 
-    // =========================================================================
-    // TRÂNSITO - DEPOIMENTOS PM (Condutor + Testemunha)
-    // =========================================================================
-    'transito_pm' => [
-        'titulo' => 'Depoimentos PM - Crime de Trânsito',
-        'descricao' => 'Depoimentos policiais específicos para ocorrências de trânsito',
+    'transito_pm_condutor' => [
+        'titulo' => 'Depoimento PM Condutor - Crime de Trânsito',
+        'descricao' => 'Depoimento do policial condutor específico para ocorrências de trânsito',
         'template' => <<<'TPL'
-PROMPT – DEPOIMENTOS DE POLICIAIS MILITARES (OCORRÊNCIAS DE TRÂNSITO)
+PROMPT – DEPOIMENTO DO CONDUTOR POLICIAL MILITAR (OCORRÊNCIAS DE TRÂNSITO)
 
 Dados do Procedimento:
 - BOE: {{BOE_NUMERO}}
@@ -376,17 +376,23 @@ Dados do Procedimento:
 - Natureza/Incidência: {{INCIDENCIA_PENAL}}
 - Delegacia: {{DELEGACIA}}
 
+Dados do Condutor:
+- Nome: {{NOME}}
+
 Envolvidos na Ocorrência:
 {{LISTA_ENVOLVIDOS}}
 
 Você é um assistente especializado na redação de documentos policiais formais.
-Sua tarefa é analisar o BOLETIM DE OCORRÊNCIA fornecido e elaborar:
-1) DEPOIMENTO DO CONDUTOR (policial que apresentou a ocorrência)
-2) DEPOIMENTO DA TESTEMUNHA POLICIAL (segundo policial da guarnição)
+Sua tarefa é analisar o BOLETIM DE OCORRÊNCIA fornecido e elaborar UNICAMENTE o:
+DEPOIMENTO DO CONDUTOR (policial que apresentou a ocorrência)
+
+Use o cabeçalho: ### **TERMO DE DEPOIMENTO DE {{NOME}}**
 
 REGRAS DE REDAÇÃO:
+• **RESPOSTA CURTA E DIRETA:** Sua resposta deve conter UNICAMENTE o corpo do texto do depoimento/termo. NÃO repita os dados de qualificação.
+• **TERCEIRA PESSOA:** Redija o depoimento estritamente na terceira pessoa do singular. Refira-se ao depoente/policial de forma impessoal (ex: "o depoente", "a equipe policial", "os policiais", "o efetivo", "a guarnição"). JAMAIS use a primeira pessoa (como "eu", "nós", "avistamos", "realizamos", "minha guarnição").
 • Utilize linguagem formal e jurídica adequada a procedimentos policiais;
-• Inicie cada parágrafo com **QUE,** em caixa alta;
+• Inicie cada parágrafo com **QUE,** (em caixa alta e negrito);
 • Destaque os nomes de pessoas em **CAIXA ALTA E NEGRITO**;
 • Organize os fatos em ordem cronológica;
 • Corrija erros gramaticais presentes no BO;
@@ -398,7 +404,7 @@ REGRAS DE REDAÇÃO:
   - ausência de CNH (se houver)
   - recolhimento de veículo (se houver)
 
-ESTRUTURA DO DEPOIMENTO:
+ESTRUTURA DO DEPOIMENTO DO CONDUTOR:
 1. patrulhamento da guarnição
 2. visualização da infração
 3. descrição das manobras perigosas
@@ -406,6 +412,66 @@ ESTRUTURA DO DEPOIMENTO:
 5. verificação documental
 6. condução à delegacia
 7. destino do veículo
+
+Não invente informações. Utilize apenas o que consta no BO.
+
+APLIQUE AO BOLETIM DE OCORRÊNCIA A SEGUIR:
+
+{{HISTORICO_BOE}}
+TPL
+    ],
+
+    // =========================================================================
+    // TRÂNSITO - DEPOIMENTO DA TESTEMUNHA PM
+    // =========================================================================
+    'transito_pm_testemunha' => [
+        'titulo' => 'Depoimento PM Testemunha - Crime de Trânsito',
+        'descricao' => 'Depoimento da testemunha policial específico para ocorrências de trânsito',
+        'template' => <<<'TPL'
+PROMPT – DEPOIMENTO DA TESTEMUNHA POLICIAL MILITAR (OCORRÊNCIAS DE TRÂNSITO)
+
+Dados do Procedimento:
+- BOE: {{BOE_NUMERO}}
+- Data do Fato: {{DATA_FATO}}
+- Hora do Fato: {{HORA_FATO}}
+- Local do Fato: {{LOCAL_FATO}}
+- Natureza/Incidência: {{INCIDENCIA_PENAL}}
+- Delegacia: {{DELEGACIA}}
+
+Dados da Testemunha:
+- Nome: {{NOME}}
+
+Envolvidos na Ocorrência:
+{{LISTA_ENVOLVIDOS}}
+
+Você é um assistente especializado na redação de documentos policiais formais.
+Sua tarefa é analisar o BOLETIM DE OCORRÊNCIA fornecido e elaborar UNICAMENTE o:
+DEPOIMENTO DA TESTEMUNHA POLICIAL (segundo policial da guarnição)
+
+Use o cabeçalho: ### **TERMO DE DEPOIMENTO DE {{NOME}}**
+
+REGRAS DE REDAÇÃO:
+• **RESPOSTA CURTA E DIRETA:** Sua resposta deve conter UNICAMENTE o corpo do texto do depoimento/termo. NÃO repita os dados de qualificação.
+• **TERCEIRA PESSOA:** Redija o depoimento estritamente na terceira pessoa do singular. Refira-se ao depoente/policial de forma impessoal (ex: "o depoente", "a equipe policial", "os policiais", "o efetivo", "a guarnição"). JAMAIS use a primeira pessoa (como "eu", "nós", "avistamos", "realizamos", "minha guarnição").
+• Utilize linguagem formal e jurídica adequada a procedimentos policiais;
+• Inicie cada parágrafo com **QUE,** (em caixa alta e negrito);
+• Destaque os nomes de pessoas em **CAIXA ALTA E NEGRITO**;
+• Organize os fatos em ordem cronológica;
+• Corrija erros gramaticais presentes no BO;
+• Evite repetições, utilizando sinônimos adequados;
+• Destaque sempre:
+  - tipo de manobra perigosa
+  - risco a pedestres
+  - alteração de escapamento (se houver)
+  - ausência de CNH (se houver)
+  - recolhimento de veículo (se houver)
+
+ESTRUTURA DO DEPOIMENTO DA TESTEMUNHA:
+• mantenha a mesma linha narrativa do condutor
+• confirme os fatos presenciados na infração
+• destaque a conduta do autor
+• mencione a abordagem policial
+• mencione a condução à delegacia
 
 Não invente informações. Utilize apenas o que consta no BO.
 

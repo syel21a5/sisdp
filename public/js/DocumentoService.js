@@ -35,15 +35,43 @@ const DocumentoService = {
         // Extrai o texto digitado (remove o cabeçalho fixo do termo)
         let textoOitiva = '';
         try {
-            const el = document.getElementById(campoConteudoId);
-            // Se o span existe isolado, usa só ele (oitiva). Senão, usa o corpo inteiro do editor.
-            if (el && el.closest('#editor') && el.parentElement.children.length <= 5) {
-                textoOitiva = el.innerHTML.trim();
+            // Cria um elemento temporário para analisar o HTML ATUAL do editor
+            const tempDiv = document.createElement('div');
+            // Utilizamos diretamente a extração via Expressão Regular para suportar diversos finais
+            // Isso evita que formatações aplicadas "por fora" da tag span pelo TinyMCE sejam perdidas.
+            let htmlTemp = conteudoHtml;
+            // Busca o último 'QUE,' ou 'QUE:' no documento (lidando com possíveis tags HTML ou espaços no meio)
+            const regexStart = /(?:QUE|Que|que)[\s\xA0]*(?:<[^>]+>)*[\s\xA0]*[,:]/gi;
+            let match;
+            let lastStartRegexMatch = null;
+            let lastStartMatchIndex = -1;
+            
+            while ((match = regexStart.exec(htmlTemp)) !== null) {
+                lastStartRegexMatch = match[0];
+                lastStartMatchIndex = match.index;
+            }
+            
+            if (lastStartMatchIndex !== -1) {
+                const startExtractIndex = lastStartMatchIndex + lastStartRegexMatch.length;
+                const regexFim = /\.?\s*(?:<[^>]+>)*\s*Nada mais (havendo|disse|declarou|a acrescentar)/i;
+                const substring = htmlTemp.substring(startExtractIndex);
+                const matchFim = substring.match(regexFim);
+                
+                if (matchFim) {
+                    let extracted = substring.substring(0, matchFim.index);
+                    // Limpa APENAS a tag <span id="conteudo-..."> inicial se ela existir, preservando formatações (<span style="...">, <strong>, etc)
+                    extracted = extracted.replace(/^\s*<span\s+id="conteudo-[^"]+"[^>]*>/i, '');
+                    // Limpa o fechamento de span apenas se sobrar no final perdido
+                    extracted = extracted.replace(/<\/span>\s*$/i, '');
+                    textoOitiva = extracted.trim();
+                } else {
+                    textoOitiva = htmlTemp.trim();
+                }
             } else {
-                textoOitiva = conteudoHtml.trim(); // documento completo (qualificação + oitiva)
+                textoOitiva = htmlTemp.trim();
             }
         } catch (e) {
-            textoOitiva = conteudoHtml;
+            textoOitiva = conteudoHtml.trim();
         }
 
         const limpo = textoOitiva.replace(/<[^>]*>/g, '').trim();
@@ -536,6 +564,7 @@ const DocumentoService = {
             promotion: false,
             branding: false,
             min_height: 800,
+            statusbar: false, // Oculta toda a barra inferior (Alt+0, contagem de palavras e caminho HTML) que polui a tela
             plugins: 'advlist autolink lists link image charmap preview anchor pagebreak searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media table help',
             toolbar: 'undo redo | pastetext removeformat | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | table bullist numlist outdent indent | link image | pagebreak charmap fullscreen | gerarpdf | salvaroitiva',
             menubar: 'file edit view insert format tools table help',
@@ -671,6 +700,11 @@ function _gravarOitiva(pessoaId, boe, papel, textoOitiva) {
         success: function (resp) {
             console.log('✅ [OITIVA] Oitiva salva no banco:', resp);
             if (resp && resp.success) {
+                // Notificar outras abas (tela principal) para atualizar os chips
+                try {
+                    const channel = new BroadcastChannel('sisdepol_events');
+                    channel.postMessage({ type: 'oitiva_salva', boe: boe });
+                } catch(e) {}
                 alert('✅ Oitiva salva com sucesso! Você pode reabrir pelo botão 📝 no chip.');
             } else {
                 alert('❌ ' + ((resp && resp.message) || 'Erro ao salvar a oitiva.'));

@@ -18,7 +18,13 @@ class Usuario extends Authenticatable
         'password',
         'nivel_acesso',
         'ativo',
-        'permissions'
+        'permissions',
+        'default_delegado',
+        'default_escrivao',
+        'default_delegacia',
+        'default_cidade',
+        'default_policial1',
+        'default_policial2',
     ];
 
     protected $hidden = [

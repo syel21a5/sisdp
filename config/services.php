@@ -40,8 +40,31 @@ return [
         'repo' => env('GITHUB_REPO', 'syel21a5/sisdp'),
     ],
 
-    'deepseek' => [
-        'api_key' => env('DEEPSEEK_API_KEY'),
+    'ai' => [
+        'default' => env('AI_PROVIDER', 'deepseek'),
+        
+        'providers' => [
+            'deepseek' => [
+                'api_key' => env('DEEPSEEK_API_KEY'),
+                'base_url' => 'https://api.deepseek.com/chat/completions',
+                'model' => 'deepseek-chat',
+            ],
+            'groq' => [
+                'api_key' => env('GROQ_API_KEY'),
+                'base_url' => 'https://api.groq.com/openai/v1/chat/completions',
+                'model' => 'llama-3.3-70b-versatile',
+            ],
+            'sambanova' => [
+                'api_key' => env('SAMBANOVA_API_KEY'),
+                'base_url' => 'https://api.sambanova.ai/v1/chat/completions',
+                'model' => 'Meta-Llama-3.1-70B-Instruct',
+            ],
+            'gemini' => [
+                'api_key' => env('GEMINI_API_KEY'),
+                'base_url' => 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+                'model' => env('GEMINI_MODEL', 'gemini-3.5-flash'),
+            ],
+        ]
     ],
 
 ];

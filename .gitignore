@@ -53,3 +53,4 @@ __pycache__/
 /.secrets
 /scripts/sync_bidirecional.sh
 /scripts/sync_bidirecional.log
+/Arquivos_localhost/

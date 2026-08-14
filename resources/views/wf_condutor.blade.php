@@ -193,7 +193,6 @@
         // DEFINIAR AS ROTAS DE IMPRESSAO DESVINCULADAS A NUMOFICIOCONTROLLER
         'TERMO DE DECLARACAO': "{{ route('declaracao', ['dados' => '--DADOS--']) }}",
         'TERMO DE DEPOIMENTO': "{{ route('depoimento', ['dados' => '--DADOS--']) }}",
-        'TERMO DE INTERROGATORIO': "{{ route('interrogatorio', ['dados' => '--DADOS--']) }}",
 
         // DEFINIAR AS ROTAS DE IMPRESSAO VINCULADAS A NUMOFICIOCONTROLLER
         'AUTO DE APRESENTACAO E APREENSAO': "{{ route('auto.apreensao', ['dados' => '--DADOS--']) }}",

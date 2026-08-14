@@ -448,15 +448,9 @@ $(document).ready(function () {
         $('#boeProgressPercent').text('0%');
 
         // ✅ Inicializar visibilidade do botão de IA baseado na aba ativa
-        // IA aparece em TEXTO (PC e PM), some apenas em PDF
-        const activeTabId = $('#boeImportTabs .nav-link.active').attr('id');
-        if (activeTabId === 'tab-pdf' || activeTabId === 'tab-pdf-pm') {
-            $('#btnProcessarIA').hide();
-            $('#btnProcessarBoe').show();
-        } else {
-            $('#btnProcessarIA').show();
-            $('#btnProcessarBoe').show();
-        }
+        // IA e Motor Nativo sempre disponíveis
+        $('#btnProcessarIA').show();
+        $('#btnProcessarBoe').show();
 
         if (typeof OcorrenciasApp.atualizarEstadoBotoes === 'function') {
             OcorrenciasApp.atualizarEstadoBotoes();
@@ -739,8 +733,9 @@ $(document).ready(function () {
                     // Novos campos mapeados
                     if (dados.natureza) $('#inputIncidenciaPenal').val(dados.natureza);
                     if (dados.objetos_apreendidos) {
-                        $('#inputApreensao').val(dados.objetos_apreendidos);
-                        atualizarContadorItens(dados.objetos_apreendidos);
+                        const apreensaoFormatada = window.formatarObjetosApreendidos ? window.formatarObjetosApreendidos(dados.objetos_apreendidos) : dados.objetos_apreendidos;
+                        $('#inputApreensao').val(apreensaoFormatada);
+                        atualizarContadorItens(apreensaoFormatada);
                         setTimeout(autoResizeApreensao, 100);
                     }
 
@@ -908,14 +903,8 @@ $(document).ready(function () {
     // ✅ NOVO: Alternar visibilidade do botão de IA baseado na aba ativa
     // IA aparece em TEXTO (PC e PM), some apenas nas abas de PDF
     $('#boeImportTabs button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
-        const targetId = e.target.id;
-        if (targetId === 'tab-pdf' || targetId === 'tab-pdf-pm') {
-            $('#btnProcessarIA').hide();
-            $('#btnProcessarBoe').show();
-        } else {
-            $('#btnProcessarIA').show();
-            $('#btnProcessarBoe').show();
-        }
+        $('#btnProcessarIA').show();
+        $('#btnProcessarBoe').show();
     });
 
     // =====================================================
@@ -932,16 +921,23 @@ $(document).ready(function () {
         const pdfPMAtivo = document.getElementById('tab-pdf-pm') && document.getElementById('tab-pdf-pm').classList.contains('active');
         const isPM = pdfPMAtivo || txtPMAtivo;
 
-        // IA só funciona com TEXTO (não PDF direto)
-        if (pdfPCPAtivo || pdfPMAtivo) {
-            window.mostrarErro('A Inteligência Artificial funciona apenas com texto. Use a aba "BO PC (Texto)" ou "BO PM (Texto)" e cole o conteúdo do BOE.');
-            return;
-        }
+        let formData = new FormData();
+        formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
 
-        var texto = txtPMAtivo ? $('#textoBoePM').val() : $('#textoBoe').val();
-        if (!texto || texto.trim() === '') {
-            window.mostrarErro('Cole o texto do BOE primeiro para a IA processar.');
-            return;
+        if (pdfPCPAtivo || pdfPMAtivo) {
+            var fileInput = pdfPMAtivo ? document.getElementById('pdfBoePM') : document.getElementById('pdfBoe');
+            if (!fileInput || fileInput.files.length === 0) {
+                window.mostrarErro('Selecione um arquivo PDF antes de processar.');
+                return;
+            }
+            formData.append('pdfBOE', fileInput.files[0]);
+        } else {
+            var texto = txtPMAtivo ? $('#textoBoePM').val() : $('#textoBoe').val();
+            if (!texto || texto.trim() === '') {
+                window.mostrarErro('Cole o texto do BOE primeiro para a IA processar.');
+                return;
+            }
+            formData.append('texto', texto);
         }
 
         // Helper: progresso suave para IA
@@ -970,7 +966,9 @@ $(document).ready(function () {
                 $('#boeProgressWrapper').hide();
                 if (sucesso) {
                     $('#textoBoe').val('');
+                    $('#pdfBoe').val('');
                     $('#textoBoePM').val('');
+                    $('#pdfBoePM').val('');
                     $('#boeProgressBar').css('width', '0%').attr('aria-valuenow', 0);
                     $('#boeProgressPercent').text('0%');
                 }
@@ -983,10 +981,9 @@ $(document).ready(function () {
         $.ajax({
             url: '/prompt/extrair-ia',
             method: 'POST',
-            data: {
-                _token: $('meta[name="csrf-token"]').attr('content'),
-                texto: texto
-            },
+            data: formData,
+            processData: false,
+            contentType: false,
             success: function (response) {
                 finalizarProgressoIA(response.success);
 
@@ -1001,6 +998,12 @@ $(document).ready(function () {
                         };
                     } else if (!OcorrenciasApp.dadosImportados) {
                         OcorrenciasApp.dadosImportados = {};
+                    }
+
+                    // Armazena o texto bruto do BOE para o Copilot ler depois
+                    const textoOriginal = dados.texto_raw || (isPM ? $('#textoBoePM').val() : $('#textoBoe').val()) || '';
+                    if (textoOriginal.trim()) {
+                        OcorrenciasApp.textoBoeImportado = textoOriginal;
                     }
 
                     // Preenche campos do formulário
@@ -1018,7 +1021,8 @@ $(document).ready(function () {
                     if (dados.incidencia_penal) $('#inputIncidenciaPenal').val(dados.incidencia_penal);
                     if (dados.delegado) {/* não auto-preenche a pedido do usuário */}
                     if (dados.objetos_apreendidos) {
-                        $('#inputApreensao').val(dados.objetos_apreendidos);
+                        const apreensaoFormatada = window.formatarObjetosApreendidos ? window.formatarObjetosApreendidos(dados.objetos_apreendidos) : dados.objetos_apreendidos;
+                        $('#inputApreensao').val(apreensaoFormatada);
                         if (typeof atualizarContadorItens === 'function') atualizarContadorItens(dados.objetos_apreendidos);
                         if (typeof autoResizeApreensao === 'function') setTimeout(autoResizeApreensao, 100);
                     }
@@ -1080,4 +1084,54 @@ $(document).ready(function () {
             }
         });
     });
+
+    // ==========================================
+    // VALIDAÇÃO VISUAL DE DATA ANTIGA
+    // ==========================================
+    function verificarDataRetroativa() {
+        var inputData = $('#inputData');
+        if (inputData.length === 0) return;
+        
+        var dataInformada = inputData.val();
+        if (!dataInformada || dataInformada.length < 10) {
+            // Remove o alerta se estiver vazio ou incompleto
+            inputData.removeClass('is-invalid bg-danger text-white fw-bold border-danger').css('background-color', '');
+            $('#inputDataComp, #inputDataExt').removeClass('bg-danger text-white border-danger').css('background-color', '');
+            $('#alertaDataRetroativa').remove();
+            return;
+        }
+
+        // Pega a data de hoje (sem hora)
+        var hoje = new Date();
+        var dataHojeFormatada = ('0' + hoje.getDate()).slice(-2) + '/' + 
+                                ('0' + (hoje.getMonth() + 1)).slice(-2) + '/' + 
+                                hoje.getFullYear();
+
+        if (dataInformada !== dataHojeFormatada) {
+            // É diferente de hoje! Fundo vermelho igual botão Excluir e texto branco
+            inputData.addClass('is-invalid bg-danger text-white fw-bold border-danger').css('background-color', '');
+            $('#inputDataComp, #inputDataExt').addClass('bg-danger text-white border-danger').css('background-color', '');
+            
+            // Cria um pequeno texto de aviso se não existir
+            if ($('#alertaDataRetroativa').length === 0) {
+                inputData.closest('.row').append('<div id="alertaDataRetroativa" class="col-12 mt-1"><div class="text-danger small"><i class="bi bi-exclamation-triangle-fill me-1"></i> <strong>Atenção: Data Retroativa!</strong> Corrija para a data atual e evite gerar os documentos do procedimento com a data errada.</div></div>');
+            }
+        } else {
+            // É a data de hoje, remove alertas
+            inputData.removeClass('is-invalid bg-danger text-white fw-bold border-danger').css('background-color', '');
+            $('#inputDataComp, #inputDataExt').removeClass('bg-danger text-white border-danger').css('background-color', '');
+            $('#alertaDataRetroativa').remove();
+        }
+    }
+
+    // Ouve mudanças na data
+    $('#inputData').on('input change blur keyup', function() {
+        if ($(this).val().length >= 10 || $(this).val().length === 0) {
+            verificarDataRetroativa();
+        }
+    });
+
+    // Chama no load e a cada 2 segundos (fallback para caso a data seja preenchida via JS sem trigger)
+    setTimeout(verificarDataRetroativa, 800);
+    setInterval(verificarDataRetroativa, 2000);
 });

@@ -74,13 +74,15 @@ if ($dadosBase64) {
                 ], $dadosArray[$pessoa]);
             }
         }
-    } catch (Exception $e) {
-        // Em caso de     <?php
+    } catch (\Exception $e) {
+        $dadosArray = [];
+    }
+}
 // ✅ DADOS INJETADOS PELA ROTA (routes/documentos_aafai_apfd.php)
 if (!isset($dadosArray)) {
     $dadosArray = [];
 }
-    ?>
+?>
 
 <?php
 // ✅ CORREÇÃO: FUNÇÃO AUXILIAR PROTEGIDA PARA EVITAR CRASH

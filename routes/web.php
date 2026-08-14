@@ -1,15 +1,16 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
+use App\Http\Controllers\InicioController;
 use App\Http\Controllers\GeralController;
+use App\Http\Controllers\UserSettingsController;
 use App\Http\Controllers\IntimacaoController;
 use App\Http\Controllers\AdministrativoController;
 use App\Http\Controllers\VeiculoController;
-use App\Http\Controllers\InicioController;
 use App\Http\Controllers\ProcedimentosController;
 use App\Http\Controllers\ConsultaPessoaController;
 use App\Http\Controllers\PessoaController;
+use App\Http\Controllers\AuthController;
 
 // Rotas Públicas (acessíveis sem login)
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
@@ -21,6 +22,12 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::middleware(['auth'])->group(function () {
     Route::get('/', [GeralController::class, 'index'])->name('geral');
     Route::get('/wf-geral', [GeralController::class, 'index']);
+    
+    // Configurações Pessoais
+    Route::get('/configuracoes-pessoais/carregar', [UserSettingsController::class, 'carregar'])->name('configuracoes.carregar');
+    Route::post('/configuracoes-pessoais/salvar', [UserSettingsController::class, 'salvar'])->name('configuracoes.salvar');
+    // ✅ ROTA DO AI COPILOT
+    Route::post('/api/copilot/chat', [\App\Http\Controllers\AiCopilotController::class, 'chat'])->name('copilot.chat');
 
     // ✅ ROTAS DO ADMINISTRATIVO
     Route::get('/wf-administrativo', [AdministrativoController::class, 'index'])->name('administrativo.index');

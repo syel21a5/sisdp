@@ -395,16 +395,9 @@
     break-before: page;
 }
 
-/* Estatísticas do editor */
+/* Estatísticas do editor - oculto (não é necessário para o usuário final) */
 .editor-stats {
-    background: var(--light-bg);
-    padding: 10px 25px;
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.85rem;
-    color: #666;
+    display: none !important;
 }
 
 .stat-item {

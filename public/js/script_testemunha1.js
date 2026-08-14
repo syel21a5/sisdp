@@ -576,7 +576,7 @@ $(document).ready(function () {
         const documentos = [
             "TERMO DE DECLARACAO",
             "TERMO DE DEPOIMENTO",
-            "TERMO DE INTERROGATORIO",
+
             "AAFAI - TESTEMUNHA 1",
             "APFD - TESTEMUNHA 1",
             "AUTO DE APRESENTACAO E APREENSAO",

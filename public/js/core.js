@@ -262,3 +262,125 @@ $(document).ready(function() {
         }
     });
 });
+
+// === FORMATADOR GLOBAL DE OBJETOS APREENDIDOS ===
+// Permite que qualquer página do sistema formate a string bagunçada do banco/API
+window.formatarObjetosApreendidos = function(texto) {
+    if (!texto) return '';
+
+    // Se o texto vier separado por barra " / " em vez de quebra de linha
+    if (texto.indexOf('\n') === -1 && texto.indexOf(' / ') !== -1) {
+        texto = texto.split(' / ').join('\n');
+    }
+
+    // Categorias conhecidas para forçar quebra de linha antes, caso o texto venha 100% colado sem Enter
+    const categorias = [
+        'CELULAR', 'VEICULO', 'VEÍCULO', 'OUTRO', 'OUTROS', 'ARMA', 'ARMA DE FOGO', 'ARMA BRANCA',
+        'DROGA', 'ENTORPECENTE', 'DOCUMENTO', 'VALOR', 'DINHEIRO', 'TELEFONE', 'MUNICAO', 'MUNIÇÃO',
+        'OBJETO', 'OBJETOS', 'ELETROELETRONICO', 'VESTUARIO', 'ACESSORIO', 'EQUIPAMENTO', 'FACA', 'REVOLVER', 'PISTOLA'
+    ];
+    categorias.forEach(cat => {
+        const regex = new RegExp('([^\\n])\\s*\\b(' + cat + ')\\s*-\\s*', 'gi');
+        texto = texto.replace(regex, '$1\n$2 - ');
+    });
+
+    const linhas = texto.split('\n');
+    const linhasFormatadas = [];
+
+    linhas.forEach(linha => {
+        let l = linha.trim();
+        if (!l) return;
+        
+        // Remove marcadores antigos do início
+        l = l.replace(/^[-*•\s]+/, '');
+
+        // Tenta extrair o cabeçalho e os atributos
+        // Exemplo: "CELULAR - Marca: MOTOROLA, Mod: MOTO G 6 PLAY, Cor: PRETO..."
+        let parts = l.match(/^([^-]+)\s*-\s*(.+)$/);
+        
+        if (parts) {
+            let titulo = parts[1].trim();
+            let resto = parts[2].trim();
+            let attrs = {};
+            
+            // Lista de chaves geradas pelo boe_extractor.py
+            const keys = ['Marca/Modelo', 'Marca', 'Mod', 'Cor', 'Qtd', 'Quantidade', 'Desc', 'Descrição', 'Série', 'IMEI1', 'IMEI2', 'Placa', 'Chassi'];
+            const regexChaves = new RegExp('\\b(' + keys.join('|') + '):\\s*', 'gi');
+            
+            let tokens = resto.split(regexChaves);
+            
+            if (tokens.length > 1) {
+                if (tokens[0].trim()) attrs['Detalhes'] = tokens[0].trim().replace(/,\s*$/, '');
+                
+                for (let i = 1; i < tokens.length; i += 2) {
+                    let k = tokens[i].toUpperCase();
+                    let v = (tokens[i+1] || '').trim();
+                    // Remove a vírgula solta que separava a próxima chave
+                    v = v.replace(/,\s*$/, '').trim();
+                    attrs[k] = v;
+                }
+            } else {
+                attrs['Detalhes'] = resto;
+            }
+
+            // Monta uma frase corrida natural!
+            let desc = (attrs['DESC'] || attrs['DESCRIÇÃO'] || attrs['DETALHES'] || '').trim();
+            if (desc.match(/^NÃO INFORMADO$|^NAO INFORMADO$|^N\/A$/i)) desc = '';
+
+            let sentence = "";
+            
+            // Se a descrição for longa (provavelmente já foi digitada pelo policial no formato completo)
+            // ex: "01 (UM) APARELHO CELULAR MOTOROLA..."
+            if (desc.length > 15) {
+                sentence = desc;
+                
+                // Anexa chaves importantes se elas foram extraídas separadamente mas faltaram no texto principal
+                if (attrs['IMEI1'] && !sentence.includes(attrs['IMEI1'])) sentence += `, IMEI ${attrs['IMEI1']}`;
+                if (attrs['IMEI2'] && !sentence.includes(attrs['IMEI2'])) sentence += `, IMEI ${attrs['IMEI2']}`;
+                if (attrs['PLACA'] && !sentence.includes(attrs['PLACA'])) sentence += `, PLACA ${attrs['PLACA']}`;
+                if (attrs['CHASSI'] && !sentence.includes(attrs['CHASSI'])) sentence += `, CHASSI ${attrs['CHASSI']}`;
+                if (attrs['SÉRIE'] && !sentence.includes(attrs['SÉRIE'])) sentence += `, SÉRIE ${attrs['SÉRIE']}`;
+                
+            } else {
+                // Se a descrição for curta ou não existir, o sistema constrói a frase em texto corrido!
+                let qtd = attrs['QTD'] || attrs['QUANTIDADE'] || '1';
+                if (qtd === '1' || qtd === '1,0') qtd = '01 (UM)';
+                else if (qtd === '2' || qtd === '2,0') qtd = '02 (DOIS)';
+                
+                let obj = titulo.toUpperCase();
+                let marca = attrs['MARCA'] || '';
+                let mod = attrs['MOD'] || attrs['MARCA/MODELO'] || '';
+                let cor = attrs['COR'] || '';
+                
+                let partes = [];
+                partes.push(`${qtd} ${obj}`);
+                if (marca && !marca.match(/NÃO|NAO/i)) partes.push(`MARCA ${marca}`);
+                if (mod && !mod.match(/NÃO|NAO/i)) partes.push(`MODELO ${mod}`);
+                if (cor && !cor.match(/NÃO|NAO/i)) partes.push(`COR ${cor}`);
+                if (attrs['PLACA']) partes.push(`PLACA ${attrs['PLACA']}`);
+                if (attrs['CHASSI']) partes.push(`CHASSI ${attrs['CHASSI']}`);
+                if (attrs['SÉRIE']) partes.push(`SÉRIE ${attrs['SÉRIE']}`);
+                if (attrs['IMEI1']) partes.push(`IMEI ${attrs['IMEI1']}`);
+                if (attrs['IMEI2']) partes.push(`IMEI ${attrs['IMEI2']}`);
+                
+                sentence = partes.join(", ");
+                if (desc) {
+                    sentence += ". " + desc;
+                }
+            }
+            
+            // Garante que comece com letra maiúscula e acabe bem
+            sentence = sentence.charAt(0).toUpperCase() + sentence.slice(1);
+            
+            linhasFormatadas.push("- " + sentence);
+        } else {
+            // Se não bater no padrão "Objeto - Detalhes", apenas limpa as redundâncias antigas e mostra
+            l = l.replace(/Mod:\s*NÃO\s*INFORMADO,?\s*/gi, '')
+                 .replace(/Cor:\s*NÃO\s*INFORMADO,?\s*/gi, '')
+                 .replace(/Marca:\s*NÃO\s*INFORMADO,?\s*/gi, '');
+            if (l.trim()) linhasFormatadas.push(`- ${l.trim()}`);
+        }
+    });
+
+    return linhasFormatadas.join('\n\n');
+};

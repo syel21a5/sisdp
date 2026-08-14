@@ -47,7 +47,6 @@ var rotasImpressaoCondutor = {
 var rotasImpressaoVitima1 = {
     'TERMO DE DECLARACAO': "/declaracao/--DADOS--",
     'TERMO DE DEPOIMENTO': "/depoimento/--DADOS--",
-    'TERMO DE INTERROGATORIO': "/interrogatorio/--DADOS--",
     'AAFAI - VITIMA 1': "/aafai-vitima1/--DADOS--",
     'APFD - VITIMA 1': "/apfd-vitima1/--DADOS--",
     'AUTO DE APRESENTACAO E APREENSAO': "/auto-apreensao/--DADOS--",
@@ -68,7 +67,6 @@ var rotasImpressaoVitima1 = {
 var rotasImpressaoTestemunha1 = {
     'TERMO DE DECLARACAO': "/declaracao/--DADOS--",
     'TERMO DE DEPOIMENTO': "/depoimento/--DADOS--",
-    'TERMO DE INTERROGATORIO': "/interrogatorio/--DADOS--",
     'AAFAI - TESTEMUNHA 1': "/aafai-testemunha1/--DADOS--",
     'APFD - TESTEMUNHA 1': "/apfd-testemunha1/--DADOS--",
     'AUTO DE APRESENTACAO E APREENSAO': "/auto-apreensao/--DADOS--",
@@ -86,7 +84,6 @@ var rotasImpressaoTestemunha1 = {
 var rotasImpressaoOutro = {
     'TERMO DE DECLARACAO': "/declaracao/--DADOS--",
     'TERMO DE DEPOIMENTO': "/depoimento/--DADOS--",
-    'TERMO DE INTERROGATORIO': "/interrogatorio/--DADOS--",
     'AAFAI - TESTEMUNHA 1': "/aafai-testemunha1/--DADOS--",
     'APFD - TESTEMUNHA 1': "/apfd-testemunha1/--DADOS--",
     'AUTO DE APRESENTACAO E APREENSAO': "/auto-apreensao/--DADOS--",
@@ -104,8 +101,6 @@ var rotasImpressaoOutro = {
 
 // ROTAS PARA A ABA AUTOR1 (APFD)
 var rotasImpressaoAutor1 = {
-    'TERMO DE DECLARACAO': "/declaracao/--DADOS--",
-    'TERMO DE DEPOIMENTO': "/depoimento/--DADOS--",
     'TERMO DE INTERROGATORIO': "/interrogatorio/--DADOS--",
     'INTERROGATORIO - APFD': "/interrogatorio-autor1apfd/--DADOS--",
     'AAFAI - AUTOR 1': "/aafai-autor1/--DADOS--",

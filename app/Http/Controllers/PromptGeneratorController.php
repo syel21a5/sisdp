@@ -282,7 +282,8 @@ class PromptGeneratorController extends Controller
     public function extrairDadosComIA(Request $request)
     {
         $request->validate([
-            'texto' => 'required|string'
+            'texto' => 'nullable|string',
+            'pdfBOE' => 'nullable|file|mimes:pdf|max:10240'
         ]);
 
         // Verifica permissão
@@ -295,7 +296,33 @@ class PromptGeneratorController extends Controller
         }
 
         try {
-            $texto = $request->texto;
+            $texto = $request->texto ?? '';
+            $tmpPath = '';
+
+            // Se for enviado um PDF, envia para o microserviço Python para extrair o texto
+            if ($request->hasFile('pdfBOE') && $request->file('pdfBOE')->isValid()) {
+                $pdf = $request->file('pdfBOE');
+                $tmpPath = sys_get_temp_dir() . "/boe_ia_upload_" . uniqid() . '.pdf';
+                $pdf->move(sys_get_temp_dir(), basename($tmpPath));
+
+                $motorUrl = env('MOTOR_URL', 'http://localhost:8001') . '/read-text';
+                $response = \Illuminate\Support\Facades\Http::timeout(120)->post($motorUrl, [
+                    'file_path' => $tmpPath
+                ]);
+
+                @unlink($tmpPath);
+
+                if (!$response->successful()) {
+                    return response()->json(['success' => false, 'message' => "Falha ao extrair texto do PDF via motor interno."], 500);
+                }
+
+                $texto = $response->json('text') ?? '';
+            }
+
+            if (empty(trim($texto))) {
+                return response()->json(['success' => false, 'message' => 'Nenhum texto encontrado no arquivo ou texto não enviado.'], 400);
+            }
+
             $contentHash = md5($texto);
             $cacheDir = storage_path('app/boe_cache');
             if (!file_exists($cacheDir)) {
@@ -455,11 +482,11 @@ class PromptGeneratorController extends Controller
     {
         switch ($papel) {
             case 'CONDUTOR':
-                return $isTransito ? 'transito_pm' : 'pm_condutor';
+                return $isTransito ? 'transito_pm_condutor' : 'pm_condutor';
 
             case 'TESTEMUNHA':
                 if ($isPM) {
-                    return $isTransito ? 'transito_pm' : 'pm_testemunha';
+                    return $isTransito ? 'transito_pm_testemunha' : 'pm_testemunha';
                 }
                 return 'testemunha_civil';
 

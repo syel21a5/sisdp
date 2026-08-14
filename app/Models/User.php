@@ -21,6 +21,12 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'default_delegado',
+        'default_escrivao',
+        'default_delegacia',
+        'default_cidade',
+        'default_policial1',
+        'default_policial2',
     ];
 
     /**

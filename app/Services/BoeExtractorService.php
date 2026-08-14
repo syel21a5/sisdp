@@ -28,8 +28,114 @@ class BoeExtractorService
         return false;
     }
 
+    private function formatarObjetosApreendidos(?string $texto): string
+    {
+        if (empty($texto)) {
+            return '';
+        }
+
+        // Se o texto vier separado por barra " / " em vez de quebra de linha
+        if (strpos($texto, "\n") === false && strpos($texto, " / ") !== false) {
+            $texto = str_replace(" / ", "\n", $texto);
+        }
+
+        // Primeiro, força quebras de linha antes de categorias conhecidas que estejam coladas no meio do texto
+        $categorias = ['CELULAR', 'VEICULO', 'VEÍCULO', 'OUTRO', 'OUTROS', 'ARMA', 'DROGA', 'DOCUMENTO', 'VALOR', 'TELEFONE', 'MUNICAO', 'MUNIÇÃO'];
+        foreach ($categorias as $cat) {
+            $texto = preg_replace('/(?<!\n)\s*\b(' . $cat . ')\s*-\s*/i', "\n$1 - ", $texto);
+        }
+
+        // Dividir em linhas
+        $linhas = explode("\n", $texto);
+        $linhasFormatadas = [];
+
+        foreach ($linhas as $linha) {
+            $linha = trim($linha);
+            if (empty($linha)) {
+                continue;
+            }
+
+            // Remove marcadores antigos se existirentes
+            $linha = ltrim($linha, '- *•');
+
+            // Limpa informações inúteis/ruídos de campos vazios extraídos
+            $ruidos = [
+                'Mod: NAO INFORMADO', 'Mod: NÃO INFORMADO', 
+                'Cor: NAO INFORMADO', 'Cor: NÃO INFORMADO', 
+                'Marca: NAO INFORMADO', 'Marca: NÃO INFORMADO',
+                'Mod: N/A', 'Cor: N/A', 'Marca: N/A'
+            ];
+            foreach ($ruidos as $ruido) {
+                // Procura a string do ruído de forma case-insensitive e com possíveis espaços
+                $linha = preg_replace('/' . preg_quote($ruido, '/') . '/i', '', $linha);
+            }
+
+            // Limpa vírgulas duplas ou soltas que sobraram da remoção acima
+            $linha = preg_replace('/,\s*,+/', ',', $linha);
+            $linha = preg_replace('/-\s*,/', '-', $linha);
+            $linha = preg_replace('/,\s*-/', '-', $linha);
+            $linha = preg_replace('/,\s*$/', '', $linha);
+            $linha = preg_replace('/\s*,\s*/', ', ', $linha);
+            $linha = preg_replace('/-\s*,/', '-', $linha);
+            $linha = preg_replace('/\s+/', ' ', $linha);
+            
+            // Remove pontuações estranhas que sobram nos cantos
+            $linha = trim($linha, " ,-\t\n\r\0\x0B");
+
+            if (!empty($linha)) {
+                $linhasFormatadas[] = "- " . $linha;
+            }
+        }
+
+        // Retorna os itens separados por quebra de linha dupla para leitura limpa
+        return implode("\n\n", $linhasFormatadas);
+    }
+
+    private function sanitizeEnvolvidos(array $dados): array
+    {
+        $keys = ['autores', 'vitimas', 'condutor', 'testemunhas', 'outros'];
+        foreach ($keys as $k) {
+            if (!isset($dados[$k]) || !is_array($dados[$k])) {
+                $dados[$k] = [];
+            }
+            // Normaliza em caixa alta e remove vazios e repetidos
+            $dados[$k] = array_values(array_unique(array_filter(array_map(function($nome) {
+                return strtoupper(trim($nome));
+            }, $dados[$k]))));
+        }
+
+        // Helper para remover itens das listas com comparação case-insensitive
+        $removeFromList = function(array $target, array $removeLists) {
+            foreach ($removeLists as $rem) {
+                $remUpper = array_map('strtoupper', $rem);
+                $target = array_filter($target, function($x) use ($remUpper) {
+                    return !in_array(strtoupper($x), $remUpper);
+                });
+            }
+            return array_values($target);
+        };
+
+        // Hierarquia estrita: Autores > Vitimas > Condutor > Testemunhas > Outros
+        // Um Autor nunca pode ser Vítima, Condutor, Testemunha ou Outro.
+        // Uma Vítima nunca pode ser Condutor, Testemunha ou Outro, e assim por diante.
+        $dados['vitimas'] = $removeFromList($dados['vitimas'], [$dados['autores']]);
+        $dados['condutor'] = $removeFromList($dados['condutor'], [$dados['autores'], $dados['vitimas']]);
+        $dados['testemunhas'] = $removeFromList($dados['testemunhas'], [$dados['autores'], $dados['vitimas'], $dados['condutor']]);
+        $dados['outros'] = $removeFromList($dados['outros'], [$dados['autores'], $dados['vitimas'], $dados['condutor'], $dados['testemunhas']]);
+
+        return $dados;
+    }
+
     private function enrichObjetosProprietario(array $dados): array
     {
+        // 1. Sanitizar envolvidos e aplicar hierarquia estrita de papéis
+        $dados = $this->sanitizeEnvolvidos($dados);
+
+        // 2. Formatar a string de objetos apreendidos
+        if (!empty($dados['objetos_apreendidos'])) {
+            $dados['objetos_apreendidos'] = $this->formatarObjetosApreendidos($dados['objetos_apreendidos']);
+        }
+
         $pickFirst = function (array $arr): ?string {
             foreach ($arr as $v) {
                 if (is_string($v) && trim($v) !== '') {
@@ -46,32 +152,30 @@ class BoeExtractorService
             $pickFirst($dados['testemunhas'] ?? []) ??
             $pickFirst($dados['outros'] ?? []);
 
-        if (!$proprietarioPadrao) {
-            return $dados;
-        }
-
-        if (!empty($dados['veiculos']) && is_array($dados['veiculos'])) {
-            foreach ($dados['veiculos'] as $i => $v) {
-                if (!is_array($v)) {
-                    continue;
-                }
-                $has = !empty($v['proprietario']) || !empty($v['pessoa']);
-                if (!$has) {
-                    $v['proprietario'] = $proprietarioPadrao;
-                    $dados['veiculos'][$i] = $v;
+        if ($proprietarioPadrao) {
+            if (!empty($dados['veiculos']) && is_array($dados['veiculos'])) {
+                foreach ($dados['veiculos'] as $i => $v) {
+                    if (!is_array($v)) {
+                        continue;
+                    }
+                    $has = !empty($v['proprietario']) || !empty($v['pessoa']);
+                    if (!$has) {
+                        $v['proprietario'] = $proprietarioPadrao;
+                        $dados['veiculos'][$i] = $v;
+                    }
                 }
             }
-        }
 
-        if (!empty($dados['celulares']) && is_array($dados['celulares'])) {
-            foreach ($dados['celulares'] as $i => $c) {
-                if (!is_array($c)) {
-                    continue;
-                }
-                $has = !empty($c['proprietario']) || !empty($c['pessoa']);
-                if (!$has) {
-                    $c['proprietario'] = $proprietarioPadrao;
-                    $dados['celulares'][$i] = $c;
+            if (!empty($dados['celulares']) && is_array($dados['celulares'])) {
+                foreach ($dados['celulares'] as $i => $c) {
+                    if (!is_array($c)) {
+                        continue;
+                    }
+                    $has = !empty($c['proprietario']) || !empty($c['pessoa']);
+                    if (!$has) {
+                        $c['proprietario'] = $proprietarioPadrao;
+                        $dados['celulares'][$i] = $c;
+                    }
                 }
             }
         }

@@ -308,14 +308,7 @@
             </li>
             @endif
 
-            <li class="sidebar-footer mt-auto">
-                <form action="{{ route('logout') }}" method="POST">
-                    @csrf
-                    <button type="submit" class="btn-logout-sidebar">
-                        <i class="bi bi-box-arrow-right"></i> Sair do Sistema
-                    </button>
-                </form>
-            </li>
+
         </ul>
     </div>
 

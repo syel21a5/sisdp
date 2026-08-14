@@ -579,7 +579,7 @@ $(document).ready(function () {
         const documentos = [
             "TERMO DE DECLARACAO",
             "TERMO DE DEPOIMENTO",
-            "TERMO DE INTERROGATORIO",
+            
             "AAFAI - VITIMA 1", // ✅ MANTIDO
             "APFD - VITIMA 1",
             "AUTO DE APRESENTACAO E APREENSAO",

@@ -157,6 +157,12 @@
             @endif
             @endif
 
+            <li>
+                <a href="#" data-bs-toggle="modal" data-bs-target="#modalConfigPessoais">
+                    <i class="bi bi-gear-fill"></i> Minhas Configurações
+                </a>
+            </li>
+
             <!-- BOTÃO DE SAIR - SEMPRE ACESSÍVEL -->
             <li class="sidebar-footer">
                 <form action="{{ route('logout') }}" method="POST">
@@ -356,7 +362,62 @@
     <script src="{{ asset('js/script_geral.js') }}"></script>
     <script src="{{ asset('js/script_condutor.js') }}"></script>
     <script src="{{ asset('js/menu_lateral.js') }}"></script>
+    <script src="{{ asset('js/config_pessoais.js') }}?v={{ time() }}"></script>
     <script src="{{ asset('js/apreensao_celular/script.js') }}"></script>
+
+    <!-- ✅ MODAL CONFIGURAÇÕES PESSOAIS (NOVO) -->
+    <div class="modal fade" id="modalConfigPessoais" tabindex="-1" aria-labelledby="modalConfigPessoaisLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #1e3c72, #2a5298); color: white;">
+                    <h5 class="modal-title fw-bold" id="modalConfigPessoaisLabel">
+                        <i class="bi bi-gear-fill me-2"></i> Minhas Configurações Padrão
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-4">
+                        <i class="bi bi-info-circle-fill me-1"></i> 
+                        Os dados preenchidos aqui ficarão salvos <strong>na sua conta</strong> e serão inseridos automaticamente em novos formulários de procedimentos para agilizar o preenchimento.
+                    </p>
+                    <form id="formConfigPessoais">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Delegado</label>
+                                <input type="text" class="form-control" id="configDelegado" placeholder="Ex: Nome Completo">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Escrivão</label>
+                                <input type="text" class="form-control" id="configEscrivao" placeholder="Ex: Nome Completo">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Delegacia / Circunscrição</label>
+                                <input type="text" class="form-control" id="configDelegacia" placeholder="Ex: 167ª Circunscrição">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Cidade</label>
+                                <input type="text" class="form-control" id="configCidade" placeholder="Ex: Afogados da Ingazeira">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-primary">Policial 1</label>
+                                <input type="text" class="form-control" id="configPolicial1" placeholder="Ex: Nome Completo">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-primary">Policial 2</label>
+                                <input type="text" class="form-control" id="configPolicial2" placeholder="Ex: Nome Completo">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success fw-bold px-4" id="btnSalvarConfigPessoais">
+                        <i class="bi bi-save me-1"></i> Salvar e Aplicar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
 

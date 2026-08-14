@@ -10,40 +10,63 @@ class AiService
     /**
      * Envia um prompt para a API do DeepSeek (Externo - Rápido)
      */
-    public function gerarTextoDeepSeek(string $userPrompt, string $systemPrompt = 'Você é um assistente útil.'): ?string
+    public function gerarTextoDeepSeek(string $userPrompt, string $systemPrompt = 'Você é um assistente útil.', ?string $providerOverride = null): ?string
     {
-        $apiKey = config('services.deepseek.api_key');
-        if (!$apiKey) {
-            Log::warning("DeepSeek API Key não encontrada no .env");
+        $providerName = $providerOverride ?? config('services.ai.default', 'deepseek');
+        $providerConfig = config("services.ai.providers.{$providerName}");
+
+        $rawApiKey = $providerConfig['api_key'] ?? null;
+        $baseUrl = $providerConfig['base_url'] ?? 'https://api.deepseek.com/chat/completions';
+        $model = $providerConfig['model'] ?? 'deepseek-chat';
+
+        if (!$rawApiKey) {
+            Log::warning("{$providerName} API Key não encontrada no .env");
             return null;
         }
 
-        try {
-            Log::info("Enviando prompt para DeepSeek API com Context Caching...");
-            
-            $response = Http::timeout(60)->withHeaders([
-                'Authorization' => "Bearer {$apiKey}",
-                'Content-Type' => 'application/json',
-            ])->post("https://api.deepseek.com/chat/completions", [
-                'model' => 'deepseek-chat',
-                'messages' => [
-                    ['role' => 'system', 'content' => $systemPrompt],
-                    ['role' => 'user', 'content' => $userPrompt]
-                ],
-                'stream' => false
-            ]);
+        // Suporte para múltiplas chaves API (Load Balancing e Fallback)
+        $keys = [$rawApiKey];
+        if (strpos($rawApiKey, ',') !== false) {
+            $keys = array_filter(array_map('trim', explode(',', $rawApiKey)));
+            shuffle($keys); // Randomiza a ordem para balanceamento de carga
+        }
 
-            if ($response->successful()) {
-                return $response->json('choices.0.message.content');
+        $lastError = null;
+
+        foreach ($keys as $apiKey) {
+            try {
+                Log::info("Enviando prompt para {$providerName} API (Tentativa com uma das chaves)...");
+                
+                $response = Http::timeout(60)->withHeaders([
+                    'Authorization' => "Bearer {$apiKey}",
+                    'Content-Type' => 'application/json',
+                ])->post($baseUrl, [
+                    'model' => $model,
+                    'messages' => [
+                        ['role' => 'system', 'content' => $systemPrompt],
+                        ['role' => 'user', 'content' => $userPrompt]
+                    ],
+                    'stream' => false
+                ]);
+
+                if ($response->successful()) {
+                    return $response->json('choices.0.message.content');
+                }
+
+                // Se falhar (ex: Rate Limit 429), salva o erro e tenta a próxima chave do loop
+                $lastError = "Status " . $response->status() . " - " . $response->body();
+                Log::warning("Chave falhou para {$providerName}. Tentando a próxima... Erro: {$lastError}");
+                continue;
+
+            } catch (\Exception $e) {
+                $lastError = $e->getMessage();
+                Log::warning("Exceção com uma chave do {$providerName}. Tentando a próxima... Erro: {$lastError}");
+                continue;
             }
-
-            Log::error("Erro na API DeepSeek: Status " . $response->status() . " - " . $response->body());
-            return null;
-
-        } catch (\Exception $e) {
-            Log::error("Exceção ao chamar DeepSeek: " . $e->getMessage());
-            return null;
         }
+
+        Log::error("Todas as chaves configuradas para {$providerName} falharam. Último erro: {$lastError}");
+        return null;
     }
 
     /**
@@ -102,6 +125,8 @@ Formato esperado:
 }
 
 REGRAS IMPORTANTES DE FORMATAÇÃO:
+- O \"condutor\" deve ser exclusivamente o Policial Militar ou autoridade policial que efetuou a prisão/condução da ocorrência até a delegacia (encontrado sob \"Condutor da ocorrência:\" no final do BOE).
+- JAMAIS coloque o Infrator/Autor/Imputado (como VICENTE FRANCISCO DE ALMEIDA) como \"condutor\" da ocorrência, mesmo que no histórico ele seja descrito como o \"condutor do veículo/moto\". O Infrator/Autor deve ir apenas para \"autores\".
 - Naturalidade: retorne APENAS no formato \"CIDADE-UF\" (exemplo: \"SAO JOSE DO EGITO-PE\"). NUNCA inclua o país (BRASIL). 
   - IMPORTANTE: Se o dado for desconhecido ou não informado, retorne APENAS \"NAO INFORMADO\". NUNCA acrescente o estado nesses casos.
 - Endereco: retorne o logradouro completo (rua, número, bairro) e ao final coloque apenas CIDADE-UF. 
@@ -109,13 +134,14 @@ REGRAS IMPORTANTES DE FORMATAÇÃO:
   - Converta o nome do estado para sigla (PERNAMBUCO → PE, PARAIBA → PB, etc).
 - Nomes de pessoas devem ser em MAIÚSCULAS e sem acentos.
 - Se qualquer campo não constar no texto, use string vazia \"\".
-- JAMAIS extraia o policial que registrou o BO como envolvido.";
+- JAMAIS extraia o policial que registrou o BO como envolvido.
+- Se tiver dúvidas do papel de uma pessoa, coloque-a em \"outros\".";
 
         $userMessage = "Texto do BOE para extração: \n{$texto}";
 
-        // API do DeepSeek - Processamento em Segundos com Alta Inteligência e Caching
-        Log::info("Iniciando extração ultrarrápida via DeepSeek API (com cache)...");
-        $resposta = $this->gerarTextoDeepSeek($userMessage, $systemMessage);
+        // API do Groq - Processamento em Segundos para Extração
+        Log::info("Iniciando extração ultrarrápida via Groq API (com cache)...");
+        $resposta = $this->gerarTextoDeepSeek($userMessage, $systemMessage, 'groq');
 
         if (!$resposta) {
             Log::error("Falha ao comunicar com DeepSeek. Falha na extração.");

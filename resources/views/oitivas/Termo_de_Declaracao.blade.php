@@ -78,13 +78,13 @@
                 </div>
                 <p style="line-height: 1.6; margin: 0.2em 0; padding: 0;">&nbsp;</p>
                 <p style="text-align: justify; line-height: 1.6; margin: 0.2em 0; padding: 0;">
-                    Inquirida pela Autoridade Policial acerca dos fatos, disse o que se segue: QUE,
+                    Inquirida pela Autoridade Policial acerca dos fatos, disse o que se segue:
                     @if(!empty($dadosArray['_conteudo_salvo']))
                     <span id="conteudo-declaracao">{!! $dadosArray['_conteudo_salvo'] !!}</span>
                     @else
                     <span id="conteudo-declaracao" style="background-color: cyan;">ESCREVER AQUI A DECLARAÇÃO</span>
                     @endif
-                    . Nada mais havendo a acrescentar, lido e achado conforme, o presente termo é lavrado em referência ao Boletim de Ocorrência nº
+                    Nada mais havendo a acrescentar, lido e achado conforme, o presente termo é lavrado em referência ao Boletim de Ocorrência nº
                     <strong>{{ !empty($dadosArray['boe']) ? $dadosArray['boe'] : 'NÃO INFORMADO' }}</strong>,
                     e vai devidamente assinado pela Autoridade Policial, pela testemunha, e por mim escrivão que o digitei.
                 </p>

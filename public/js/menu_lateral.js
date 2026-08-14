@@ -218,4 +218,32 @@ document.addEventListener('DOMContentLoaded', function () {
             toggle.setAttribute('onclick', 'return false;');
         });
     }
+
+    // Confirmação de Logout
+    const logoutForms = document.querySelectorAll('form[action$="logout"]');
+    logoutForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Sair do Sistema?',
+                    text: "Você será desconectado do SisDP.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Sim, sair!',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.submit();
+                    }
+                });
+            } else {
+                if (confirm('Deseja realmente sair do sistema?')) {
+                    this.submit();
+                }
+            }
+        });
+    });
 });

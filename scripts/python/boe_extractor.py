@@ -705,19 +705,32 @@ def parse_boe_python(texto: str) -> dict:
         if obj_list_text:
             dados['objetos_apreendidos'] = "\n".join(obj_list_text)
 
-    # Deduplicacao e Filtragem de Categorias (Hierarquia: Autores > Vitimas > Condutor > Testemunhas > Outros)
+def post_process_envolvidos(dados: dict) -> dict:
+    # Garante que as chaves existam e normaliza/deduplica os nomes
     for k in ['autores', 'vitimas', 'condutor', 'testemunhas', 'outros']:
-        dados[k] = list(dict.fromkeys(dados[k]))
-    
+        if k not in dados:
+            dados[k] = []
+        if isinstance(dados[k], list):
+            # Normaliza nomes em caixa alta e sem acentos
+            dados[k] = [remover_acentos(str(x).strip().upper()) for x in dados[k] if x]
+            # Deduplica mantendo ordem
+            dados[k] = list(dict.fromkeys(dados[k]))
+
     def remove_from_list(target_list, to_remove_lists):
         for rem_list in to_remove_lists:
             target_list = [x for x in target_list if x not in rem_list]
         return target_list
 
+    # Hierarquia estrita: Autores > Vitimas > Condutor > Testemunhas > Outros
     dados['vitimas'] = remove_from_list(dados['vitimas'], [dados['autores']])
     dados['condutor'] = remove_from_list(dados['condutor'], [dados['autores'], dados['vitimas']])
     dados['testemunhas'] = remove_from_list(dados['testemunhas'], [dados['autores'], dados['vitimas'], dados['condutor']])
     dados['outros'] = remove_from_list(dados['outros'], [dados['autores'], dados['vitimas'], dados['condutor'], dados['testemunhas']])
+
+    return dados
+
+# Dentro da parse_boe_python
+    dados = post_process_envolvidos(dados)
 
     proprietario_padrao = ''
     for k in ['autores', 'condutor', 'vitimas', 'testemunhas', 'outros']:
@@ -856,9 +869,12 @@ ESTRUTURA DO JSON:
 }}
 
 REGRAS ADICIONAIS:
+- O "condutor" deve ser exclusivamente o Policial Militar ou autoridade policial que efetuou a prisão/condução da ocorrência até a delegacia (encontrado sob "Condutor da ocorrência:" no final do BOE).
+- JAMAIS coloque o Infrator/Autor/Imputado (como VICENTE FRANCISCO DE ALMEIDA) como "condutor" da ocorrência, mesmo que no histórico ele seja descrito como o "condutor do veículo/moto". O Infrator/Autor deve ir apenas para "autores".
 - JAMAIS extraia o nome do policial que apenas registrou o BO no sistema.
 - Se um campo não for encontrado, deixe-o vazio ("").
 - Mantenha os nomes em CAIXA ALTA.
+- Se tiver dúvidas do papel de uma pessoa, coloque-a em "outros".
 
 TEXTO DO BOE:
 {texto}"""
@@ -896,6 +912,7 @@ def process_with_deepseek(texto, config):
             res = call_deepseek(texto, config['deepseek_key'])
             match = re.search(r'\{.*\}', res, re.DOTALL)
             dados = json.loads(match.group(0) if match else res)
+            dados = post_process_envolvidos(dados)
             sys.stderr.write(f"[BOE-IA] Extração concluída na tentativa {tentativa}\n")
             return dados
         except Exception as e:
@@ -929,8 +946,8 @@ if __name__ == "__main__":
                 for line in f:
                     if '=' in line:
                         k, v = line.strip().split('=', 1)
-                        if k == 'GEMINI_API_KEYS': config['gemini_keys'] = [x.strip() for x in v.split(',')]
-                        if k == 'GROQ_API_KEYS': config['groq_keys'] = [x.strip() for x in v.split(',')]
+                        if k in ['GEMINI_API_KEYS', 'GEMINI_API_KEY']: config['gemini_keys'] = [x.strip() for x in v.split(',') if x.strip()]
+                        if k in ['GROQ_API_KEYS', 'GROQ_API_KEY']: config['groq_keys'] = [x.strip() for x in v.split(',') if x.strip()]
                         if k == 'DEEPSEEK_API_KEY': config['deepseek_key'] = v
     except: pass
 

@@ -98,14 +98,7 @@
             @endif
 
             <!-- BOTÃO DE SAIR -->
-            <li class="sidebar-footer">
-                <form action="{{ route('logout') }}" method="POST">
-                    @csrf
-                    <button type="submit" class="btn-logout-sidebar">
-                        <i class="bi bi-box-arrow-right"></i> Sair do Sistema
-                    </button>
-                </form>
-            </li>
+
         </ul>
     </div>
 

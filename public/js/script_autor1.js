@@ -775,8 +775,6 @@ $(document).ready(function () {
     // === AUTOCOMPLETE PARA DOCUMENTOS ===
     (function () {
         const documentos = [
-            "TERMO DE DECLARACAO",
-            "TERMO DE DEPOIMENTO",
             "TERMO DE INTERROGATORIO",
             "AAFAI - AUTOR 1",
             "APFD - AUTOR 1",

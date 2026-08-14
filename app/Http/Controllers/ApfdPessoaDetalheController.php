@@ -99,6 +99,16 @@ class ApfdPessoaDetalheController extends Controller
                 ->where('papel', $papel)
                 ->first();
 
+            // Fallback: se mudaram a pessoa de papel (ex: era Testemunha, virou Autor),
+            // a oitiva estava salva com o papel antigo. Busca qualquer oitiva dessa pessoa neste BOE.
+            if (!$registro) {
+                $registro = DB::table('apfd_pessoas_detalhes')
+                    ->where('cadprincipal_id', $cad->id)
+                    ->where('pessoa_id', $pessoaId)
+                    ->orderBy('id', 'desc')
+                    ->first();
+            }
+
             if (!$registro || empty($registro->interrogatorio)) {
                 return response()->json(['success' => true, 'data' => ['interrogatorio' => '', 'nota_culpa' => '']]);
             }
