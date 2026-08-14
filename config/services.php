@@ -49,11 +49,6 @@ return [
                 'base_url' => 'https://api.deepseek.com/chat/completions',
                 'model' => 'deepseek-chat',
             ],
-            'groq' => [
-                'api_key' => env('GROQ_API_KEY'),
-                'base_url' => 'https://api.groq.com/openai/v1/chat/completions',
-                'model' => 'llama-3.3-70b-versatile',
-            ],
             'sambanova' => [
                 'api_key' => env('SAMBANOVA_API_KEY'),
                 'base_url' => 'https://api.sambanova.ai/v1/chat/completions',

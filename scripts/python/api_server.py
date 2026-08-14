@@ -76,8 +76,8 @@ def extract_boe(request: ExtractRequest):
                 for line in f:
                     if '=' in line:
                         k, v = line.strip().split('=', 1)
-                        if k == 'GEMINI_API_KEYS': config['gemini_keys'] = [x.strip() for x in v.split(',')]
-                        if k == 'GROQ_API_KEYS': config['groq_keys'] = [x.strip() for x in v.split(',')]
+                        if k in ('GEMINI_API_KEYS', 'GEMINI_API_KEY'): config['gemini_keys'] = [x.strip() for x in v.split(',') if x.strip()]
+                        if k in ('GROQ_API_KEYS', 'GROQ_API_KEY'): config['groq_keys'] = [x.strip() for x in v.split(',') if x.strip()]
                         if k == 'DEEPSEEK_API_KEY': config['deepseek_key'] = v
     except: pass
 

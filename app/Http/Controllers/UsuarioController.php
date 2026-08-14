@@ -54,6 +54,7 @@ class UsuarioController extends Controller
                 'auditoria_chips' => $request->has('perm_auditoria_chips'),
                 'gerar_prompts' => $request->has('perm_gerar_prompts'),
                 'extracao_boe_ia' => $request->has('perm_extracao_boe_ia'),
+                'copilot_ia' => $request->has('perm_copilot_ia'),
                 'verificar_sei' => $request->has('perm_verificar_sei'),
                 'ver_apenas_proprias' => $request->has('perm_ver_apenas_proprias')
             ]
@@ -105,6 +106,7 @@ class UsuarioController extends Controller
                 'auditoria_chips' => $request->has('perm_auditoria_chips'),
                 'gerar_prompts' => $request->has('perm_gerar_prompts'),
                 'extracao_boe_ia' => $request->has('perm_extracao_boe_ia'),
+                'copilot_ia' => $request->has('perm_copilot_ia'),
                 'verificar_sei' => $request->has('perm_verificar_sei'),
                 'ver_apenas_proprias' => $request->has('perm_ver_apenas_proprias')
             ]

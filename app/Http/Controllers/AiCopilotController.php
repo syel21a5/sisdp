@@ -10,6 +10,15 @@ class AiCopilotController extends Controller
 {
     public function chat(Request $request)
     {
+        // Verifica permissão de acesso ao Assistente de IA (Copilot)
+        $user = auth()->user();
+        if ($user && isset($user->permissions['copilot_ia']) && !$user->permissions['copilot_ia']) {
+            Log::warning("Usuário sem permissão de Copilot IA tentou acessar: {$user->username}");
+            return response()->json([
+                'success' => false,
+                'error' => "Acesso Negado: Apenas usuários habilitados podem usar o Assistente de IA."
+            ], 403);
+        }
 
         $userMessage = $request->input('message');
         $context = $request->input('context');

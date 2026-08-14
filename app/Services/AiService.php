@@ -139,9 +139,9 @@ REGRAS IMPORTANTES DE FORMATAÇÃO:
 
         $userMessage = "Texto do BOE para extração: \n{$texto}";
 
-        // API do Groq - Processamento em Segundos para Extração
-        Log::info("Iniciando extração ultrarrápida via Groq API (com cache)...");
-        $resposta = $this->gerarTextoDeepSeek($userMessage, $systemMessage, 'groq');
+        // Extração via DeepSeek (substitui Groq, que estava bloqueado por IP do datacenter)
+        Log::info("Iniciando extração via DeepSeek API...");
+        $resposta = $this->gerarTextoDeepSeek($userMessage, $systemMessage, 'deepseek');
 
         if (!$resposta) {
             Log::error("Falha ao comunicar com DeepSeek. Falha na extração.");

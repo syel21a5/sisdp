@@ -456,6 +456,12 @@ $(document).ready(function () {
             OcorrenciasApp.atualizarEstadoBotoes();
         }
 
+        // ✅ CORREÇÃO: Reaplicar as Configurações Pessoais (Defaults) após limpar,
+        // para que o botão "Novo" já reabra o formulário preenchido com os dados padrão.
+        if (typeof window.aplicarConfigPessoais === 'function') {
+            window.aplicarConfigPessoais();
+        }
+
         console.log('✨ [script_apfd] Limpeza concluída.');
     }
 

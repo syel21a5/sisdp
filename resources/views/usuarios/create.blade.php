@@ -80,6 +80,10 @@
                                         <label class="form-check-label fw-semibold cursor-pointer" for="perm_extracao_boe_ia"><i class="bi bi-robot text-success"></i> Extração BOE (IA)</label>
                                     </div>
                                     <div class="form-check form-switch mb-2 fs-6">
+                                        <input type="checkbox" class="form-check-input cursor-pointer" id="perm_copilot_ia" name="perm_copilot_ia" {{ old('perm_copilot_ia', true) ? 'checked' : '' }}>
+                                        <label class="form-check-label fw-semibold cursor-pointer" for="perm_copilot_ia"><i class="bi bi-chat-dots-fill text-primary"></i> Assistente de IA (Copilot)</label>
+                                    </div>
+                                    <div class="form-check form-switch mb-2 fs-6">
                                         <input type="checkbox" class="form-check-input cursor-pointer" id="perm_auditoria_chips" name="perm_auditoria_chips" {{ old('perm_auditoria_chips', false) ? 'checked' : '' }}>
                                         <label class="form-check-label fw-semibold cursor-pointer" for="perm_auditoria_chips"><i class="bi bi-diagram-3 text-warning"></i> Auditoria Chips (Relatório)</label>
                                     </div>

@@ -60,6 +60,12 @@ $(document).ready(function() {
     // Inicialização ao carregar a página
     carregarConfiguracoes();
 
+    // ✅ Expor função global para que outros scripts (ex: botão "Novo" do APFD) possam
+    // reaplicar as configurações pessoais após limpar o formulário.
+    window.aplicarConfigPessoais = function() {
+        autoPreencherFormularioAPFD();
+    };
+
     // 3. Salvar configurações quando clicar no botão Salvar do modal
     $('#btnSalvarConfigPessoais').on('click', function() {
         const btn = $(this);
