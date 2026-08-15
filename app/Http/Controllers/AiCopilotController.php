@@ -89,6 +89,20 @@ PROMPT;
         $baseUrl = $providerConfig['base_url'] ?? 'https://api.deepseek.com/chat/completions';
         $model = $providerConfig['model'] ?? 'deepseek-chat';
 
+        // Lista de modelos de fallback: tenta na ordem até um responder (evita 503/429 de modelo sobrecarregado).
+        $modelosFallback = config("services.ai.providers.{$providerName}.fallback_models", []);
+        if (empty($modelosFallback) || !is_array($modelosFallback)) {
+            $modelosFallback = [$model];
+            if ($providerName === 'gemini') {
+                $modelosFallback = array_values(array_unique(array_filter([
+                    env('GEMINI_MODEL', 'gemini-3.5-flash'),
+                    'gemini-3.6-flash',
+                    'gemini-3-flash-preview',
+                    'gemini-3.5-flash',
+                ])));
+            }
+        }
+
         if (!$rawApiKey) {
             Log::warning("API Key do provedor {$providerName} não configurada no .env");
             return response()->json([
@@ -165,11 +179,13 @@ PROMPT;
 
         $lastError = null;
 
-        foreach ($keys as $apiKey) {
-            try {
-                $response = Http::withToken($apiKey)
-                    ->timeout(60)
-                    ->post($baseUrl, $payload);
+        foreach ($modelosFallback as $currentModel) {
+            $payload['model'] = $currentModel;
+            foreach ($keys as $apiKey) {
+                try {
+                    $response = Http::withToken($apiKey)
+                        ->timeout(60)
+                        ->post($baseUrl, $payload);
 
                 if ($response->successful()) {
                     $data = $response->json();
@@ -243,17 +259,18 @@ PROMPT;
 
                 // Se falhou com essa chave, tenta a próxima
                 $lastError = "Status " . $response->status() . " - " . $response->body();
-                Log::warning("Chave Copilot falhou para {$providerName}. Tentando a próxima... Erro: {$lastError}");
+                Log::warning("Chave Copilot falhou para {$providerName} (Modelo: {$currentModel}). Tentando a próxima... Erro: {$lastError}");
                 continue;
 
             } catch (\Exception $e) {
                 $lastError = $e->getMessage();
-                Log::warning("Exceção com uma chave Copilot do {$providerName}. Tentando a próxima... Erro: {$lastError}");
+                Log::warning("Exceção com uma chave Copilot do {$providerName} (Modelo: {$currentModel}). Tentando a próxima... Erro: {$lastError}");
                 continue;
             }
         }
+        }
 
-        Log::error("Erro {$providerName} API Copilot: Todas as chaves falharam. Último erro: {$lastError}");
+        Log::error("Erro {$providerName} API Copilot: Todas as chaves e modelos falharam. Último erro: {$lastError}");
         return response()->json([
             'success' => false,
             'error' => "Erro na comunicação com a Inteligência Artificial. Verifique as configurações ou tente novamente em instantes."
