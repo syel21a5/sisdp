@@ -705,6 +705,11 @@ def parse_boe_python(texto: str) -> dict:
         if obj_list_text:
             dados['objetos_apreendidos'] = "\n".join(obj_list_text)
 
+    # CORRECAO: parse_boe_python precisa retornar o resultado da extracao.
+    # Sem este return, a funcao retorna None implicitamente, quebrando o unpack
+    # em api_server.py (erro: cannot unpack non-iterable NoneType object).
+    return (True, dados)
+
 def post_process_envolvidos(dados: dict) -> dict:
     # Garante que as chaves existam e normaliza/deduplica os nomes
     for k in ['autores', 'vitimas', 'condutor', 'testemunhas', 'outros']:

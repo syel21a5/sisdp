@@ -180,7 +180,8 @@ PROMPT;
                         $toolCall = $message['tool_calls'][0]['function'];
                         $args = json_decode($toolCall['arguments'], true) ?? [];
 
-                        // Intercepta a chamada para injetar o texto_gerado usando o PromptGeneratorController!
+                        // Abre o editor do documento pré-preenchido com os dados da pessoa
+                        // (a redação da oitiva fica por conta do escrivão — sem geração de texto pela IA)
                         if ($toolCall['name'] === 'abrir_editor') {
                             // Se a IA não mandou pessoa_id (ex: documento genérico), pegamos o ID do primeiro condutor do contexto
                             $pessoaId = $args['pessoa_id'] ?? null;
@@ -196,7 +197,7 @@ PROMPT;
                             }
                             // Busca o nome e papel na lista de envolvidos do contexto
                             $nomeEncontrado = '';
-                            $papelEncontrado = '';
+                            $preenchido_em = '';
                             $mapaPapeis = [
                                 'vitimas' => 'VITIMA',
                                 'autores' => 'AUTOR',
@@ -217,44 +218,9 @@ PROMPT;
                                 }
                             }
 
-                            if ($nomeEncontrado && $boeNumero) {
-                                $promptReq = new Request([
-                                    'boe' => $boeNumero,
-                                    'pessoa_id' => $pessoaId,
-                                    'nome' => $nomeEncontrado,
-                                    'papel' => $papelEncontrado
-                                ]);
-                                
-                                $promptGen = app(\App\Http\Controllers\PromptGeneratorController::class);
-                                $promptResp = $promptGen->gerarPrompt($promptReq);
-                                
-                                if ($promptResp->status() == 200) {
-                                    $promptData = $promptResp->getData();
-                                    if (!empty($promptData->prompt)) {
-                                        $aiService = app(\App\Services\AiService::class);
-                                        $textoFinal = $aiService->gerarTextoDeepSeek($promptData->prompt);
-                                        if ($textoFinal) {
-                                            // 1. Converte negritos de Markdown (**) para HTML (<b>)
-                                            $textoFinal = preg_replace('/\*\*(.*?)\*\*/s', '<b>$1</b>', $textoFinal);
-                                            
-                                            // 2. Remove cabeçalhos de título comuns (ex: ### <b>TERMO DE DEPOIMENTO...</b>)
-                                            $textoFinal = preg_replace('/^\s*(?:#+|###)?\s*<b>(?:TERMO DE DEPOIMENTO|TERMO DE DECLARACAO|TERMO DE INTERROGATORIO|PERGUNTAS PARA INTERROGATÓRIO|DECLARAÇÃO|DEPOIMENTO|INTERROGATÓRIO|AUTO DE APRESENTAÇÃO).*?<\/b>\s*/mi', '', $textoFinal);
-                                            // Fallback se o título vier sem negrito
-                                            $textoFinal = preg_replace('/^\s*(?:#+|###)\s*(?:TERMO DE DEPOIMENTO|TERMO DE DECLARACAO|TERMO DE INTERROGATORIO|PERGUNTAS PARA INTERROGATÓRIO|DECLARAÇÃO|DEPOIMENTO|INTERROGATÓRIO|AUTO DE APRESENTAÇÃO).*?$/mi', '', $textoFinal);
-                                            
-                                            // 3. Remove blocos de assinatura comuns ao final
-                                            $textoFinal = preg_replace('/Assinatura:\s*<b>.*?<\/b>\s*$/i', '', $textoFinal);
-                                            $textoFinal = preg_replace('/Assinatura:\s*.*?$/i', '', $textoFinal);
-                                            $textoFinal = preg_replace('/(?:DEPOENTE|AUTORIDADE POLICIAL|ESCRIV[AÃ]O|TESTEMUNHA):\s*$/mi', '', $textoFinal);
-                                            
-                                            // Limpa espaços extras
-                                            $textoFinal = trim($textoFinal);
-                                            
-                                            $args['texto_gerado'] = $textoFinal;
-                                        }
-                                    }
-                                }
-                            }
+                            // NOTA INTENCIONAL: O Copilot APENAS abre o documento pré-preenchido com os
+                            // dados da pessoa. A redação da oitiva/depoimento/declaração fica por conta
+                            // do usuário (escrivão), evitando a chamada de IA que gerava o texto e demorava.
                         }
                         
                         return response()->json([
