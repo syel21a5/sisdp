@@ -103,7 +103,7 @@
     </script>
 
     <!-- JavaScript principal -->
-    <script src="{{ asset('js/pages/pecas/LiberacaoInfrator.js') }}"></script>
+    <script src="{{ asset('js/pages/pecas/LiberacaoInfrator.js') }}?v=20260816"></script>
 </body>
 </html>
 
