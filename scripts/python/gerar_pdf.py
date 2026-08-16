@@ -69,7 +69,10 @@ def generate_pdf(input_html_path, output_pdf_path):
                 if (header && footer && content) {
 
                     // 1. NEUTRALIZE OLD POSITIONING ON HEADER - force white bg to prevent black boxes
-                    header.style.cssText = 'position:relative !important; top:auto !important; left:auto !important; right:auto !important; bottom:auto !important; width:100% !important; background:white !important; margin:0 !important; padding:0 !important; border:none !important; height:auto !important;';
+                    //    padding-bottom:35px cria o respiro sob o cabecalho; como o header esta no
+                    //    thead (repetido pelo Chromium em toda pagina), o espaco repete em TODAS as
+                    //    paginas, inclusive em quebras naturais de paragrafo (pagina 2+).
+                    header.style.cssText = 'position:relative !important; top:auto !important; left:auto !important; right:auto !important; bottom:auto !important; width:100% !important; background:white !important; margin:0 !important; padding:0 !important; padding-bottom:35px !important; border:none !important; height:auto !important;';
                     header.querySelectorAll('img').forEach(function(img) {
                         img.style.marginTop = '0px';
                         img.style.setProperty('margin-top', '0px', 'important');
@@ -109,7 +112,7 @@ def generate_pdf(input_html_path, output_pdf_path):
                     var tdFoot = document.createElement('td');
                     tdFoot.style.cssText = 'padding:0; border:none; background:white;';
                     var spacer = document.createElement('div');
-                    spacer.style.cssText = 'height:55px; background:white;';
+                    spacer.style.cssText = 'height:60px; background:white;';
                     tdFoot.appendChild(spacer);
                     trFoot.appendChild(tdFoot);
                     tfoot.appendChild(trFoot);
@@ -124,52 +127,26 @@ def generate_pdf(input_html_path, output_pdf_path):
                     document.body.appendChild(table);
                     document.body.appendChild(footer); // fixed footer appended outside table
 
-                    // 5. OVERRIDE @page MARGINS - CSS @page is unreliable for spacing under
-                    //    a repeating <thead>, so we zero it here and apply the real margin
-                    //    in page.pdf() below (applies uniformly to EVERY paper page).
+                    // 5. OVERRIDE @page MARGINS - margens FIXAS e simples:
+                    //    top 5px (so o brasao nao e cortado), lateral 30px, bottom 85px (rodape).
+                    //    NAO usar margem top grande: o espaco entre cabecalho e texto vem do
+                    //    padding-bottom do header (que repete em toda pagina via thead).
                     var styles = document.querySelectorAll('style');
                     for (var i = 0; i < styles.length; i++) {
                         styles[i].innerHTML = styles[i].innerHTML.replace(/@page\s*\{[^}]*\}/gi, '');
                     }
-
-                    // Measure the actual rendered height of the header (letterhead).
-                    // getBoundingClientRect on the header still works even inside the thead.
-                    var headerHeight = 0;
-                    if (header) {
-                        var hr = header.getBoundingClientRect();
-                        headerHeight = Math.ceil(hr.height) || 0;
-                    }
-
-                    /*
-                     * Adaptive top margin: header height + generous breathing room.
-                     *  - Documents with a tall letterhead (~115px) get a matching margin.
-                     *  - Documents with no/small header still get a sane minimum (90px).
-                     * Bottom margin: keeps room for the fixed footer.
-                     * The margin is applied in page.pdf(margin=...) so EVERY page gets the
-                     * exact same gap under the repeating header (fixes natural page breaks
-                     * where the content used to stick to the header on page 2+).
-                     */
-                    var topMargin = Math.max(headerHeight + 55, 90);
-                    window.__pdfTopMargin = topMargin;
-
                     var newStyle = document.createElement('style');
-                    newStyle.innerHTML = '@page { margin: 0 !important; } * { -webkit-print-color-adjust: exact !important; }';
+                    newStyle.innerHTML = '@page { margin: 5px 30px 85px 30px !important; } * { -webkit-print-color-adjust: exact !important; }';
                     document.head.appendChild(newStyle);
                 }
             }""")
             # ------------------------------------------------------------------------
 
-            # Real paper margins via page.pdf: applied uniformly to EVERY page,
-            # so the repeating <thead> header never collides with the content on
-            # page 1 or any subsequent page (natural or forced page breaks).
-            top_margin = page.evaluate("window.__pdfTopMargin || 90")
-
             page.pdf(
                 path=output_pdf_path,
                 format="A4",
                 print_background=True,
-                prefer_css_page_size=True,
-                margin={"top": f"{top_margin}px", "bottom": "70px", "left": "30px", "right": "30px"}
+                prefer_css_page_size=True
             )
             browser.close()
             

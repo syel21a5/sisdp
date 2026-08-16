@@ -1141,8 +1141,8 @@
         };
     </script>
 
-    <!-- ✅ CORREÇÃO: Rotas PRIMEIRO -->
-    <script src="{{ asset('js/rotas_impressao.js') }}"></script>
+    <!-- ✅ CORREÇÃO: Rotas PRIMEIRO (cache-busting p/ evitar JS antigo no navegador) -->
+    <script src="{{ asset('js/rotas_impressao.js') }}?v={{ time() }}_fix3"></script>
 
     <!-- Chart.js para os gráficos de Distribuição de Status -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -1643,4 +1643,5 @@
     
     <script src="{{ asset('js/copilot.js') }}?v={{ time() }}"></script>
 </body>
-</html>
+</html>
+
