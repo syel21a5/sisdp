@@ -23,7 +23,7 @@ function printDocument() {
     };
 
     // Usar DocumentoService para envio seguro via POST
-    DocumentoService.gerar('/liberacao-infrator', dadosParaEnviar);
+    DocumentoService.gerar('/termo-de-liberacao-infrator', dadosParaEnviar);
 }
 
 document.addEventListener('DOMContentLoaded', function() {
