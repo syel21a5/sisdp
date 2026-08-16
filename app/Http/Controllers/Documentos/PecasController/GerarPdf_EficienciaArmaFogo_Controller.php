@@ -174,6 +174,13 @@ class GerarPdf_EficienciaArmaFogo_Controller extends Controller
           /* FIX BUG CHROMIUM: TABELAS NA PÁGINA SEGUINTE IGNORAM MARGEM */
           .assinatura-area, .assinatura-area table { page-break-inside: avoid !important; break-inside: avoid !important; }
           .assinatura-area { display: inline-block !important; width: 100% !important; }
+          /* RESPIRAÇÃO CABEÇALHO->TEXTO (16/08/2026): zera a margem superior do primeiro
+             parágrafo do documento, do título que segue a quebra de página e das áreas de
+             assinatura, para o gap final ficar controlado apenas pelo padding-bottom do
+             header (8px no gerador). */
+          .content > p:first-child { margin-top: 0 !important; }
+          [style*="page-break-before"] + p { margin-top: 0 !important; }
+          .assinatura-area { margin-top: 0 !important; }
     </style>
 </head>
 <body>

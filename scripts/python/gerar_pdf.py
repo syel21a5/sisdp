@@ -69,10 +69,11 @@ def generate_pdf(input_html_path, output_pdf_path):
                 if (header && footer && content) {
 
                     // 1. NEUTRALIZE OLD POSITIONING ON HEADER - force white bg to prevent black boxes
-                    //    padding-bottom:35px cria o respiro sob o cabecalho; como o header esta no
-                    //    thead (repetido pelo Chromium em toda pagina), o espaco repete em TODAS as
-                    //    paginas, inclusive em quebras naturais de paragrafo (pagina 2+).
-                    header.style.cssText = 'position:relative !important; top:auto !important; left:auto !important; right:auto !important; bottom:auto !important; width:100% !important; background:white !important; margin:0 !important; padding:0 !important; padding-bottom:35px !important; border:none !important; height:auto !important;';
+                    //    padding-bottom:15px cria o respiro sob o cabecalho (reduzido de 35px a pedido
+                    //    do usuario em 16/08/2026); como o header esta no thead (repetido pelo Chromium
+                    //    em toda pagina), o espaco repete em TODAS as paginas, inclusive em quebras
+                    //    naturais de paragrafo (pagina 2+).
+                    header.style.cssText = 'position:relative !important; top:auto !important; left:auto !important; right:auto !important; bottom:auto !important; width:100% !important; background:white !important; margin:0 !important; padding:0 !important; padding-bottom:15px !important; border:none !important; height:auto !important;';
                     header.querySelectorAll('img').forEach(function(img) {
                         img.style.marginTop = '0px';
                         img.style.setProperty('margin-top', '0px', 'important');
