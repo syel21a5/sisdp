@@ -124,23 +124,52 @@ def generate_pdf(input_html_path, output_pdf_path):
                     document.body.appendChild(table);
                     document.body.appendChild(footer); // fixed footer appended outside table
 
-                    // 5. OVERRIDE @page MARGINS to avoid conflicts with old CSS
+                    // 5. OVERRIDE @page MARGINS - CSS @page is unreliable for spacing under
+                    //    a repeating <thead>, so we zero it here and apply the real margin
+                    //    in page.pdf() below (applies uniformly to EVERY paper page).
                     var styles = document.querySelectorAll('style');
                     for (var i = 0; i < styles.length; i++) {
                         styles[i].innerHTML = styles[i].innerHTML.replace(/@page\s*\{[^}]*\}/gi, '');
                     }
+
+                    // Measure the actual rendered height of the header (letterhead).
+                    // getBoundingClientRect on the header still works even inside the thead.
+                    var headerHeight = 0;
+                    if (header) {
+                        var hr = header.getBoundingClientRect();
+                        headerHeight = Math.ceil(hr.height) || 0;
+                    }
+
+                    /*
+                     * Adaptive top margin: header height + generous breathing room.
+                     *  - Documents with a tall letterhead (~115px) get a matching margin.
+                     *  - Documents with no/small header still get a sane minimum (90px).
+                     * Bottom margin: keeps room for the fixed footer.
+                     * The margin is applied in page.pdf(margin=...) so EVERY page gets the
+                     * exact same gap under the repeating header (fixes natural page breaks
+                     * where the content used to stick to the header on page 2+).
+                     */
+                    var topMargin = Math.max(headerHeight + 55, 90);
+                    window.__pdfTopMargin = topMargin;
+
                     var newStyle = document.createElement('style');
-                    newStyle.innerHTML = '@page { margin: 25px 30px 40px 30px !important; } * { -webkit-print-color-adjust: exact !important; }';
+                    newStyle.innerHTML = '@page { margin: 0 !important; } * { -webkit-print-color-adjust: exact !important; }';
                     document.head.appendChild(newStyle);
                 }
             }""")
             # ------------------------------------------------------------------------
-            
+
+            # Real paper margins via page.pdf: applied uniformly to EVERY page,
+            # so the repeating <thead> header never collides with the content on
+            # page 1 or any subsequent page (natural or forced page breaks).
+            top_margin = page.evaluate("window.__pdfTopMargin || 90")
+
             page.pdf(
                 path=output_pdf_path,
                 format="A4",
                 print_background=True,
-                prefer_css_page_size=True
+                prefer_css_page_size=True,
+                margin={"top": f"{top_margin}px", "bottom": "70px", "left": "30px", "right": "30px"}
             )
             browser.close()
             
