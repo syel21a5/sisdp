@@ -26,9 +26,9 @@ class GerarPdf_EficienciaArmaFogo_Controller extends Controller
         // Validar os dados recebidos
         $request->validate([
             'conteudo' => 'required',
-            'delegacia' => 'sometimes|string',
-            'cidade' => 'sometimes|string',
-            'tipo_documento' => 'sometimes|string'
+            'delegacia' => 'nullable|string',
+            'cidade' => 'nullable|string',
+            'tipo_documento' => 'nullable|string'
         ]);
 
         $dados = $request->all();
@@ -58,39 +58,12 @@ class GerarPdf_EficienciaArmaFogo_Controller extends Controller
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <style>
-        /* MARGEM PADRÃO PARA TODAS AS PÁGINAS - AJUSTADA */
-        @page {
-            margin: 115px 30px 100px 30px; /* AJUSTADO: Margem superior reduzida para aproximar título */
-        }
-        body {
-            font-family: Arial, sans-serif;
-            font-size: 12.5pt !important; /* ALTERADO: De 12pt para 12.5pt */
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-            color: #000;
-        }
-        .header {
-            position: fixed;
-            top: -90px; /* AJUSTADO: Para manter cabeçalho na mesma posição visual com margem menor */
-            left: 0;
-            right: 0;
-            text-align: center;
-            margin-bottom: 5px;
-            height: 90px; /* AUMENTADO: Altura do cabeçalho */
-        }
-        .content {
-            margin-top: 5px; /* AJUSTADO: Reduzido para aproximar do cabeçalho */
-            padding: 0 20px;
-            /* Garantir que o conteúdo não sobreponha o cabeçalho */
-            position: relative;
-            z-index: 1;
-        }
-        /* ESTILO ADICIONADO: Controlar espaçamento em quebras de página */
-        .page-break {
-            page-break-before: always;
-            padding-top: 40px !important; /* Espaço extra no início de novas páginas */
-        }
+        /* MARGEM PADRÃO IDÊNTICA AO TERMO DE INTERROGATÓRIO */
+        @page { margin: 180px 30px 100px 30px; }
+        body { font-family: Arial, sans-serif; font-size: 12.5pt !important; line-height: 1.6; margin: 0; padding: 0; color: #000; }
+        .header { position: fixed !important; top: -155px !important; left: 0 !important; right: 0 !important; text-align: center !important; margin: 0 !important; padding: 0 !important; height: 120px !important; }
+        .content { margin-top: 0 !important; padding: 0 20px !important; position: relative; z-index: 1; }
+        .page-break { page-break-before: always !important; margin: 0 !important; padding: 0 !important; border: none !important; }
         p {
             margin: 0.4em 0;
             padding: 0;
@@ -198,6 +171,9 @@ class GerarPdf_EficienciaArmaFogo_Controller extends Controller
         .ql-clipboard {
             display: none !important;
         }
+          /* FIX BUG CHROMIUM: TABELAS NA PÁGINA SEGUINTE IGNORAM MARGEM */
+          .assinatura-area, .assinatura-area table { page-break-inside: avoid !important; break-inside: avoid !important; }
+          .assinatura-area { display: inline-block !important; width: 100% !important; }
     </style>
 </head>
 <body>
@@ -242,3 +218,4 @@ class GerarPdf_EficienciaArmaFogo_Controller extends Controller
 
     // Função para converter imagem para base64
 }
+

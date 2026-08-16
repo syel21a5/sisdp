@@ -45,9 +45,7 @@ class GerarPdfRepresentacaoController extends Controller
                     margin: 120px 25px 60px 25px;
                 }
                 /* Margem para páginas subsequentes */
-                @page {
-                    margin: 150px 25px 60px 25px;
-                }
+                @page { margin: 180px 30px 100px 30px; }
                 body {
                     font-family: Arial, sans-serif;
                     font-size: 12pt;
@@ -56,18 +54,8 @@ class GerarPdfRepresentacaoController extends Controller
                     padding: 0;
                     color: #000;
                 }
-                .header {
-                    position: fixed;
-                    top: -90px;
-                    left: 0;
-                    right: 0;
-                    text-align: center;
-                    margin-bottom: 10px;
-                }
-                .content {
-                    margin-top: 30px;
-                    padding: 0 10px;
-                }
+                .header { position: fixed !important; top: -155px !important; left: 0 !important; right: 0 !important; text-align: center !important; margin: 0 !important; padding: 0 !important; height: 120px !important; }
+                .content { margin-top: 0 !important; padding: 0 20px !important; position: relative; z-index: 1; }
                 p {
                     margin: 0.6em 0;
                     padding: 0;
@@ -162,7 +150,10 @@ class GerarPdfRepresentacaoController extends Controller
                 .ql-clipboard {
                     display: none !important;
                 }
-            </style>
+          /* FIX BUG CHROMIUM: TABELAS NA PÁGINA SEGUINTE IGNORAM MARGEM */
+          .assinatura-area, .assinatura-area table { page-break-inside: avoid !important; break-inside: avoid !important; }
+          .assinatura-area { display: inline-block !important; width: 100% !important; }
+    </style>
         </head>
         <body>
             <div class="header">

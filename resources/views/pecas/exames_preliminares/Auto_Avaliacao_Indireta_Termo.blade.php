@@ -52,13 +52,12 @@
                     Ao(s) <strong>{{ $dadosArray['data_ext'] ?? 'NÃO INFORMADO' }}</strong>, nesta cidade de {{ $dadosArray['cidade'] ?? 'Afogados da Ingazeira' }}, e no Cartório da Delegacia de Polícia, onde presente achava-se o(a) Bel(a). <strong>{{ $dadosArray['delegado'] ?? 'NÃO INFORMADO' }}</strong>, Delegado(a) de Polícia, comigo escrivão ao final assinado, <strong>tendo a autoridade policial nomeado como Peritos as pessoas de <strong>{{ $dadosArray['policial_1'] ?? 'NÃO INFORMADO' }}</strong> e <strong>{{ $dadosArray['policial_2'] ?? 'NÃO INFORMADO' }}</strong>, ambos policiais civis</strong>, deferindo-lhes o compromisso legal, de bem e fielmente, sem dolo nem malícia, desempenharem a missão, determinado os exames necessários a fim de que procedam ao <strong>AVALIAÇÃO INDIRETA DE OBJETOS</strong>, referidos nos autos, conforme boletim de ocorrência nº <strong>{{ $dadosArray['boe'] ?? 'NÃO INFORMADO' }}</strong>.
                 </p>
 
-                <p><br></p>
-
-                <p style="text-align: justify; background-color: #ffff00;">
-                    <strong>DESCREVER OBJETOS A SER AVALIADOS INDIRETAMENTE;</strong>
+                <div style="height: 12px;"></div>
+                <p style="text-align: justify; line-height: 1.1; {{ empty($dadosArray['apreensao']) ? 'background-color: #ffff00;' : '' }}">
+                    <strong>{!! !empty($dadosArray['apreensao']) ? preg_replace("/\r?\n/", "<br><span style=\"display:block; height: 8px;\"></span>", e($dadosArray['apreensao'])) : 'DESCREVER OBJETOS A SER AVALIADOS INDIRETAMENTE;' !!}</strong>
                 </p>
 
-                <p><br></p>
+                <div style="height: 12px;"></div>
 
                 <p style="text-align: justify;">
                     Ao procederem à avaliação, verificaram <span style="background-color: #00ffff;">QUE OS OBJETOS ACIMA DESCRITOS TÊM O VALOR ATUAL APROXIMADO DE R$: 2.500,00 (dois mil e quinhentos reais)</span>.

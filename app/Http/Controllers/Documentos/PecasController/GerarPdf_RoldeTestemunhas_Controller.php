@@ -23,11 +23,11 @@ class GerarPdf_RoldeTestemunhas_Controller extends Controller
         // Validar os dados recebidos
         $request->validate([
             'conteudo' => 'required',
-            'delegacia' => 'sometimes|string',
-            'cidade' => 'sometimes|string',
-            'numero_oficio_juiz' => 'sometimes|string',
-            'numero_oficio_promotor' => 'sometimes|string',
-            'numero_oficio_defensor' => 'sometimes|string',
+            'delegacia' => 'nullable|string',
+            'cidade' => 'nullable|string',
+            'numero_oficio_juiz' => 'nullable|string',
+            'numero_oficio_promotor' => 'nullable|string',
+            'numero_oficio_defensor' => 'nullable|string',
         ]);
 
         $dados = $request->all();
@@ -278,11 +278,11 @@ class GerarPdf_RoldeTestemunhas_Controller extends Controller
         <head>
             <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
             <style>
-                @page { margin: 115px 30px 60px 30px; }
+                @page { margin: 180px 30px 100px 30px; }
                 body { font-family: Arial, sans-serif; font-size: 12.5pt !important; line-height: 1.6; margin: 0 !important; padding: 0 !important; color: #000; }
-                .header { position: fixed; top: -90px; left: 0; right: 0; text-align: center; margin: 0 !important; padding: 0 !important; height: 90px; }
-                .content { margin-top: 5px !important; padding: 0 20px !important; position: relative; z-index: 1; }
-                .page-break { page-break-before: always !important; margin-top: 0 !important; padding-top: 0 !important; height: 0 !important; }
+                .header { position: fixed !important; top: -155px !important; left: 0 !important; right: 0 !important; text-align: center !important; margin: 0 !important; padding: 0 !important; height: 120px !important; }
+                .content { margin-top: 0 !important; padding: 0 20px !important; position: relative; z-index: 1; }
+                .page-break { page-break-before: always !important; margin: 0 !important; padding: 0 !important; border: none !important; }
                 .page-break + p, .page-break + div { margin-top: 0 !important; padding-top: 0 !important; }
                 p { margin: 0.4em 0 !important; padding: 0 !important; line-height: 1.6; text-align: justify; }
                 .footer { position: fixed; bottom: -60px; left: 0; right: 0; text-align: center; font-size: 10pt; line-height: 1.3; border-top: 1px solid #ccc; padding-top: 4px; margin: 0 !important; }
@@ -303,7 +303,10 @@ class GerarPdf_RoldeTestemunhas_Controller extends Controller
                 .ql-clipboard, .ql-tooltip, .ql-hidden { display: none !important; visibility: hidden !important; }
                 .no-break { page-break-inside: avoid !important; break-inside: avoid !important; page-break-after: avoid !important; }
                 .no-break p { margin: 0.2em 0 !important; line-height: 1.45 !important; }
-            </style>
+          /* FIX BUG CHROMIUM: TABELAS NA PÁGINA SEGUINTE IGNORAM MARGEM */
+          .assinatura-area, .assinatura-area table { page-break-inside: avoid !important; break-inside: avoid !important; }
+          .assinatura-area { display: inline-block !important; width: 100% !important; }
+    </style>
         </head>
         <body>
             <div class="header">
@@ -358,3 +361,4 @@ class GerarPdf_RoldeTestemunhas_Controller extends Controller
      * Função para converter imagem para base64
      */
 }
+

@@ -12,14 +12,18 @@
 </head>
 <body class="body-declaracao">
     <?php
-    // ✅ DECODIFICAR DADOS DA URL PARA OFÍCIOS APFD 1 AUTOR
-    $dadosBase64 = request()->segment(2);
-    $dadosArray = [];
-
-    if ($dadosBase64) {
-        try {
-            $dadosJson = base64_decode($dadosBase64);
-            $dadosArray = json_decode($dadosJson, true) ?? [];
+    // ✅ UTILIZAR DADOS INJETADOS PELA ROTA (CACHE OU BASE64)
+    if (!isset($dadosArray) || empty($dadosArray)) {
+        $dadosBase64 = request()->segment(2);
+        $dadosArray = [];
+        if ($dadosBase64) {
+            try {
+                $dadosArray = json_decode(base64_decode($dadosBase64), true) ?? [];
+            } catch (Exception $e) {
+                $dadosArray = [];
+            }
+        }
+    }
 
             // ✅ ESTRUTURAR OS DADOS CORRETAMENTE
             if (!empty($dadosArray)) {
@@ -68,10 +72,6 @@
                     ], $dadosArray[$pessoa]);
                 }
             }
-        } catch (Exception $e) {
-            $dadosArray = [];
-        }
-    }
 
     // ✅ FUNÇÃO AUXILIAR PARA EXIBIR DADOS COM SEGURANÇA
     function exibirDado($array, $chave, $subchave = null, $padrao = 'NÃO INFORMADO') {

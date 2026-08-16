@@ -14,9 +14,9 @@
     <?php
     // ✅ DECODIFICAR DADOS DA URL PARA OFÍCIOS APFD 1 AUTOR
     $dadosBase64 = request()->segment(2);
-    $dadosArray = [];
+     if (!isset($dadosArray)) { $dadosArray = []; }
 
-    if ($dadosBase64) {
+if ($dadosBase64 && empty($dadosArray)) {
         try {
             $dadosJson = base64_decode($dadosBase64);
             $dadosArray = json_decode($dadosJson, true) ?? [];

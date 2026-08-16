@@ -3,20 +3,14 @@
 
 // ROTAS PARA A ABA INICIO
 var rotasImpressaoInicio = {
-    'AVALIACAO DE OBJETOS - PORTARIA': "/avaliacao-portaria-gerar",
-    'AVALIACAO DE OBJETOS - AUTO': "/avaliacao-termo-gerar",
-    'AVALIACAO INDIRETA DE OBJETOS - PORTARIA': "/avaliacao-indireta-portaria-gerar",
-    'AVALIACAO INDIRETA DE OBJETOS - AUTO': "/avaliacao-indireta-termo-gerar",
-    'AVALIACAO INDIRETA DE OBJETOS - TERMO': '/avaliacao-indireta-termo', // Added this line based on instruction
-    // EXAME DE CONSTATAÇÃO DE DANOS E AVALIAÇÃO
-    'EXAME DE CONSTATACAO DE DANOS - PORTARIA': '/exame-danos-portaria-gerar', // CORRIGIDO: Rota da View
-    'EXAME DE CONSTATACAO DE DANOS - TERMO': '/exame-danos-termo-gerar', // CORRIGIDO: Rota da View
-    // EXAME DE CONSTATAÇÃO DE DANOS INDIRETA
-    'EXAME DE CONSTATACAO DE DANOS INDIRETA - PORTARIA': '/constatacao-indireta-portaria-gerar',
-    'EXAME DE CONSTATACAO DE DANOS INDIRETA - AUTO': '/constatacao-indireta-termo-gerar',
-    // EXAME DE EFICIÊNCIA DE ARMA DE FOGO
-    'EXAME DE EFICIENCIA DE ARMA DE FOGO - PORTARIA': '/eficiencia-arma-portaria-gerar',
-    'EXAME DE EFICIENCIA DE ARMA DE FOGO - AUTO': '/eficiencia-arma-termo-gerar',
+    // ROTAS UNIFICADAS
+    'AVALIACAO DE OBJETOS': "/avaliacao-completa-gerar",
+    'AVALIACAO INDIRETA DE OBJETOS': "/avaliacao-indireta-completa-gerar",
+    'EXAME DE CONSTATACAO DE DANOS E AVALIACAO': "/exame-danos-completa-gerar",
+    'EXAME DE CONSTATACAO DE DANOS INDIRETA': "/constatacao-indireta-completa-gerar",
+    'EXAME DE EFICIENCIA DE ARMA DE FOGO': "/eficiencia-arma-completa-gerar",
+
+    // ROTAS EXISTENTES
     'PERICIA EM VEICULO': '/pericia-em-veiculo/--DADOS--',
     'PERICIA EM LOCAL DE CRIME': '/pericia-local-de-crime/--DADOS--',
     'OFICIOS MANDADO DE PRISAO': "/numero-oficio/gerar",

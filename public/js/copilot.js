@@ -8,6 +8,18 @@ document.addEventListener('DOMContentLoaded', function () {
     const copilotForm = document.getElementById('copilotForm');
     const copilotInput = document.getElementById('copilotInput');
     const btnCopilotSend = document.getElementById('btnCopilotSend');
+    const btnCopilotClear = document.getElementById('btnCopilotClear');
+
+    if (btnCopilotClear) {
+        btnCopilotClear.addEventListener('click', function() {
+            // Mantém apenas a primeira mensagem (de boas vindas)
+            const firstMessage = chatBox.firstElementChild;
+            chatBox.innerHTML = '';
+            if (firstMessage) {
+                chatBox.appendChild(firstMessage);
+            }
+        });
+    }
 
     // Função para adicionar uma mensagem no chat
     function addMessage(text, isUser = false) {
@@ -167,7 +179,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (textoInformativo) {
                     addMessage(textoInformativo);
                 } else {
-                    addMessage(`⏳ Abrindo editor (${tipoTermo}) para a pessoa ID: ${pessoaId}...`);
+                    addMessage(`⏳ Abrindo editor: ${tipoTermo}...`);
                 }
 
                 const boe = (document.getElementById('inputNrBOE') ? document.getElementById('inputNrBOE').value : '');
@@ -188,11 +200,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 if (!papelOriginal) papelOriginal = 'Outro'; // fallback
 
-                // Chama a função do OcorrenciasApp!
-                if (window.OcorrenciasApp && typeof window.OcorrenciasApp.abrirEditorOitiva === 'function') {
-                    window.OcorrenciasApp.abrirEditorOitiva(tipoTermo, boe, pessoaId, papelOriginal, textoGerado);
+                // Chama a função correta do OcorrenciasApp dependendo se tem pessoa ou não!
+                if (String(pessoaId) === '0' || !pessoaId) {
+                    // Documento genérico sem envolvido
+                    if (window.OcorrenciasApp && typeof window.OcorrenciasApp.imprimirDocumentoInicio === 'function') {
+                        window.OcorrenciasApp.imprimirDocumentoInicio(tipoTermo);
+                    } else {
+                        addMessage('⚠️ Erro: OcorrenciasApp.imprimirDocumentoInicio não encontrada.');
+                    }
                 } else {
-                    addMessage('⚠️ Erro: OcorrenciasApp.abrirEditorOitiva não encontrada no sistema.');
+                    // Documento associado a uma pessoa
+                    if (window.OcorrenciasApp && typeof window.OcorrenciasApp.abrirEditorOitiva === 'function') {
+                        window.OcorrenciasApp.abrirEditorOitiva(tipoTermo, boe, pessoaId, papelOriginal, textoGerado);
+                    } else {
+                        addMessage('⚠️ Erro: OcorrenciasApp.abrirEditorOitiva não encontrada no sistema.');
+                    }
                 }
             } catch (e) {
                 console.error("Erro ao analisar argumentos da função:", e);

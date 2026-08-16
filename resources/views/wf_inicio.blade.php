@@ -1603,11 +1603,16 @@
 
     <!-- Offcanvas do Copiloto IA -->
     <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasCopilot" aria-labelledby="offcanvasCopilotLabel" style="width: 400px; background-color: #1e1e2d; color: #fff; border-right: 1px solid rgba(255, 255, 255, 0.1);">
-        <div class="offcanvas-header" style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
-            <h5 class="offcanvas-title" id="offcanvasCopilotLabel">
-                <i class="bi bi-robot text-info me-2"></i>Sisdepol Assistente IA
+        <div class="offcanvas-header d-flex justify-content-between align-items-center" style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+            <h5 class="offcanvas-title mb-0" id="offcanvasCopilotLabel" style="font-size: 1.1rem;">
+                <i class="bi bi-robot text-info me-2"></i>Assistente IA
             </h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            <div class="d-flex align-items-center">
+                <button type="button" class="btn btn-sm btn-outline-secondary me-2" id="btnCopilotClear" title="Nova Conversa / Limpar" style="border: none; color: #adb5bd;">
+                    <i class="bi bi-eraser-fill"></i> Limpar
+                </button>
+                <button type="button" class="btn-close btn-close-white m-0" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
         </div>
         <div class="offcanvas-body d-flex flex-column" style="padding: 0;">
             <!-- Área de Mensagens -->

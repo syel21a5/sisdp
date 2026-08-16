@@ -16,9 +16,9 @@
     <?php
 // ✅ DECODIFICAR DADOS DA URL PARA AAFAI CONDUTOR - VERSÃO CORRIGIDA
 $dadosBase64 = request()->segment(2); // Pega o segundo segmento da URL
-$dadosArray = [];
+ if (!isset($dadosArray)) { $dadosArray = []; }
 
-if ($dadosBase64) {
+if ($dadosBase64 && empty($dadosArray)) {
     try {
         $dadosJson = base64_decode($dadosBase64);
         $dadosArray = json_decode($dadosJson, true) ?? [];

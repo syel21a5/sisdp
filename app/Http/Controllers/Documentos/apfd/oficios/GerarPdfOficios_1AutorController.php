@@ -299,56 +299,12 @@ class GerarPdfOficios_1AutorController extends Controller
         <head>
             <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
             <style>
-                /* ✅✅✅ MARGENS CORRIGIDAS PARA PÁGINAS IGUAIS */
-                @page {
-                    margin: 125px 30px 100px 30px;
-                }
-
-                /* ✅✅✅ RESET COMPLETO DAS MARGENS */
-                body {
-                    font-family: Arial, sans-serif;
-                    font-size: 12.5pt !important;
-                    line-height: 1.6;
-                    margin: 0 !important;
-                    padding: 0 !important;
-                    color: #000;
-                }
-
-                .header {
-                    position: fixed;
-                    top: -100px;
-                    left: 0;
-                    right: 0;
-                    text-align: center;
-                    margin: 0 !important;
-                    padding: 0 !important;
-                    height: 90px;
-                }
-
-                .content {
-                    margin-top: 0 !important;
-                    padding: 0 20px !important;
-                    position: relative;
-                    z-index: 1;
-                }
-
-                /* ✅✅✅ QUEBRA DE PÁGINA CORRIGIDA */
-                .page-break {
-                    page-break-before: always !important;
-                    margin: 0 !important;
-                    padding: 0 !important;
-                    height: 0 !important;
-                    line-height: 0 !important;
-                    border: none !important;
-                    background: transparent !important;
-                }
-
-                /* ✅✅✅ GARANTIR QUE SEGUNDA PÁGINA COMECE NO TOPO */
-                .page-break + p,
-                .page-break + div {
-                    margin-top: 0 !important;
-                    padding-top: 0 !important;
-                }
+                /* ✅✅✅ MARGENS IDÊNTICAS AO TERMO DE INTERROGATÓRIO */
+                @page { margin: 180px 30px 100px 30px; }
+                body { font-family: Arial, sans-serif; font-size: 12.5pt !important; line-height: 1.6; margin: 0; padding: 0; color: #000; }
+                .header { position: fixed !important; top: -155px !important; left: 0 !important; right: 0 !important; text-align: center !important; margin: 0 !important; padding: 0 !important; height: 120px !important; }
+                .content { margin-top: 0 !important; padding: 0 20px !important; position: relative; z-index: 1; }
+                .page-break { page-break-before: always !important; margin: 0 !important; padding: 0 !important; border: none !important; }
 
                 p {
                     margin: 0.4em 0 !important;
@@ -440,7 +396,10 @@ class GerarPdfOficios_1AutorController extends Controller
                 .ql-editor { border: none !important; padding: 0 !important; outline: none !important; }
                 .ql-clipboard, .ql-tooltip, .ql-hidden { display: none !important; visibility: hidden !important; border: none !important; }
                 textarea.ql-clipboard { display: none !important; }
-            </style>
+          /* FIX BUG CHROMIUM: TABELAS NA PÁGINA SEGUINTE IGNORAM MARGEM */
+          .assinatura-area, .assinatura-area table { page-break-inside: avoid !important; break-inside: avoid !important; }
+          .assinatura-area { display: inline-block !important; width: 100% !important; }
+    </style>
         </head>
         <body>
             <div class="header">

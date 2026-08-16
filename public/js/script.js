@@ -1995,26 +1995,12 @@ window.OcorrenciasApp = {
         const documentos = [
             'DESPACHO DE CONCLUSAO',
             'ROL DE TESTEMUNHAS',
-            // NOVOS DOCUMENTOS
-            'AVALIACAO DE OBJETOS - COMPLETO',
-            'AVALIACAO DE OBJETOS - PORTARIA',
-            'AVALIACAO DE OBJETOS - AUTO',
-            // AVALIAÇÃO INDIRETA
-            'AVALIACAO INDIRETA DE OBJETOS - COMPLETO',
-            'AVALIACAO INDIRETA DE OBJETOS - PORTARIA',
-            'AVALIACAO INDIRETA DE OBJETOS - AUTO',
-            // EXAME DE CONSTATAÇÃO DE DANOS E AVALIAÇÃO
-            'EXAME DE CONSTATACAO DE DANOS E AVALIACAO - COMPLETO',
-            'EXAME DE CONSTATACAO DE DANOS E AVALIACAO - PORTARIA',
-            'EXAME DE CONSTATACAO DE DANOS E AVALIACAO - AUTO',
-            // EXAME DE CONSTATAÇÃO DE DANOS INDIRETA
-            'EXAME DE CONSTATACAO DE DANOS INDIRETA - COMPLETO',
-            'EXAME DE CONSTATACAO DE DANOS INDIRETA - PORTARIA',
-            'EXAME DE CONSTATACAO DE DANOS INDIRETA - AUTO',
-            // EXAME DE EFICIÊNCIA DE ARMA DE FOGO
-            'EXAME DE EFICIENCIA DE ARMA DE FOGO - COMPLETO',
-            'EXAME DE EFICIENCIA DE ARMA DE FOGO - PORTARIA',
-            'EXAME DE EFICIENCIA DE ARMA DE FOGO - AUTO',
+            // EXAMES PRELIMINARES E PERÍCIAS
+            'AVALIACAO DE OBJETOS',
+            'AVALIACAO INDIRETA DE OBJETOS',
+            'EXAME DE CONSTATACAO DE DANOS E AVALIACAO',
+            'EXAME DE CONSTATACAO DE DANOS INDIRETA',
+            'EXAME DE EFICIENCIA DE ARMA DE FOGO',
             'PERICIA EM VEICULO',
             'PERICIA EM LOCAL DE CRIME',
         ];
@@ -2124,8 +2110,8 @@ window.OcorrenciasApp = {
     },
 
     // ✅ NOVO: Função para impressão de documentos
-    imprimirDocumentoInicio: function () {
-        const documentoSelecionado = $('#termoDocumentoInicio').val().trim().toUpperCase();
+    imprimirDocumentoInicio: function (docNomeOpcional) {
+        const documentoSelecionado = (docNomeOpcional || $('#termoDocumentoInicio').val() || '').trim().toUpperCase();
 
         // Validações básicas
         if (!documentoSelecionado) {
@@ -2164,78 +2150,12 @@ window.OcorrenciasApp = {
         // ✅ CAPTURA CENTRALIZADA DE DADOS (Substitui toda a lógica manual anterior)
         const dados = DocumentoService.capturarDadosGlobais();
 
-
-
-        // ✅ NOVO: Detecta se é "COMPLETO" e gera ambos os documentos
-        if (documentoSelecionado === 'AVALIACAO DE OBJETOS - COMPLETO') {
-            console.log('🔄 Gerando documentos completos: Portaria + Auto');
-
-            // Gera a Portaria
-            this.gerarDocumentoIndividual('AVALIACAO DE OBJETOS - PORTARIA', dados);
-
-            // Aguarda 500ms e gera o Auto
-            setTimeout(() => {
-                this.gerarDocumentoIndividual('AVALIACAO DE OBJETOS - AUTO', dados);
-            }, 500);
-
-            return;
-        }
-
-        // ✅ NOVO: Detecta COMPLETO para Avaliação Indireta
-        if (documentoSelecionado === 'AVALIACAO INDIRETA DE OBJETOS - COMPLETO') {
-            console.log('🔄 Gerando documentos completos: Portaria Indireta + Auto Indireta');
-
-            this.gerarDocumentoIndividual('AVALIACAO INDIRETA DE OBJETOS - PORTARIA', dados);
-
-            setTimeout(() => {
-                this.gerarDocumentoIndividual('AVALIACAO INDIRETA DE OBJETOS - AUTO', dados);
-            }, 500);
-
-            return;
-        }
-
-        // ✅ NOVO: Detecta EXAME DE CONSTATACAO DE DANOS E AVALIACAO
-        if (documentoSelecionado === 'EXAME DE CONSTATACAO DE DANOS E AVALIACAO - COMPLETO') {
-            console.log('🔄 Gerando documentos completos: Portaria + Auto Exame Danos');
-            this.gerarDocumentoIndividual('EXAME DE CONSTATACAO DE DANOS - PORTARIA', dados);
-            setTimeout(() => {
-                this.gerarDocumentoIndividual('EXAME DE CONSTATACAO DE DANOS - TERMO', dados);
-            }, 500);
-            return;
-        }
-
-        // ✅ NOVO: Detecta EXAME DE CONSTATACAO DE DANOS INDIRETA - COMPLETO
-        if (documentoSelecionado === 'EXAME DE CONSTATACAO DE DANOS INDIRETA - COMPLETO') {
-            console.log('🔄 Gerando documentos completos: Portaria Indireta + Auto Indireta');
-            this.gerarDocumentoIndividual('EXAME DE CONSTATACAO DE DANOS INDIRETA - PORTARIA', dados);
-            setTimeout(() => {
-                this.gerarDocumentoIndividual('EXAME DE CONSTATACAO DE DANOS INDIRETA - AUTO', dados);
-            }, 500);
-            return;
-        }
-
-        // ✅ NOVO: Detecta EXAME DE EFICIÊNCIA DE ARMA DE FOGO - COMPLETO
-        if (documentoSelecionado === 'EXAME DE EFICIENCIA DE ARMA DE FOGO - COMPLETO') {
-            console.log('🔄 Gerando documentos completos: Portaria Eficiência Arma + Auto Eficiência Arma');
-            this.gerarDocumentoIndividual('EXAME DE EFICIENCIA DE ARMA DE FOGO - PORTARIA', dados);
-            setTimeout(() => {
-                this.gerarDocumentoIndividual('EXAME DE EFICIENCIA DE ARMA DE FOGO - AUTO', dados);
-            }, 500);
-            return;
-        }
-
-        if (documentoSelecionado === 'EXAME DE CONSTATACAO DE DANOS E AVALIACAO - PORTARIA') {
-            this.gerarDocumentoIndividual('EXAME DE CONSTATACAO DE DANOS - PORTARIA', dados);
-            return;
-        } else if (documentoSelecionado === 'EXAME DE CONSTATACAO DE DANOS E AVALIACAO - AUTO') {
-            this.gerarDocumentoIndividual('EXAME DE CONSTATACAO DE DANOS - TERMO', dados);
-            return;
-        }
-
         if (!rotasImpressaoInicio[documentoSelecionado]) {
             this.mostrarErro(`Documento "${documentoSelecionado}" não está configurado!`);
             return;
-        } const rota = rotasImpressaoInicio[documentoSelecionado];
+        } 
+        
+        const rota = rotasImpressaoInicio[documentoSelecionado];
 
         // ✅ LÓGICA HÍBRIDA: SE NÃO TIVER '--DADOS--', USA POST (EVITA ERRO 403 URI TOO LONG)
         if (!rota.includes('--DADOS--')) {

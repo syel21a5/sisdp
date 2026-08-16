@@ -42,36 +42,42 @@
 
         <div class="editor-area">
             <div id="editor" class="preservar-espacamento">
-                <p style="text-align: center; line-height: 1.6; margin: 0.2em 0; padding: 0;">
-                    <strong style="font-size: 20pt;">AUTO DE CONSTATAÇÃO INDIRETA</strong>
+                <p style="text-align: center; line-height: 1.6; margin: 20px 0 20px 0; padding: 0;">
+                    <strong style="font-size: 14pt;">AUTO DE CONSTATAÇÃO DE DANOS E AVALIAÇÃO INDIRETA DOS OBJETOS</strong>
                 </p>
-
-                <p><br></p>
 
                 <p style="text-align: justify;">
                     Ao(s) <strong>{{ $dadosArray['data_ext'] ?? 'NÃO INFORMADO' }}</strong>, nesta cidade de {{ $dadosArray['cidade'] ?? 'Afogados da Ingazeira' }}, e no Cartório da Delegacia de Polícia, onde presente achava-se o(a) Bel(a). <strong>{{ $dadosArray['delegado'] ?? 'NÃO INFORMADO' }}</strong>, Delegado(a) de Polícia, comigo escrivão ao final assinado, <strong>tendo a autoridade policial nomeado como Peritos as pessoas de <strong>{{ $dadosArray['policial_1'] ?? 'NÃO INFORMADO' }}</strong> e <strong>{{ $dadosArray['policial_2'] ?? 'NÃO INFORMADO' }}</strong>, ambos policiais civis</strong>, deferindo-lhes o compromisso legal, de bem e fielmente, sem dolo nem malícia, desempenharem a missão, determinado os exames necessários a fim de que os mesmos possam <span style="background-color: #ffff00;">CONSTATAR INDIRETAMENTE OS DANOS</span>, referidos nos autos, conforme boletim de ocorrência nº <strong>{{ $dadosArray['boe'] ?? 'NÃO INFORMADO' }}</strong>.
                 </p>
 
-                <p><br></p>
-
-                <p style="text-align: justify; background-color: #ffff00;">
-                    <strong>DESCREVER OS DANOS CONSTATADOS INDIRETAMENTE;</strong>
+                <div style="height: 12px;"></div>
+                <p style="text-align: justify; line-height: 1.1; {{ empty($dadosArray['apreensao']) ? 'background-color: #ffff00;' : '' }}">
+                    <strong>{!! !empty($dadosArray['apreensao']) ? preg_replace("/\r?\n/", "<br><span style=\"display:block; height: 8px;\"></span>", e($dadosArray['apreensao'])) : 'DESCREVER OS DANOS CONSTATADOS INDIRETAMENTE;' !!}</strong>
                 </p>
 
-                <p><br></p>
-
-                <div class="assinatura-area">
-                    <p style="border-top: 1px solid #000; padding-top: 5px;"><strong>{{ $dadosArray['delegado'] ?? 'NÃO INFORMADO' }}</strong></p>
-                    <p>Autoridade Policial</p>
-                    <p><br></p>
-                    <p>ESCRIVÃO DE POLÍCIA</p>
-                    <p style="border-top: 1px solid #000; padding-top: 5px;"><strong>{{ $dadosArray['escrivao'] ?? 'NÃO INFORMADO' }}</strong></p>
-                    <p><br></p>
-                    <p>PERITO</p>
-                    <p style="border-top: 1px solid #000; padding-top: 5px;"><strong>{{ $dadosArray['policial_1'] ?? 'NÃO INFORMADO' }}</strong></p>
-                    <p><br></p>
-                    <p>PERITO</p>
-                    <p style="border-top: 1px solid #000; padding-top: 5px;"><strong>{{ $dadosArray['policial_2'] ?? 'NÃO INFORMADO' }}</strong></p>
+                <div class="assinatura-area" style="margin-top: 10px; line-height: 1.3;">
+                    <table style="width: 100%; border: none;">
+                        <tr>
+                            <td style="width: 50%; text-align: center; border: none; padding-bottom: 35px;">
+                                <strong>{{ $dadosArray['delegado'] ?? 'NÃO INFORMADO' }}</strong><br>
+                                AUTORIDADE POLICIAL
+                            </td>
+                            <td style="width: 50%; text-align: center; border: none; padding-bottom: 35px;">
+                                <strong>{{ $dadosArray['escrivao'] ?? 'NÃO INFORMADO' }}</strong><br>
+                                ESCRIVÃO(Ã)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width: 50%; text-align: center; border: none;">
+                                <strong>{{ $dadosArray['policial_1'] ?? 'NÃO INFORMADO' }}</strong><br>
+                                PERITO
+                            </td>
+                            <td style="width: 50%; text-align: center; border: none;">
+                                <strong>{{ $dadosArray['policial_2'] ?? 'NÃO INFORMADO' }}</strong><br>
+                                PERITO
+                            </td>
+                        </tr>
+                    </table>
                 </div>
             </div>
 

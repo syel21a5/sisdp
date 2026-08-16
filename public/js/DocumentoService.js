@@ -566,7 +566,7 @@ const DocumentoService = {
             min_height: 800,
             statusbar: false, // Oculta toda a barra inferior (Alt+0, contagem de palavras e caminho HTML) que polui a tela
             plugins: 'advlist autolink lists link image charmap preview anchor pagebreak searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media table help',
-            toolbar: 'undo redo | pastetext removeformat | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | table bullist numlist outdent indent | link image | pagebreak charmap fullscreen | gerarpdf | salvaroitiva',
+            toolbar: 'undo redo | pastetext removeformat | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | table bullist numlist outdent indent | link image | pagebreak charmap fullscreen | gerarpdf' + (onSave ? ' | salvaroitiva' : ''),
             menubar: 'file edit view insert format tools table help',
             font_size_formats: '8pt 10pt 12pt 14pt 18pt 24pt 36pt',
             

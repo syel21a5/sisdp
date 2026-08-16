@@ -54,9 +54,7 @@ $html = '
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <style>
         /* MARGEM PADRÃO PARA TODAS AS PÁGINAS - AJUSTADA */
-        @page {
-            margin: 125px 30px 70px 30px;
-        }
+        @page { margin: 180px 30px 100px 30px; }
         body {
             font-family: Arial, sans-serif;
             font-size: 12pt !important;
@@ -65,25 +63,9 @@ $html = '
             padding: 0;
             color: #000;
         }
-        .header {
-            position: fixed;
-            top: -100px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            margin-bottom: 5px;
-            height: 90px;
-        }
-        .content {
-            margin-top: 15px;
-            padding: 0 20px;
-            position: relative;
-            z-index: 1;
-        }
-        .page-break {
-            page-break-before: always;
-            padding-top: 40px !important;
-        }
+        .header { position: fixed !important; top: -155px !important; left: 0 !important; right: 0 !important; text-align: center !important; margin: 0 !important; padding: 0 !important; height: 120px !important; }
+        .content { margin-top: 0 !important; padding: 0 20px !important; position: relative; z-index: 1; }
+        .page-break { page-break-before: always !important; margin: 0 !important; padding: 0 !important; border: none !important; }
         p {
             margin: 0.3em 0;
             padding: 0;
@@ -144,10 +126,10 @@ $html = '
             padding: 6px 8px;
             vertical-align: top;
         }
-        .page-break {
-            page-break-before: always;
-            padding-top: 40px !important;
-        }
+        .page-break { page-break-before: always !important; margin: 0 !important; padding: 0 !important; border: none !important; }
+          /* FIX BUG CHROMIUM: TABELAS NA PÁGINA SEGUINTE IGNORAM MARGEM */
+          .assinatura-area, .assinatura-area table { page-break-inside: avoid !important; break-inside: avoid !important; }
+          .assinatura-area { display: inline-block !important; width: 100% !important; }
     </style>
 </head>
 <body>

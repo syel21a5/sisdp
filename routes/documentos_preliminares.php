@@ -14,14 +14,20 @@ Route::middleware(['auth', 'permission:preliminares'])->group(function () {
     $processarPrelim = function ($dados, $view) {
         $dadosArray = [];
         if ($dados) {
-            // 1. Verificar se é UUID (Cache)
-            if (strlen($dados) === 36 || strpos($dados, 'prelim_') === 0 || strpos($dados, 'session_') === 0) {
-                $key = str_replace(['session_', 'prelim_'], '', $dados);
+            // 1. Tentar cache direto pela chave completa (ex: prelim_abc123)
+            $cached = \Illuminate\Support\Facades\Cache::get($dados);
+            if (is_array($cached) && !empty($cached)) {
+                $dadosArray = $cached;
+            }
+            // 2. Fallback: session_ ou UUID → busca doc_sessao_
+            elseif (strlen($dados) === 36 || strpos($dados, 'session_') === 0) {
+                $key = str_replace('session_', '', $dados);
                 $dadosArray = \Illuminate\Support\Facades\Cache::get('doc_sessao_' . $key, []);
-            } else {
-                // 2. Fallback Base64
+            }
+            // 3. Fallback Base64
+            else {
                 try {
-                    $dadosArray = json_decode(base64_decode($dados), true);
+                    $dadosArray = json_decode(base64_decode($dados), true) ?: [];
                 } catch (\Exception $e) {
                     $dadosArray = [];
                 }
@@ -94,6 +100,29 @@ Route::middleware(['auth', 'permission:preliminares'])->group(function () {
     })->name('constatacao.eficiencia.arma.termo.view.post');
 
     // =============================================
+    // NOVAS ROTAS POST PARA VISUALIZAÇÃO UNIFICADA
+    // =============================================
+    Route::post('/avaliacao-completa-gerar', function (Illuminate\Http\Request $request) use ($gerarRotaPost) {
+        return redirect()->to('/avaliacao-completa/' . $gerarRotaPost($request->input('dados')));
+    })->name('avaliacao.completa.view.post');
+
+    Route::post('/avaliacao-indireta-completa-gerar', function (Illuminate\Http\Request $request) use ($gerarRotaPost) {
+        return redirect()->to('/avaliacao-indireta-completa/' . $gerarRotaPost($request->input('dados')));
+    })->name('avaliacao.indireta.completa.view.post');
+
+    Route::post('/exame-danos-completa-gerar', function (Illuminate\Http\Request $request) use ($gerarRotaPost) {
+        return redirect()->to('/exame-danos-completa/' . $gerarRotaPost($request->input('dados')));
+    })->name('exame.danos.completa.view.post');
+
+    Route::post('/constatacao-indireta-completa-gerar', function (Illuminate\Http\Request $request) use ($gerarRotaPost) {
+        return redirect()->to('/constatacao-indireta-completa/' . $gerarRotaPost($request->input('dados')));
+    })->name('constatacao.indireta.completa.view.post');
+
+    Route::post('/eficiencia-arma-completa-gerar', function (Illuminate\Http\Request $request) use ($gerarRotaPost) {
+        return redirect()->to('/eficiencia-arma-completa/' . $gerarRotaPost($request->input('dados')));
+    })->name('constatacao.eficiencia.arma.completa.view.post');
+
+    // =============================================
     // ROTAS GET PARA VISUALIZAÇÃO (EDITOR)
     // =============================================
     Route::get('/avaliacao-portaria/{dados?}', function ($dados = null) use ($processarPrelim) {
@@ -135,6 +164,29 @@ Route::middleware(['auth', 'permission:preliminares'])->group(function () {
     Route::get('/eficiencia-arma-termo/{dados?}', function ($dados = null) use ($processarPrelim) {
         return $processarPrelim($dados, 'pecas.exames_preliminares.Auto_Eficiencia_Arma_Termo');
     })->name('constatacao.eficiencia.arma.termo.view');
+
+    // =============================================
+    // NOVAS ROTAS GET PARA VISUALIZAÇÃO UNIFICADA
+    // =============================================
+    Route::get('/avaliacao-completa/{dados?}', function ($dados = null) use ($processarPrelim) {
+        return $processarPrelim($dados, 'pecas.exames_preliminares.Auto_Avaliacao_Completa');
+    })->name('avaliacao.completa.view');
+
+    Route::get('/avaliacao-indireta-completa/{dados?}', function ($dados = null) use ($processarPrelim) {
+        return $processarPrelim($dados, 'pecas.exames_preliminares.Auto_Avaliacao_Indireta_Completa');
+    })->name('avaliacao.indireta.completa.view');
+
+    Route::get('/exame-danos-completa/{dados?}', function ($dados = null) use ($processarPrelim) {
+        return $processarPrelim($dados, 'pecas.exames_preliminares.Auto_Exame_Danos_Completa');
+    })->name('exame.danos.completa.view');
+
+    Route::get('/constatacao-indireta-completa/{dados?}', function ($dados = null) use ($processarPrelim) {
+        return $processarPrelim($dados, 'pecas.exames_preliminares.Auto_Constatacao_Indireta_Completa');
+    })->name('constatacao.indireta.completa.view');
+
+    Route::get('/eficiencia-arma-completa/{dados?}', function ($dados = null) use ($processarPrelim) {
+        return $processarPrelim($dados, 'pecas.exames_preliminares.Auto_Eficiencia_Arma_Completa');
+    })->name('constatacao.eficiencia.arma.completa.view');
 
 });
 

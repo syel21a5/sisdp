@@ -42,27 +42,23 @@
 
         <div class="editor-area">
             <div id="editor" class="preservar-espacamento">
-                <p style="text-align: center; line-height: 1.6; margin: 0.2em 0; padding: 0;">
-                    <strong style="font-size: 20pt;">P O R T A R I A</strong>
-                </p>
-
-                <p><br></p>
+                <p style="text-align: center; font-weight: bold; font-size: 14pt;">P O R T A R I A</p>
 
                 <p style="text-align: justify;">
                     O(A) Bel(a). <strong>{{ $dadosArray['delegado'] ?? 'NÃO INFORMADO' }}</strong>, Delegado(a) de Polícia, usando de suas atribuições legais, e, havendo necessidade de proceder ao <strong>EXAME DE CONSTATAÇÃO DE DANOS E AVALIAÇÃO</strong>, nomeia como Peritos: <strong>{{ $dadosArray['policial_1'] ?? 'NÃO INFORMADO' }}</strong> e <strong>{{ $dadosArray['policial_2'] ?? 'NÃO INFORMADO' }}</strong>, ambos policiais civis, os quais deverão prestar o compromisso legal de estilo.
                 </p>
 
-                <p style="text-align: center;"><strong>C u m p r a – s e</strong></p>
+                <p style="text-align: center; font-weight: bold; margin: 5px 0 0 0;">C u m p r a – s e</p>
 
-                <p style="text-align: center;">
+                <p style="text-align: center; margin: 5px 0 0 0;">
                     {{ $dadosArray['cidade'] ?? 'Afogados da Ingazeira' }}, <strong>{{ $dadosArray['data_comp'] ?? ($dadosArray['data_ext'] ?? 'DATA') }}</strong>.
                 </p>
-
                 <p><br></p>
-
-                <div class="assinatura-area">
-                    <p style="border-top: 1px solid #000; padding-top: 5px;"><strong>{{ $dadosArray['delegado'] ?? 'NÃO INFORMADO' }}</strong></p>
-                    <p>Delegado(a) de Polícia</p>
+                <div class="assinatura-area" style="margin-top: 10px; line-height: 1.3;">
+                    <p style="text-align: center;">
+                        <strong>{{ $dadosArray['delegado'] ?? 'NÃO INFORMADO' }}</strong><br>
+                        Delegado(a) de Polícia
+                    </p>
                 </div>
 
                 <p><br></p>

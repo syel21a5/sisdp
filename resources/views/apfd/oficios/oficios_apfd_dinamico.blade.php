@@ -16,9 +16,9 @@
 // ✅ DECODIFICAR DADOS DA URL APENAS SE NÃO FOI PASSADO PELO CONTROLLER
 if (!isset($dadosArray) || empty($dadosArray)) {
     $dadosBase64 = request()->segment(2);
-    $dadosArray = [];
-    
-    if ($dadosBase64) {
+     if (!isset($dadosArray)) { $dadosArray = []; }
+
+if ($dadosBase64 && empty($dadosArray)) {
         try {
             $dadosJson = base64_decode($dadosBase64);
             $dadosArray = json_decode($dadosJson, true) ?? [];

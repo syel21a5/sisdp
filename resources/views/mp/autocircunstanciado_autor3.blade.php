@@ -14,8 +14,9 @@
 <body class="body-declaracao">
 <?php
 $dadosBase64 = request()->segment(2);
-$dadosArray = [];
-if ($dadosBase64) {
+ if (!isset($dadosArray)) { $dadosArray = []; }
+
+if ($dadosBase64 && empty($dadosArray)) {
     try { $dadosJson = base64_decode($dadosBase64); $dadosArray = json_decode($dadosJson, true) ?? []; } catch (Exception $e) { $dadosArray = []; }
 }
 function exibirDado($array, $chave, $subchave = null, $padrao = 'NÃO INFORMADO') {

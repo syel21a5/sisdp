@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -145,4 +145,6 @@
     <script src="{{ asset('js/pages/pecas/EficienciaArma.js') }}"></script>
 </body>
 </html>
+
+
 

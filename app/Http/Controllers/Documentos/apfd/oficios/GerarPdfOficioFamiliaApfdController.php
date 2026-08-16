@@ -289,9 +289,7 @@ class GerarPdfOficioFamiliaApfdController extends Controller
             <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
             <style>
                 /* ✅✅✅ MARGENS CORRIGIDAS PARA PÁGINAS IGUAIS */
-                @page {
-                    margin: 105px 30px 60px 30px;
-                }
+                @page { margin: 180px 30px 100px 30px; }
 
                 /* ✅✅✅ RESET COMPLETO DAS MARGENS */
                 body {
@@ -303,31 +301,12 @@ class GerarPdfOficioFamiliaApfdController extends Controller
                     color: #000;
                 }
 
-                .header {
-                    position: fixed;
-                    top: -100px;
-                    left: 0;
-                    right: 0;
-                    text-align: center;
-                    margin: 0 !important;
-                    padding: 0 !important;
-                    height: 90px;
-                }
+                .header { position: fixed !important; top: -155px !important; left: 0 !important; right: 0 !important; text-align: center !important; margin: 0 !important; padding: 0 !important; height: 120px !important; }
 
-                .content {
-                    margin-top: 10px !important;
-                    padding: 0 20px !important;
-                    position: relative;
-                    z-index: 1;
-                }
+                .content { margin-top: 0 !important; padding: 0 20px !important; position: relative; z-index: 1; }
 
                 /* ✅✅✅ QUEBRA DE PÁGINA CORRIGIDA */
-                .page-break {
-                    page-break-before: always !important;
-                    margin-top: 0 !important;
-                    padding-top: 0 !important;
-                    height: 0 !important;
-                }
+                .page-break { page-break-before: always !important; margin: 0 !important; padding: 0 !important; border: none !important; }
 
                 /* ✅✅✅ GARANTIR QUE SEGUNDA PÁGINA COMECE NO TOPO */
                 .page-break + p,
@@ -426,7 +405,10 @@ class GerarPdfOficioFamiliaApfdController extends Controller
 
                 .no-break { page-break-inside: avoid !important; break-inside: avoid !important; page-break-after: avoid !important; }
                 .no-break p { margin: 0.2em 0 !important; line-height: 1.45 !important; }
-            </style>
+          /* FIX BUG CHROMIUM: TABELAS NA PÁGINA SEGUINTE IGNORAM MARGEM */
+          .assinatura-area, .assinatura-area table { page-break-inside: avoid !important; break-inside: avoid !important; }
+          .assinatura-area { display: inline-block !important; width: 100% !important; }
+    </style>
         </head>
         <body>
             <div class="header">
