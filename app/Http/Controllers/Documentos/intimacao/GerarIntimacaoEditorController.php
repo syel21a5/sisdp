@@ -71,7 +71,7 @@ $html = '
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <style>
         /* MARGEM MAIS COMPACTADA PARA UMA PÁGINA */
-        @page { margin: 180px 30px 100px 30px; }
+        @page { margin: 120px 30px 80px 30px; }
         body {
             font-family: Arial, sans-serif;
             font-size: 9.5pt !important;
@@ -80,7 +80,7 @@ $html = '
             padding: 0;
             color: #000;
         }
-        .header { position: fixed !important; top: -155px !important; left: 0 !important; right: 0 !important; text-align: center !important; margin: 0 !important; padding: 0 !important; height: 120px !important; }
+        .header { position: fixed !important; top: 5px !important; left: 30px !important; right: 30px !important; text-align: center !important; margin: 0 !important; padding: 0 0 15px 0 !important; height: auto !important; }
 
         .content { margin-top: 0 !important; padding: 0 20px !important; position: relative; z-index: 1; }
 

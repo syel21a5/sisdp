@@ -26,8 +26,33 @@ class PdfService
         file_put_contents($tempHtml, $html);
         
         try {
-            $motorUrl = env('MOTOR_URL', 'http://localhost:8001') . '/generate-pdf';
-            $response = \Illuminate\Support\Facades\Http::timeout(60)->post($motorUrl, [
+            $motorUrl = env('MOTOR_URL', 'http://localhost:8001');
+            
+            // AUTO-START: Verificar se o motor está rodando, se não, iniciar automaticamente
+            try {
+                \Illuminate\Support\Facades\Http::timeout(2)->get($motorUrl);
+            } catch (\Exception $pingError) {
+                // Motor não está rodando — iniciar automaticamente
+                $pythonScript = base_path('scripts' . DIRECTORY_SEPARATOR . 'python' . DIRECTORY_SEPARATOR . 'api_server.py');
+                if (file_exists($pythonScript)) {
+                    if (PHP_OS_FAMILY === 'Windows') {
+                        pclose(popen('start /B python "' . $pythonScript . '" 2>nul', 'r'));
+                    } else {
+                        exec('python3 "' . $pythonScript . '" > /dev/null 2>&1 &');
+                    }
+                    // Aguardar o motor subir (máx 5 segundos)
+                    for ($i = 0; $i < 10; $i++) {
+                        usleep(500000); // 0.5s
+                        try {
+                            $check = \Illuminate\Support\Facades\Http::timeout(1)->get($motorUrl);
+                            if ($check->successful()) break;
+                        } catch (\Exception $e) { /* aguardando... */ }
+                    }
+                    Log::info("Motor PDF auto-iniciado com sucesso.");
+                }
+            }
+            
+            $response = \Illuminate\Support\Facades\Http::timeout(60)->post($motorUrl . '/generate-pdf', [
                 'input_html_path' => $tempHtml,
                 'output_pdf_path' => $tempPdf
             ]);
@@ -51,6 +76,55 @@ class PdfService
             $errorMsg = isset($response) ? $response->body() : 'Sem resposta do servidor Python';
             Log::error("Falha ao gerar PDF com Python (Usando Fallback DOMPDF): " . $errorMsg);
             
+            // ============================================================
+            // FALLBACK DOMPDF: Injetar cabeçalho em CADA página
+            // O DomPDF não repete position:fixed corretamente, então
+            // extraímos o cabeçalho e o injetamos após cada quebra de página.
+            // ============================================================
+            
+            // 1. Extrair o HTML do cabeçalho (div.header contendo a tabela com brasões)
+            $headerHtml = '';
+            if (preg_match('/<div class="header">[\s\S]*?<\/table>\s*<\/div>/i', $html, $headerMatch)) {
+                $headerHtml = $headerMatch[0];
+            }
+            
+            // 2. Trocar position:fixed por position:relative no header (DomPDF não repete fixed)
+            $html = preg_replace(
+                '/\.header\s*\{[^}]*\}/',
+                '.header { position: relative !important; text-align: center !important; margin: 0 !important; padding: 0 0 15px 0 !important; height: auto !important; width: 100% !important; }',
+                $html
+            );
+            
+            // 3. Ajustar @page para margem mínima (o cabeçalho está no fluxo do documento)
+            $html = preg_replace(
+                '/@page\s*\{[^}]*\}/',
+                '@page { margin: 25px 30px 80px 30px; }',
+                $html
+            );
+            
+            // 4. Injetar o cabeçalho ANTES de cada quebra de página
+            //    Formato real do editor Quill: <p class="page-break-marker" style="page-break-before: always; ...">
+            if ($headerHtml) {
+                // Tratar o formato do Quill: <p class="page-break-marker" ...>
+                $html = preg_replace(
+                    '/(<p[^>]*class="page-break-marker"[^>]*style="[^"]*page-break-before:\s*always[^"]*"[^>]*>.*?<\/p>)/i',
+                    '$1' . "\n" . $headerHtml,
+                    $html
+                );
+                // Tratar <div style="page-break-after: always;">
+                $html = str_replace(
+                    '<div style="page-break-after: always;"></div>',
+                    '<div style="page-break-after: always;"></div>' . "\n" . $headerHtml,
+                    $html
+                );
+                // Tratar <div class="page-break">
+                $html = preg_replace(
+                    '/(<div[^>]*class="page-break"[^>]*><\/div>)/',
+                    '$1' . "\n" . $headerHtml,
+                    $html
+                );
+            }
+
             // Fallback para o antigo DomPDF
             $options = new Options();
             $options->set('isHtml5ParserEnabled', true);
