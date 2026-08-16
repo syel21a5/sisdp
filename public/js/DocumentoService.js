@@ -125,7 +125,8 @@ const DocumentoService = {
         'tipopenal': ['TipoPenal', 'tipopenal', 'tipo_penal', 'incidencia_penal'],
         'fianca': ['Fianca', 'fianca', 'Fiança'],
         'fianca_ext': ['FiancaExt', 'fianca_ext', 'Fiança_ext'],
-        'fianca_pago': ['FiancaPago', 'fianca_pago']
+        'fianca_pago': ['FiancaPago', 'fianca_pago'],
+        'id': ['id', 'IdCad', 'pessoa_id']
     },
 
     /**
@@ -174,7 +175,7 @@ const DocumentoService = {
 
         // 3. Normalizar cada campo usando o mapa de aliases
         const norm = {};
-        const camposPessoa = ['nome', 'alcunha', 'nascimento', 'idade', 'rg', 'cpf',
+        const camposPessoa = ['id', 'nome', 'alcunha', 'nascimento', 'idade', 'rg', 'cpf',
             'pai', 'mae', 'endereco', 'profissao', 'naturalidade', 'estcivil',
             'instrucao', 'telefone', 'tipopenal', 'fianca', 'fianca_ext', 'fianca_pago'];
 
@@ -244,7 +245,19 @@ const DocumentoService = {
             naturalidade: lerCampo('inputNaturalidade', sufixo),
             estcivil: lerCampo('inputEstadoCivil', sufixo),
             instrucao: lerCampo('inputInstrucao', sufixo),
-            telefone: lerCampo('inputTelefone', sufixo)
+            telefone: lerCampo('inputTelefone', sufixo),
+            tipopenal: lerCampo('inputTipoPenal', sufixo),
+            fianca: lerCampo('inputFianca', sufixo),
+            fianca_ext: lerCampo('inputFiancaExt', sufixo),
+            fianca_pago: (function() {
+                // Tenta checkbox ou select para fiança pago
+                const cb = $(`#inputFiancaPago${sufixo}`);
+                if (cb.length) {
+                    if (cb.is(':checkbox')) return cb.is(':checked');
+                    return cb.val() === '1' || cb.val() === 'true';
+                }
+                return false;
+            })()
         };
 
         // Aplicar CAIXA ALTA
@@ -299,8 +312,8 @@ const DocumentoService = {
             policial_2: ($('#inputPolicial2').val() || '').toUpperCase(),
             local_fato: ($('#inputEndFato').val() || '').toUpperCase(),
             hora_fato: $('#inputHoraFato').val() || '',
-            natureza: ($('#inputNatureza').val() || '').toUpperCase(),
-            incidencia_penal: ($('#inputNatureza').val() || '').toUpperCase(),
+            natureza: ($('#inputIncidenciaPenal').val() || '').toUpperCase(),
+            incidencia_penal: ($('#inputIncidenciaPenal').val() || '').toUpperCase(),
             data_fato: (() => {
                 const d = $('#inputDataFato').val();
                 if (d && d.includes('-')) {

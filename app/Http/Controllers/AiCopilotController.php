@@ -22,6 +22,7 @@ class AiCopilotController extends Controller
 
         $userMessage = $request->input('message');
         $context = $request->input('context');
+        $history = $request->input('history', []);
         
         Log::info("Copilot Context Received: ", $context ?? []);
 
@@ -62,6 +63,7 @@ class AiCopilotController extends Controller
             $contextString .= "  * Nenhuma pessoa envolvida encontrada.\n";
         }$systemPrompt = <<<PROMPT
 Você é o Sisdepol Assistente IA, o cérebro integrado diretamente no sistema da Polícia Civil (Sisdepol).
+RESPONDA SEMPRE EM PORTUGUÊS DO BRASIL. NUNCA FALE EM INGLÊS.
 VOCÊ TEM CONTROLE TOTAL sobre a interface através das suas ferramentas. Se o usuário perguntar se você tem controle ou se pode fazer coisas no site, DIGA QUE SIM, com orgulho, e explique que você pode abrir os editores de peças processuais automaticamente para ele.
 
 Sua principal função é ajudar o Escrivão/Delegado a analisar o Boletim de Ocorrência (BOE), encontrar envolvidos e agilizar a criação de documentos processuais.
@@ -91,7 +93,8 @@ LISTA DE DOCUMENTOS DISPONÍVEIS NO SISTEMA (Use APENAS estes nomes):
 - EXAME DE CONSTATACAO DE DANOS E AVALIACAO, EXAME DE CONSTATACAO DE DANOS INDIRETA, EXAME DE EFICIENCIA DE ARMA DE FOGO
 - DESPACHO DE CONCLUSAO, ROL DE TESTEMUNHAS
 
-Se o documento for PROCEDIMENTO GERAL/GENÉRICO (que não pertence a uma pessoa específica, ex: DESPACHO DE CONCLUSAO, ROL DE TESTEMUNHAS, AVALIACAO DE OBJETOS, PERICIAS), passe SEMPRE o `pessoa_id` como `0`. Apenas execute a ferramenta. NÃO EXPLIQUE isso ao usuário.
+Se o documento for PROCEDIMENTO GERAL/GENÉRICO (ex: DESPACHO DE CONCLUSAO, ROL DE TESTEMUNHAS, AVALIACAO DE OBJETOS, PERICIAS), passe SEMPRE o `pessoa_id` como `0`.
+Se o documento for PESSOAL (qualquer outro da lista, incluindo OFÍCIOS, MANDADOS, APFD, AAFAI), você DEVE OBRIGATORIAMENTE passar o ID da pessoa correta. Se o usuário não disse quem é, olhe para as pessoas disponíveis no contexto da tela: se houver APENAS UMA pessoa naquele papel (ex: apenas 1 autor), ou se for óbvio de quem se trata, NÃO PERGUNTE nada, apenas abra o documento para ela. Só pergunte se houver DUAS OU MAIS opções válidas e estiver ambíguo. NUNCA passe 0 para documentos que exigem pessoa.
 
 REGRAS DE DOCUMENTOS POR PAPEL:
 As regras abaixo são apenas para as "oitivas" principais. Para os demais documentos (Laudos, Representações, Certidões, Autos, Ofícios), você tem liberdade para abrir conforme o pedido, adaptando para o papel correto (ex: se for AAFAI para autor, use "AAFAI - AUTOR 1").
@@ -147,7 +150,6 @@ PROMPT;
             'model' => $model,
             'messages' => [
                 ['role' => 'system', 'content' => $systemPrompt],
-                ['role' => 'user', 'content' => $userMessage],
             ],
             'tools' => [
                 [
@@ -174,6 +176,21 @@ PROMPT;
             ],
             'tool_choice' => 'auto'
         ];
+
+        // Injetar o histórico de mensagens (contexto da conversa)
+        if (is_array($history)) {
+            foreach ($history as $msg) {
+                if (!empty($msg['role']) && isset($msg['content'])) {
+                    $payload['messages'][] = [
+                        'role' => $msg['role'],
+                        'content' => $msg['content']
+                    ];
+                }
+            }
+        }
+
+        // Adicionar a mensagem atual do usuário
+        $payload['messages'][] = ['role' => 'user', 'content' => $userMessage];
 
         // Mapa de normalização: converte variações do nome do documento para o nome exato
         $mapaDocumentos = [
@@ -224,15 +241,28 @@ PROMPT;
                         // Abre o editor do documento pré-preenchido com os dados da pessoa
                         // (a redação da oitiva fica por conta do escrivão — sem geração de texto pela IA)
                         if ($toolCall['name'] === 'abrir_editor') {
-                            // Se a IA não mandou pessoa_id (ex: documento genérico), pegamos o ID do primeiro condutor do contexto
                             $pessoaId = $args['pessoa_id'] ?? null;
-                            if (!$pessoaId && !empty($context['envolvidos']['condutores'])) {
-                                $pessoaId = reset($context['envolvidos']['condutores'])['id'];
+                            $termoIA = isset($args['tipo_termo']) ? strtoupper(trim($args['tipo_termo'])) : '';
+                            
+                            // Lista de termos que são realmente genéricos (pessoa_id 0 é válido)
+                            $termosGenericos = ['DESPACHO DE CONCLUSAO', 'ROL DE TESTEMUNHAS', 'AVALIACAO DE OBJETOS', 'AVALIACAO INDIRETA DE OBJETOS', 'EXAME DE CONSTATACAO DE DANOS E AVALIACAO', 'EXAME DE CONSTATACAO DE DANOS INDIRETA', 'EXAME DE EFICIENCIA DE ARMA DE FOGO', 'PERICIA EM VEICULO', 'PERICIA EM LOCAL DE CRIME', 'OFICIOS MANDADO DE PRISAO'];
+                            
+                            $isGenerico = in_array($termoIA, $termosGenericos) || in_array($mapaDocumentos[$termoIA] ?? '', $termosGenericos);
+
+                            // Se a IA mandou pessoa_id 0 ou vazio para um documento que NÃO é genérico,
+                            // forçamos o ID do primeiro autor (ou vitima/condutor) do contexto para evitar que quebre.
+                            if ((empty($pessoaId) || $pessoaId == 0) && !$isGenerico) {
+                                if (!empty($context['envolvidos']['autores'])) {
+                                    $pessoaId = reset($context['envolvidos']['autores'])['id'];
+                                } elseif (!empty($context['envolvidos']['condutores'])) {
+                                    $pessoaId = reset($context['envolvidos']['condutores'])['id'];
+                                } elseif (!empty($context['envolvidos']['vitimas'])) {
+                                    $pessoaId = reset($context['envolvidos']['vitimas'])['id'];
+                                }
                             }
                             
                             // Normaliza o tipo_termo da IA para o nome exato do documento
-                            if (isset($args['tipo_termo'])) {
-                                $termoIA = strtoupper(trim($args['tipo_termo']));
+                            if ($termoIA) {
                                 // Tenta match exato primeiro, depois pelo mapa de variações
                                 $args['tipo_termo'] = $mapaDocumentos[$termoIA] ?? $termoIA;
                             }

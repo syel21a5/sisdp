@@ -1711,11 +1711,35 @@ window.OcorrenciasApp = {
             "PERICIA EM LOCAL DE CRIME": "/pericia-local-de-crime",
             "CERTIDAO DE ASSINATURA APFD": "/certidao-assinaturas-apfd",
             "AAFAI CONDUTOR": "/aafai-condutor",
-            "APFD CONDUTOR": "/apfd-condutor"
+            "APFD CONDUTOR": "/apfd-condutor",
+            "AUTO CIRCUNSTACIADO - AUTOR 1": "/autocircunstanciado",
+            "COMUNICACAO DE APFD": "/oficios-apfd-dinamico",
+            "COMUNICACAO DE APFD - UNICO OFICIO": "/oficios-apfd-unico",
+            "MANDADO DE PRISAO - OFICIOS": "/oficios-mp",
+            "MANDADO DE PRISAO - OFICIO FAMILIA": "/oficiofamilia-mp",
+            "APFD - OFICIO FAMILIA": "/oficiofamilia-apfd",
+            "MANDADO DE PRISAO - RECOLHIMENTO": "/recolhimento-mp",
+            "TERMO DE LIBERACAO DE MENOR - INFRATOR": "/liberacao-infrator",
+            "AAFAI - AUTOR 1": "/aafai-autor1",
+            "APFD - AUTOR 1": "/apfd-autor1",
+            "NOTA DE CULPA": "/notadeculpa-dinamica",
+            "NOTA DE CIENCIA - GARANTIAS CONSTITUCIONAIS": "/notadeculpa-dinamica?tipo=ciencia",
+            "AAFAI - TESTEMUNHA 1": "/aafai-testemunha1",
+            "APFD - TESTEMUNHA 1": "/apfd-testemunha1",
+            "AAFAI - VITIMA 1": "/aafai-vitima1",
+            "APFD - VITIMA 1": "/apfd-vitima1"
         };
         
-        const rotaBase = urlRota[termo] || '/depoimento';
-        const urlBase = rotaBase + '/--DADOS--';
+        // Se a rota tiver query param (?tipo=ciencia), precisamos separar a base para concatenar o /--DADOS--
+        let rotaBase = urlRota[termo] || '/depoimento';
+        let urlBase = '';
+        
+        if (rotaBase.includes('?')) {
+            const partes = rotaBase.split('?');
+            urlBase = partes[0] + '/--DADOS--?' + partes[1];
+        } else {
+            urlBase = rotaBase + '/--DADOS--';
+        }
 
         if (typeof DocumentoService !== 'undefined' && DocumentoService.gerar) {
             DocumentoService.gerar(urlBase, dados);

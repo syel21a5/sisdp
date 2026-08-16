@@ -10,6 +10,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnCopilotSend = document.getElementById('btnCopilotSend');
     const btnCopilotClear = document.getElementById('btnCopilotClear');
 
+    // Variável para armazenar o histórico da conversa
+    let conversationHistory = [];
+
     if (btnCopilotClear) {
         btnCopilotClear.addEventListener('click', function() {
             // Mantém apenas a primeira mensagem (de boas vindas)
@@ -18,6 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (firstMessage) {
                 chatBox.appendChild(firstMessage);
             }
+            conversationHistory = []; // Limpa o histórico
         });
     }
 
@@ -86,6 +90,12 @@ document.addEventListener('DOMContentLoaded', function () {
         // 2. Coletar Contexto do Sistema
         const contexto = montarContexto();
         
+        // Clonar histórico atual para enviar, ANTES de adicionar a nova mensagem
+        const historyToSend = [...conversationHistory];
+        
+        // Adicionar mensagem do usuário ao histórico local
+        conversationHistory.push({ role: 'user', content: message });
+
         // 3. Mostrar carregamento e desabilitar input
         addLoading();
         copilotInput.disabled = true;
@@ -100,7 +110,8 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             body: JSON.stringify({
                 message: message,
-                context: contexto
+                context: contexto,
+                history: historyToSend
             })
         })
         .then(response => response.json())
@@ -111,6 +122,9 @@ document.addEventListener('DOMContentLoaded', function () {
             copilotInput.focus();
 
             if (data.success) {
+                // Adicionar resposta da IA ao histórico local
+                conversationHistory.push({ role: 'assistant', content: data.reply || '' });
+
                 // Verificar se há uma chamada de função (tool call)
                 if (data.tool_call) {
                     executarComando(data.tool_call, data.reply);
@@ -118,6 +132,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     addMessage(data.reply);
                 }
             } else {
+                // Em caso de erro, remove a mensagem do usuário do histórico para não corromper o contexto
+                conversationHistory.pop();
                 addMessage('⚠️ Erro: ' + (data.error || 'Falha ao comunicar com a IA.'));
             }
         })
@@ -126,6 +142,8 @@ document.addEventListener('DOMContentLoaded', function () {
             removeLoading();
             copilotInput.disabled = false;
             btnCopilotSend.disabled = false;
+            // Remover do histórico também se a rede falhar
+            conversationHistory.pop();
             addMessage('⚠️ Erro de rede ao tentar conectar com a IA.');
         });
     });

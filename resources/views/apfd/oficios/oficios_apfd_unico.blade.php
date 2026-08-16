@@ -184,24 +184,28 @@ if (!empty($dadosArray['incidencia_penal']) && strtoupper(trim($dadosArray['inci
 }
 
 $listaTiposPenais = '';
-if ($incPenalGeral !== '') {
-    $listaTiposPenais = $incPenalGeral;
-} else {
-    $tipos = array_map(function ($a) {
-        return $a['tipopenal'] ?? 'NÃO INFORMADO';
-    }, $autores);
-    $tipos = array_values(array_filter($tipos, function ($t) {
-        $n = strtoupper(trim($t));
-        return $n !== '' && $n !== 'NÃO INFORMADO';
-    }));
-    if (empty($tipos))
-        $listaTiposPenais = 'NÃO INFORMADO';
-    elseif (count(array_unique($tipos)) === 1)
-        $listaTiposPenais = $tipos[0];
-    else {
-        $tiposList = array_values(array_unique($tipos));
+
+$tiposIndividuais = [];
+foreach ($autores as $a) {
+    $tp = trim($a['tipopenal'] ?? '');
+    if ($tp !== '' && strtoupper($tp) !== 'NÃO INFORMADO') {
+        $tiposIndividuais[] = $tp;
+    }
+}
+
+if (!empty($tiposIndividuais)) {
+    $tiposList = array_values(array_unique($tiposIndividuais));
+    if (count($tiposList) === 1) {
+        $listaTiposPenais = $tiposList[0];
+    } else {
         $ultimoTipo = array_pop($tiposList);
         $listaTiposPenais = implode(', ', $tiposList) . ' e ' . $ultimoTipo;
+    }
+} else {
+    if ($incPenalGeral !== '') {
+        $listaTiposPenais = $incPenalGeral;
+    } else {
+        $listaTiposPenais = 'NÃO INFORMADO';
     }
 }
 
@@ -272,7 +276,12 @@ if (count($grupoPagou) > 0) {
     $nomes = array_map(function ($a) {
         return $a['nome'];
     }, $grupoPagou);
-    $nomesStr = implode(', ', $nomes);
+    if (count($nomes) > 1) {
+        $ultimo = array_pop($nomes);
+        $nomesStr = implode(', ', $nomes) . ' e ' . $ultimo;
+    } else {
+        $nomesStr = $nomes[0];
+    }
     if (count($grupoPagou) == 1) {
         $val = $grupoPagou[0];
         $partesTexto[] = "em relação ao autuado(a) <strong>{$val['nome']}</strong>, foi arbitrada fiança no valor de R$ {$val['valor']} ({$val['extenso']}), a qual foi devidamente recolhida, sendo o(a) mesmo(a) posto(a) em liberdade.";
@@ -280,26 +289,47 @@ if (count($grupoPagou) > 0) {
         $partesTexto[] = "em relação aos autuados <strong>{$nomesStr}</strong>, foram arbitradas fianças criminais, as quais foram devidamente recolhidas, sendo os mesmos postos em liberdade.";
     }
 }
+
 if (count($grupoNaoPagouArbitrada) > 0) {
     $nomes = array_map(function ($a) {
         return $a['nome'];
     }, $grupoNaoPagouArbitrada);
-    $nomesStr = implode(', ', $nomes);
+    if (count($nomes) > 1) {
+        $ultimo = array_pop($nomes);
+        $nomesStr = implode(', ', $nomes) . ' e ' . $ultimo;
+    } else {
+        $nomesStr = $nomes[0];
+    }
     $plural = count($grupoNaoPagouArbitrada) > 1;
+    
+    $prefixo = empty($partesTexto) ? "em relação ao" : "Já quanto ao";
+    $prefixoPlural = empty($partesTexto) ? "em relação aos" : "Já quanto aos";
+
     if ($plural) {
-        $partesTexto[] = "Já quanto aos autuados <strong>{$nomesStr}</strong>, foi arbitrada fiança criminal, porém os mesmos deixaram de recolher o valor estipulado, sendo recolhidos ao xadrez desta unidade policial, a fim de serem apresentados na Audiência de Custódia.";
+        $partesTexto[] = "{$prefixoPlural} autuados <strong>{$nomesStr}</strong>, foi arbitrada fiança criminal, porém os mesmos deixaram de pagar o valor estipulado, sendo recolhidos ao xadrez desta unidade policial, a fim de serem apresentados na Audiência de Custódia.";
     } else {
         $val = $grupoNaoPagouArbitrada[0];
-        $partesTexto[] = "Já quanto ao autuado(a) <strong>{$val['nome']}</strong>, foi arbitrada fiança no valor de R$ {$val['valor']} ({$val['extenso']}), porém o(a) mesmo(a) deixou de recolher o valor estipulado, sendo recolhido(a) ao xadrez desta unidade policial, a fim de ser apresentado(a) na Audiência de Custódia.";
+        $partesTexto[] = "{$prefixo} autuado(a) <strong>{$val['nome']}</strong>, foi arbitrada fiança no valor de R$ {$val['valor']} ({$val['extenso']}), porém o(a) mesmo(a) deixou de pagar o valor estipulado, sendo recolhido(a) ao xadrez desta unidade policial, a fim de ser apresentado(a) na Audiência de Custódia.";
     }
 }
+
 if (count($grupoSemFianca) > 0) {
-    $nomesStr = implode(', ', $grupoSemFianca);
-    $plural = count($grupoSemFianca) > 1;
-    if ($plural) {
-        $partesTexto[] = "Em relação aos autuados <strong>{$nomesStr}</strong>, foram recolhidos ao xadrez desta unidade policial, a fim de serem apresentados na Audiência de Custódia.";
+    if (count($grupoSemFianca) > 1) {
+        $backup = $grupoSemFianca;
+        $ultimo = array_pop($backup);
+        $nomesStr = implode(', ', $backup) . ' e ' . $ultimo;
     } else {
-        $partesTexto[] = "Em relação ao autuado(a) <strong>{$nomesStr}</strong>, foi recolhido(a) ao xadrez desta unidade policial, a fim de ser apresentado(a) na Audiência de Custódia.";
+        $nomesStr = $grupoSemFianca[0];
+    }
+    $plural = count($grupoSemFianca) > 1;
+    
+    $prefixo = empty($partesTexto) ? "em relação ao" : "Em relação ao";
+    $prefixoPlural = empty($partesTexto) ? "em relação aos" : "Em relação aos";
+
+    if ($plural) {
+        $partesTexto[] = "{$prefixoPlural} autuados <strong>{$nomesStr}</strong>, foram recolhidos ao xadrez desta unidade policial, a fim de serem apresentados na Audiência de Custódia.";
+    } else {
+        $partesTexto[] = "{$prefixo} autuado(a) <strong>{$nomesStr}</strong>, foi recolhido(a) ao xadrez desta unidade policial, a fim de ser apresentado(a) na Audiência de Custódia.";
     }
 }
 
@@ -342,7 +372,7 @@ $textoDesfecho = "Após as formalidades legais, " . implode("</p><p style=\"text
         <!-- ÁREA DO EDITOR UNIFICADO -->
         <div class="editor-area">
             <div id="editor" class="preservar-espacamento">
-                <p class="preservar-espacamento ql-align-right" style="margin-top: -25px !important;">
+                <p class="preservar-espacamento ql-align-right">
                     {{ !empty($dadosArray['cidade']) ? $dadosArray['cidade'] : 'NÃO INFORMADO' }}, {{ $dataComp }}
                 </p>
 
@@ -352,8 +382,7 @@ $textoDesfecho = "Após as formalidades legais, " . implode("</p><p style=\"text
 
                 <!-- CABEÇALHO UNIFICADO REFORMATADO -->
                 <p class="preservar-espacamento"><strong>A SUA EXCELÊNCIA O(A) SENHOR(A)</strong></p>
-                <p class="preservar-espacamento" style="white-space: nowrap !important; font-size: 10pt !important;">
-                    <strong>JUIZ(A) DE DIREITO | PROMOTOR(A) DE JUSTIÇA | DEFENSOR(A) PÚBLICO(A)</strong>
+                <p class="preservar-espacamento"><strong>JUIZ(A) DE DIREITO | PROMOTOR(A) DE JUSTIÇA | DEFENSOR(A) PÚBLICO(A)</strong></p>
                 <p class="preservar-espacamento"><strong>ESTADO DE PERNAMBUCO</strong></p>
 
                 <p class="preservar-espacamento">&nbsp;</p>

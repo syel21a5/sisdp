@@ -116,20 +116,78 @@ class NumOficioController extends Controller
     {
         if (!$dados) return [];
 
+        $cached = null;
         // 1. Verificar se é um UUID (Cache)
         if (strlen($dados) === 36 || strpos($dados, 'session_') === 0) {
             $key = str_replace('session_', '', $dados);
             $cached = Cache::get('doc_sessao_' . $key);
-            if ($cached) return $cached;
         }
 
         // 2. Fallback para Base64 (Legado)
-        try {
-            $decoded = json_decode(base64_decode($dados), true);
-            return is_array($decoded) ? $decoded : [];
-        } catch (\Exception $e) {
-            return [];
+        if (!$cached) {
+            try {
+                $decoded = json_decode(base64_decode($dados), true);
+                $cached = is_array($decoded) ? $decoded : [];
+            } catch (\Exception $e) {
+                $cached = [];
+            }
         }
+
+        if (empty($cached)) return [];
+
+        // 3. Enriquecer dados dos envolvidos a partir do banco de dados (se houver id)
+        $tipos = ['autores', 'vitimas', 'testemunhas', 'condutores', 'outros'];
+        foreach ($tipos as $tipo) {
+            if (isset($cached[$tipo]) && is_array($cached[$tipo])) {
+                foreach ($cached[$tipo] as $key => $pessoa) {
+                    if (!empty($pessoa['id'])) {
+                        // Verifica se o TipoPenal já veio preenchido no JSON
+                        $temTipoPenal = !empty($pessoa['tipopenal']) && strtoupper(trim($pessoa['tipopenal'])) !== 'NÃO INFORMADO';
+                        
+                        $pessoaBd = \Illuminate\Support\Facades\DB::table('cadpessoa')->where('IdCad', $pessoa['id'])->first();
+                        if ($pessoaBd) {
+                            if (!$temTipoPenal && !empty($pessoaBd->TipoPenal)) {
+                                $cached[$tipo][$key]['tipopenal'] = strtoupper($pessoaBd->TipoPenal);
+                            }
+                            if (empty($pessoa['fianca']) && !empty($pessoaBd->Fianca)) {
+                                $cached[$tipo][$key]['fianca'] = $pessoaBd->Fianca;
+                            }
+                            if (empty($pessoa['fianca_ext']) && !empty($pessoaBd->FiancaExt)) {
+                                $cached[$tipo][$key]['fianca_ext'] = strtoupper($pessoaBd->FiancaExt);
+                            }
+                            if (!isset($pessoa['fianca_pago']) && isset($pessoaBd->FiancaPago)) {
+                                $cached[$tipo][$key]['fianca_pago'] = (bool) $pessoaBd->FiancaPago;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Também enriquecer chaves individuais legadas (autor1, autor2, etc.)
+        for ($i = 1; $i <= 5; $i++) {
+            $chave = "autor$i";
+            if (isset($cached[$chave]) && is_array($cached[$chave]) && !empty($cached[$chave]['id'])) {
+                $temTipoPenal = !empty($cached[$chave]['tipopenal']) && strtoupper(trim($cached[$chave]['tipopenal'])) !== 'NÃO INFORMADO';
+                $pessoaBd = \Illuminate\Support\Facades\DB::table('cadpessoa')->where('IdCad', $cached[$chave]['id'])->first();
+                if ($pessoaBd) {
+                    if (!$temTipoPenal && !empty($pessoaBd->TipoPenal)) {
+                        $cached[$chave]['tipopenal'] = strtoupper($pessoaBd->TipoPenal);
+                    }
+                    if (empty($cached[$chave]['fianca']) && !empty($pessoaBd->Fianca)) {
+                        $cached[$chave]['fianca'] = $pessoaBd->Fianca;
+                    }
+                    if (empty($cached[$chave]['fianca_ext']) && !empty($pessoaBd->FiancaExt)) {
+                        $cached[$chave]['fianca_ext'] = strtoupper($pessoaBd->FiancaExt);
+                    }
+                    if (!isset($cached[$chave]['fianca_pago']) && isset($pessoaBd->FiancaPago)) {
+                        $cached[$chave]['fianca_pago'] = (bool) $pessoaBd->FiancaPago;
+                    }
+                }
+            }
+        }
+
+        return $cached;
     }
 
     /**
