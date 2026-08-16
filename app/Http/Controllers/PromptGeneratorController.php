@@ -275,6 +275,78 @@ class PromptGeneratorController extends Controller
     }
 
     /**
+     * ✅ EXTRAÇÃO VIA MOTOR NATIVO (regex Python, SEM IA)
+     * Usada pela tela home simplificada. NÃO salva nada no banco — dados descartáveis.
+     */
+    public function extrairDadosMotorNativo(Request $request)
+    {
+        $request->validate([
+            'texto' => 'nullable|string',
+            'pdfBOE' => 'nullable|file|mimes:pdf|max:10240'
+        ]);
+
+        try {
+            $texto = $request->texto ?? '';
+            $tmpPath = '';
+
+            // Se for PDF, extrai o texto via motor (/read-text)
+            if ($request->hasFile('pdfBOE') && $request->file('pdfBOE')->isValid()) {
+                $pdf = $request->file('pdfBOE');
+                $tmpPath = sys_get_temp_dir() . "/boe_nativo_upload_" . uniqid() . '.pdf';
+                $pdf->move(sys_get_temp_dir(), basename($tmpPath));
+
+                $motorUrl = env('MOTOR_URL', 'http://localhost:8001') . '/read-text';
+                $response = \Illuminate\Support\Facades\Http::timeout(120)->post($motorUrl, [
+                    'file_path' => $tmpPath
+                ]);
+                @unlink($tmpPath);
+
+                if (!$response->successful()) {
+                    return response()->json(['success' => false, 'message' => 'Falha ao extrair texto do PDF via motor interno.'], 500);
+                }
+                $texto = $response->json('text') ?? '';
+            }
+
+            if (empty(trim($texto))) {
+                return response()->json(['success' => false, 'message' => 'Nenhum texto encontrado no arquivo ou texto não enviado.'], 400);
+            }
+
+            // Salva o texto num arquivo temporário para o motor processar
+            $tmpTxt = sys_get_temp_dir() . "/boe_nativo_texto_" . uniqid() . '.txt';
+            file_put_contents($tmpTxt, $texto);
+
+            $motorUrl = env('MOTOR_URL', 'http://localhost:8001') . '/extract-boe-nativo';
+            $response = \Illuminate\Support\Facades\Http::timeout(120)->post($motorUrl, [
+                'file_path' => $tmpTxt
+            ]);
+            @unlink($tmpTxt);
+
+            if (!$response->successful()) {
+                return response()->json(['success' => false, 'message' => 'Falha na extração via motor nativo.'], 500);
+            }
+
+            $result = $response->json();
+            $dados = $result['dados'] ?? [];
+
+            // Garante texto_raw para compatibilidade
+            $dados['texto_raw'] = $texto;
+
+            return response()->json([
+                'success' => true,
+                'dados' => $dados,
+                'obs' => $result['obs'] ?? ''
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error("Erro na extração via motor nativo: " . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro interno ao processar extração: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * ✅ EXTRAÇÃO VIA INTELIGÊNCIA ARTIFICIAL (DeepSeek API)
      * Endpoint SEPARADO do "Processar pelo Sistema". 
      * Este método usa a API do DeepSeek para extrair dados estruturados.

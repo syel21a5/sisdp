@@ -30,6 +30,7 @@ Route::middleware(['auth'])->group(function () {
     // ✅ GERADOR DE PROMPTS PARA DEPOIMENTOS
     Route::post('/prompt/gerar', [PromptGeneratorController::class, 'gerarPrompt'])->name('prompt.gerar');
     Route::post('/prompt/extrair-ia', [PromptGeneratorController::class, 'extrairDadosComIA'])->name('prompt.extrair_ia');
+    Route::post('/boe/extrair-nativo', [PromptGeneratorController::class, 'extrairDadosMotorNativo'])->name('boe.extrair_nativo');
     Route::post('/prompt/processar-ia', [PromptGeneratorController::class, 'processarComIA'])->name('prompt.processar_ia');
 
     // ✅ REMOVIDO: Estas rotas já estão no web.php
@@ -39,6 +40,9 @@ Route::middleware(['auth'])->group(function () {
     // ✅ Página Inicio com URL limpa e alias legado
     Route::get('/ip-apfd', [InicioController::class, 'index'])->name('inicio');
     Route::get('/wf-inicio', [InicioController::class, 'index']);
+    Route::get('/inicio-simples', function () {
+        return view('wf_inicio_simples');
+    })->name('inicio.simples');
 
     // ✅ ROTAS PARA INTIMAÇÃO (COMPLETAS E CORRETAS)
     Route::prefix('intimacao')->group(function () {

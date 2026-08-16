@@ -105,6 +105,24 @@ def extract_boe(request: ExtractRequest):
         py_data['texto_raw'] = texto_raw_original
         return {"success": True, "dados": py_data, "obs": "Extração parcial via Python (IA desativada)"}
 
+@app.post("/extract-boe-nativo")
+def extract_boe_nativo(request: ExtractRequest):
+    """Extração SEMPRE pelo motor nativo (regex Python), sem IA.
+    Usado pela tela home simplificada (dados descartáveis, nunca salvos no banco)."""
+    if not os.path.exists(request.file_path):
+        raise HTTPException(status_code=404, detail="Arquivo não encontrado")
+    
+    texto_raw_original = boe_extractor.ler_arquivo(request.file_path, clean_mode=False)
+    
+    if texto_raw_original.startswith("ERRO_DEBUG:"):
+        raise HTTPException(status_code=500, detail=texto_raw_original)
+    if not texto_raw_original.strip():
+        raise HTTPException(status_code=400, detail="Arquivo vazio ou PDF sem texto selecionável.")
+
+    success_py, py_data = boe_extractor.parse_boe_python(texto_raw_original)
+    py_data['texto_raw'] = texto_raw_original
+    return {"success": True, "dados": py_data, "obs": "Extração via motor nativo (regex)"}
+
 class GeneratePdfRequest(BaseModel):
     input_html_path: str
     output_pdf_path: str
