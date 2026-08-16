@@ -1,4 +1,4 @@
-http://127.0.0.1:8000/oficios-apfd-dinamicohttp://127.0.0.1:8000/oficios-apfd-dinamico<?php
+<?php
 
 namespace App\Http\Controllers\Documentos\PecasController;
 
