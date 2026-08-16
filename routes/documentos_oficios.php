@@ -26,10 +26,15 @@ Route::middleware(['auth', 'permission:oficios'])->group(function () {
     Route::get('/autocircunstanciado/{dados?}', function ($dados = null) {
         $dadosArray = [];
         if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
+            // UUID → cache (doc_sessao_<uuid>); senão base64 antigo
+            if (preg_match('/^[a-f\d]{8}(-[a-f\d]{4}){3}-[a-f\d]{12}$/i', $dados)) {
+                $dadosArray = \Illuminate\Support\Facades\Cache::get('doc_sessao_' . $dados, []);
+            } else {
+                try {
+                    $dadosArray = json_decode(base64_decode($dados), true);
+                } catch (\Exception $e) {
+                    $dadosArray = [];
+                }
             }
         }
         return view('mp.autocircunstanciado', compact('dadosArray'));
@@ -44,10 +49,16 @@ Route::middleware(['auth', 'permission:oficios'])->group(function () {
     Route::get('/oficiofamilia-apfd/{dados?}', function ($dados = null) {
         $dadosArray = [];
         if ($dados) {
-            try {
-                $dadosArray = json_decode(base64_decode($dados), true);
-            } catch (\Exception $e) {
-                $dadosArray = [];
+            // 1. UUID → busca no cache (doc_sessao_<uuid>), igual às demais rotas
+            if (preg_match('/^[a-f\d]{8}(-[a-f\d]{4}){3}-[a-f\d]{12}$/i', $dados)) {
+                $dadosArray = \Illuminate\Support\Facades\Cache::get('doc_sessao_' . $dados, []);
+            } else {
+                // 2. Fallback: base64 antigo
+                try {
+                    $dadosArray = json_decode(base64_decode($dados), true) ?? [];
+                } catch (\Exception $e) {
+                    $dadosArray = [];
+                }
             }
         }
         return view('apfd.oficios.oficio_familia_apfd_dinamico', compact('dadosArray'));
