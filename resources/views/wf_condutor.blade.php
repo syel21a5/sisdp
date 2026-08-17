@@ -87,66 +87,28 @@
             </div>
 
             <!-- Botões e Pesquisa Rápida de Documentos -->
-            <div class="button-group d-flex flex-wrap gap-2 mt-4 mb-3">
-                <button type="button" class="btn btn-primary" id="btnNovoCondutor"><i class="bi bi-file-earmark-plus"></i> Novo</button>
-                <button type="button" class="btn btn-success" id="btnSalvarCondutor"><i class="bi bi-save"></i> Salvar</button>
-                <button type="button" class="btn btn-warning" id="btnEditarCondutor" disabled><i class="bi bi-pencil-square"></i> Editar</button>
-                <button type="button" class="btn btn-danger" id="btnExcluirCondutor" disabled><i class="bi bi-trash"></i> Excluir</button>
-                <button type="button" class="btn btn-secondary" id="btnLimparCondutor"><i class="bi bi-x-circle"></i> Limpar</button>
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mt-4 mb-3 p-3 bg-light rounded border border-light-subtle">
+                <button type="button" class="btn btn-outline-danger px-4 fw-bold shadow-sm" id="btnLimparCondutor">
+                    <i class="bi bi-eraser-fill me-1"></i> Limpar Formulário
+                </button>
 
                 <!-- Campo de autocomplete para documentos -->
-                <div class="position-relative flex-grow-1" style="min-width: 250px; max-width: 350px;">
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="termoDocumentoCondutor"
-                               placeholder="Digite o documento (ex: TERMO DE DECLARAÇÃO)...">
-                        <button type="button" class="btn btn-info" id="btnImprimirDocumentoCondutor">
-                            <i class="bi bi-printer"></i> Imprimir
+                <div class="position-relative flex-grow-1" style="max-width: 600px;">
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text bg-white text-secondary border-end-0"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control border-start-0" id="termoDocumentoCondutor"
+                               placeholder="Digite o documento que deseja gerar (ex: TERMO DE DECLARAÇÃO)..." style="box-shadow: none;">
+                        <button type="button" class="btn btn-primary fw-bold px-4" id="btnImprimirDocumentoCondutor">
+                            <i class="bi bi-printer-fill me-1"></i> Imprimir
                         </button>
                     </div>
-                    <div class="list-group mt-1 position-absolute w-100" id="sugestoesDocumentosCondutor" style="display: none; z-index: 1000;">
+                    <div class="list-group mt-1 position-absolute w-100 shadow-lg" id="sugestoesDocumentosCondutor" style="display: none; z-index: 1000;">
                         <!-- Sugestões aparecerão aqui dinamicamente -->
                     </div>
                 </div>
             </div>
 
-            <!-- Área de Pesquisa -->
-            <div class="mt-4 border p-3 rounded">
-                <div class="row g-3 mb-3">
-                    <div class="col-md-3">
-                        <select class="form-select" id="filtroCondutor">
-                            <option value="Nome">Nome</option>
-                            <option value="Alcunha">Alcunha</option>
-                            <option value="RG">RG</option>
-                            <option value="CPF">CPF</option>
-                        </select>
-                    </div>
-                    <div class="col-md-7">
-                        <input type="text" class="form-control" id="termoPesquisaCondutor" placeholder="Digite para pesquisar...">
-                    </div>
-                    <div class="col-md-2">
-                        <button type="button" class="btn btn-primary w-100" id="btnPesquisarCondutor">
-                            <i class="bi bi-search"></i> Pesquisar
-                        </button>
-                    </div>
-                </div>
 
-                <div class="table-responsive mt-3">
-                    <table class="table table-striped table-hover" id="tabelaResultadosCondutor">
-                        <thead>
-                            <tr>
-                                <th>NOME</th>
-                                <th>ALCUNHA</th>
-                                <th>RG</th>
-                                <th>CPF</th>
-                                <th>AÇÕES</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Os resultados serão inseridos aqui via JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
         </form>
     </div>
 
@@ -191,8 +153,7 @@
     // Definir as rotas para impressão de documentos
     var rotasImpressao = {
         // DEFINIAR AS ROTAS DE IMPRESSAO DESVINCULADAS A NUMOFICIOCONTROLLER
-        'TERMO DE DECLARACAO': "{{ route('declaracao', ['dados' => '--DADOS--']) }}",
-        'TERMO DE DEPOIMENTO': "{{ route('depoimento', ['dados' => '--DADOS--']) }}",
+        'TERMO DE LIBERACAO DE MENOR - INFRATOR': "{{ route('liberacao.infrator', ['dados' => '--DADOS--']) }}",
 
         // DEFINIAR AS ROTAS DE IMPRESSAO VINCULADAS A NUMOFICIOCONTROLLER
         'AUTO DE APRESENTACAO E APREENSAO': "{{ route('auto.apreensao', ['dados' => '--DADOS--']) }}",

@@ -63,7 +63,9 @@ class BoeExtractorService
                 'Mod: NAO INFORMADO', 'Mod: NÃO INFORMADO', 
                 'Cor: NAO INFORMADO', 'Cor: NÃO INFORMADO', 
                 'Marca: NAO INFORMADO', 'Marca: NÃO INFORMADO',
-                'Mod: N/A', 'Cor: N/A', 'Marca: N/A'
+                'Mod: N/A', 'Cor: N/A', 'Marca: N/A',
+                '(VEICULO)', '(VEÍCULO)', '(CELULAR)', '(ARMA)', '(DROGA)', '(OBJETO)',
+                'VEICULO VEICULO', 'VEÍCULO VEÍCULO', 'CELULAR CELULAR'
             ];
             foreach ($ruidos as $ruido) {
                 // Procura a string do ruído de forma case-insensitive e com possíveis espaços

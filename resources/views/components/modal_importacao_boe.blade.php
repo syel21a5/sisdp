@@ -91,6 +91,9 @@
                     @php
                         $userAuth = auth()->user();
                         $canUseIa = !($userAuth && isset($userAuth->permissions['extracao_boe_ia']) && !$userAuth->permissions['extracao_boe_ia']);
+                        if (isset($somenteNativo) && $somenteNativo) {
+                            $canUseIa = false;
+                        }
                     @endphp
                     
                     @if($canUseIa)

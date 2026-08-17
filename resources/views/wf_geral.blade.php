@@ -239,8 +239,13 @@
                                     </div>
                                 </div>
                                 <div class="row g-3 mb-3">
-                                    <div class="col-lg-4 col-md-12"><input type="text" class="form-control" placeholder="IP" name="ip" id="inputIP"></div>
-                                    <div class="col-lg-4 col-md-6"><input type="text" class="form-control" placeholder="BOE" name="boe" id="inputBOE"></div>
+                                    <div class="col-lg-4 col-md-12"><input type="text" class="form-control" placeholder="IP" name="ip" id="inputIP" value="0000.0000.000000-00" readonly style="background-color: #e9ecef; cursor: not-allowed;"></div>
+                                    <div class="col-lg-4 col-md-6">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" placeholder="BOE" name="boe" id="inputBOE">
+                                            <button class="btn btn-info" type="button" data-bs-toggle="modal" data-bs-target="#modalImportarBoeGeral" title="Importar Histórico do BOE"><i class="bi bi-upload"></i></button>
+                                        </div>
+                                    </div>
                                     <div class="col-lg-4 col-md-6"><input type="text" class="form-control" placeholder="BOE PM" name="boe_pm" id="inputBOEPM"></div>
                                 </div>
                                 <div class="row g-3 mb-3">
@@ -256,49 +261,28 @@
                                     <div class="col-lg-6 col-12"><input type="text" class="form-control" placeholder="Policial 2" name="policial_2" id="inputPolicial2"></div>
                                 </div>
 
-                                <!-- Botões de ação -->
-                                <div class="d-flex flex-wrap gap-2 mb-3">
-                                    <button type="button" class="btn btn-primary" id="btnNovo"><i class="bi bi-file-earmark-plus"></i> Novo</button>
-                                    <button type="button" class="btn btn-success" id="btnSalvar"><i class="bi bi-save"></i> Salvar</button>
-                                    <button type="button" class="btn btn-warning" id="btnEditar" disabled><i class="bi bi-pencil-square"></i> Editar</button>
-                                    <button type="button" class="btn btn-danger" id="btnExcluir" disabled><i class="bi bi-trash"></i> Excluir</button>
-                                    <button type="button" class="btn btn-secondary" id="btnLimpar"><i class="bi bi-x-circle"></i> Limpar</button>
-                                </div>
-
-                                <div class="row g-3 mb-3">
-                                    <div class="col-md-3">
-                                        <select class="form-select" id="ddlFiltro">
-                                            <option value="BOE" selected>BOE</option>
-                                            <option value="IP">IP</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <input type="text" class="form-control" id="txtPesquisa" placeholder="Digite o termo para pesquisa">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <button class="btn btn-primary w-100" type="button" id="btnPesquisar">
-                                            <i class="bi bi-search"></i> Pesquisar
-                                        </button>
+                                <!-- Box para Envolvidos Extraídos -->
+                                <div class="row mt-4" id="areaEnvolvidosGeral">
+                                    <div class="col-12">
+                                        <div class="card border border-primary border-opacity-25 shadow-sm">
+                                            <div class="card-header bg-primary bg-opacity-10 border-bottom-0 py-3">
+                                                <h6 class="card-title text-primary mb-0 fw-bold"><i class="bi bi-people-fill me-2"></i>Envolvidos Extraídos do BOE</h6>
+                                            </div>
+                                            <div class="card-body p-4 text-center" id="emptyStateEnvolvidos">
+                                                <i class="bi bi-person-bounding-box text-muted opacity-50 mb-2" style="font-size: 2.5rem; display: block;"></i>
+                                                <p class="text-muted mb-0">Nenhum BOE importado ainda.</p>
+                                                <small class="text-secondary">Os envolvidos identificados aparecerão aqui. Clique neles para preencher o formulário.</small>
+                                            </div>
+                                            <div class="card-body p-3 d-none" id="populatedStateEnvolvidos">
+                                                <div id="chipsEnvolvidosGeral" class="d-flex flex-wrap gap-2 mb-2 justify-content-center"></div>
+                                                <div class="text-center mt-3">
+                                                    <small class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Clique em um chip acima para preencher automaticamente o formulário do envolvido.</small>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div class="table-responsive">
-                                    <table class="table table-hover align-middle" id="gridResultados">
-                                        <thead>
-                                            <tr>
-                                                <th>BOE</th>
-                                                <th>IP</th>
-                                                <th>DATA</th>
-                                                <th>AÇÕES</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td colspan="4" class="text-center">Nenhum registro encontrado. Realize uma pesquisa.</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
                             </form>
                         </div>
 
@@ -325,7 +309,15 @@
                 
             </div> <!-- fecha tab-content das abas principais -->
 
+    <!-- ✅ MODAL EXTRAÇÃO DE BOE (SOMETNE NATIVO) -->
+    @include('components.modal_importacao_boe', [
+        'modalId' => 'modalImportarBoeGeral',
+        'suffix' => 'Geral',
+        'somenteNativo' => true
+    ])
+
     <script src="{{ asset('js/core.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/core_extractor.js') }}?v={{ time() }}"></script>
 
     <!-- Flatpickr JS -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>

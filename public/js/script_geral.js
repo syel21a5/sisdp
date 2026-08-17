@@ -68,6 +68,193 @@ const OcorrenciasApp = {
         $('#btnExcluir').click(() => this.confirmarExclusao());
         // $('#btnConfirmarExclusao').click(() => this.excluirRegistro()); // Removido: agora tratado pelo modal genérico
         $('#btnLimpar').click(() => this.limparFormularios());
+        
+        this.setupExtratorBoe();
+    },
+
+    setupExtratorBoe: function() {
+        if (typeof window.CoreExtractor !== 'undefined') {
+            const self = this;
+            new window.CoreExtractor({
+                suffix: 'Geral',
+                extractUrl: '/apfd/importar-boe-texto',
+                extractUrlIA: '/prompt/extrair-ia',
+                onSuccess: function(response, motor) {
+                    if(response.success && response.dados) {
+                        const dados = response.dados;
+                        window.autoresExtraidos = dados.autores || [];
+                        
+                        if (dados.boe) $('#inputBOE').val(dados.boe);
+                        if (dados.delegacia) $('#inputDelegacia').val(dados.delegacia);
+                        if (dados.cidade) $('#inputCidade').val(dados.cidade);
+                        
+                        if (dados.objetos_apreendidos) {
+                            const apreensaoFormatada = typeof window.formatarObjetosApreendidos === 'function' 
+                                ? window.formatarObjetosApreendidos(dados.objetos_apreendidos) 
+                                : (Array.isArray(dados.objetos_apreendidos) ? dados.objetos_apreendidos.join('\n') : dados.objetos_apreendidos);
+                            $('#inputApreensao').val(apreensaoFormatada);
+                        }
+                        
+                        let envolvidosMap = new Map();
+                        const detalhes = dados.envolvidos_detalhes || {};
+                        
+                        const mapeamentoTipos = [
+                            { chave: 'vitimas', tipo: 'vitima', cor: 'linear-gradient(135deg, #fd7e14, #ca6510)' },
+                            { chave: 'autores', tipo: 'autor', cor: 'linear-gradient(135deg, #dc3545, #9c2532)' },
+                            { chave: 'testemunhas', tipo: 'testemunha', cor: 'linear-gradient(135deg, #0d6efd, #084298)' },
+                            { chave: 'condutor', tipo: 'condutor', cor: 'linear-gradient(135deg, #0d6efd, #084298)' },
+                            { chave: 'condutores', tipo: 'condutor', cor: 'linear-gradient(135deg, #0d6efd, #084298)' },
+                            { chave: 'outros', tipo: 'outros', cor: 'linear-gradient(135deg, #6c757d, #495057)' }
+                        ];
+
+                        mapeamentoTipos.forEach(map => {
+                            const lista = dados[map.chave] || [];
+                            lista.forEach(nome => {
+                                if (nome && nome.trim().length > 2 && !nome.toUpperCase().includes('NÃO INFORMADO') && !nome.toUpperCase().includes('NAO INFORMADO')) {
+                                    const nomeNorm = nome.trim().toUpperCase();
+                                    if (!envolvidosMap.has(nomeNorm)) {
+                                        let obj = detalhes[nome] || detalhes[nomeNorm] || Object.values(detalhes).find(d => (d.nome || d.Nome || '').toUpperCase() === nomeNorm) || { nome: nomeNorm };
+                                        obj.tipoOriginal = map.tipo;
+                                        obj.corGradient = map.cor;
+                                        envolvidosMap.set(nomeNorm, obj);
+                                    }
+                                }
+                            });
+                        });
+                        
+                        // Garante que nomes em detalhes que não vieram nas listas também apareçam como 'outros'
+                        Object.keys(detalhes).forEach(nome => {
+                            const nomeNorm = nome.trim().toUpperCase();
+                            if (nomeNorm.length > 2 && !envolvidosMap.has(nomeNorm) && !nomeNorm.includes('NÃO INFORMADO') && !nomeNorm.includes('NAO INFORMADO')) {
+                                let obj = detalhes[nome];
+                                obj.tipoOriginal = 'outros';
+                                obj.corGradient = 'linear-gradient(135deg, #6c757d, #495057)'; // CINZA
+                                envolvidosMap.set(nomeNorm, obj);
+                            }
+                        });
+
+                        const envolvidosExtraidos = Array.from(envolvidosMap.values());
+
+                        if (envolvidosExtraidos.length > 0) {
+                            $('#emptyStateEnvolvidos').addClass('d-none');
+                            $('#populatedStateEnvolvidos').removeClass('d-none');
+                            const container = $('#chipsEnvolvidosGeral');
+                            container.empty();
+                            
+                            envolvidosExtraidos.forEach((env, index) => {
+                                const jsonStr = JSON.stringify(env).replace(/"/g, '&quot;');
+                                const nomeExibicao = (env.nome || env.Nome || 'SEM NOME').toUpperCase();
+                                const corOriginal = env.corGradient || 'linear-gradient(135deg, #6c757d, #495057)';
+                                const tipoOriginal = env.tipoOriginal || 'outros';
+                                const chipHtml = `
+                                    <div class="d-inline-flex align-items-center gap-2 chip-envolvido-extraido border-0 shadow-sm" data-papel="${tipoOriginal}" data-json="${jsonStr}" data-cor-original="${corOriginal}" title="Clique para preencher o formulário" style="background: ${corOriginal}; color: white; border-radius: 6px; padding: 0.4rem 0.6rem; font-weight: 600; font-size: 0.85rem; transition: all 0.2s; cursor: pointer; user-select: none;">
+                                        <i class="bi bi-person-badge fs-5 pe-none"></i>
+                                        <span class="pe-none">${nomeExibicao}</span>
+                                        <span class="badge bg-light text-dark shadow-sm tipo-badge pe-none" style="font-size:0.65rem; border-radius: 4px;">${tipoOriginal.toUpperCase()}</span>
+                                        
+                                        <div class="dropdown ms-1">
+                                            <button type="button" class="btn btn-sm btn-link text-white p-0 m-0 border-0 dropdown-toggle-no-caret btn-trocar-papel" data-bs-toggle="dropdown" aria-expanded="false" title="Trocar Papel">
+                                                <i class="bi bi-arrow-left-right fs-6"></i>
+                                            </button>
+                                            <ul class="dropdown-menu shadow">
+                                                <li><a class="dropdown-item mudar-papel-item" href="#" data-papel="vítima" data-cor="linear-gradient(135deg, #fd7e14, #ca6510)"><i class="bi bi-circle-fill text-warning me-2"></i> Vítima</a></li>
+                                                <li><a class="dropdown-item mudar-papel-item" href="#" data-papel="autor" data-cor="linear-gradient(135deg, #dc3545, #9c2532)"><i class="bi bi-circle-fill text-danger me-2"></i> Autor</a></li>
+                                                <li><a class="dropdown-item mudar-papel-item" href="#" data-papel="testemunha" data-cor="linear-gradient(135deg, #0d6efd, #084298)"><i class="bi bi-circle-fill text-primary me-2"></i> Testemunha</a></li>
+                                                <li><a class="dropdown-item mudar-papel-item" href="#" data-papel="condutor" data-cor="linear-gradient(135deg, #0d6efd, #084298)"><i class="bi bi-circle-fill text-info me-2"></i> Condutor</a></li>
+                                                <li><a class="dropdown-item mudar-papel-item" href="#" data-papel="outros" data-cor="linear-gradient(135deg, #6c757d, #495057)"><i class="bi bi-circle-fill text-secondary me-2"></i> Outros</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                `;
+                                container.append(chipHtml);
+                            });
+                            
+                            // Adiciona efeito visual no hover
+                            $('.chip-envolvido-extraido').hover(
+                                function() { $(this).css('transform', 'translateY(-2px)').css('box-shadow', '0 4px 8px rgba(0,0,0,0.2)'); },
+                                function() { $(this).css('transform', 'none').css('box-shadow', '0 .125rem .25rem rgba(0,0,0,.075)'); }
+                            );
+                            
+                            // Previne que clicar no botão dropdown ou no menu acione a função do chip
+                            $('.btn-trocar-papel').off('click').on('click', function(e) {
+                                e.stopPropagation();
+                            });
+                            
+                            $('.mudar-papel-item').off('click').on('click', function(e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                
+                                const btnItem = $(e.currentTarget);
+                                const novoPapel = btnItem.attr('data-papel');
+                                const novaCor = btnItem.attr('data-cor');
+                                const chip = btnItem.closest('.chip-envolvido-extraido');
+                                
+                                if (novaCor) {
+                                    chip.attr('data-cor-original', novaCor);
+                                    chip.css('background', novaCor);
+                                }
+                                
+                                if (novoPapel) {
+                                    chip.attr('data-papel', novoPapel); // <-- ATUALIZA O ATRIBUTO NO CHIP AQUI
+                                    chip.find('.tipo-badge').text(novoPapel.toUpperCase());
+                                }
+                                
+                                // Fecha o dropdown com segurança sem afetar o chip
+                                try {
+                                    const dropdownBtn = chip.find('.btn-trocar-papel')[0];
+                                    const dropdownInstance = bootstrap.Dropdown.getInstance(dropdownBtn);
+                                    if (dropdownInstance) {
+                                        dropdownInstance.hide();
+                                    } else {
+                                        chip.find('.dropdown-menu').removeClass('show');
+                                    }
+                                } catch (err) {
+                                    chip.find('.dropdown-menu').removeClass('show');
+                                }
+                            });
+                            
+                            $('.chip-envolvido-extraido').off('click').on('click', function() {
+                                const btn = $(this);
+                                const dadosEnv = JSON.parse(btn.attr('data-json'));
+                                
+                                $('#inputNomeCondutor').val(dadosEnv.nome || dadosEnv.Nome || '');
+                                $('#inputAlcunha').val(dadosEnv.alcunha || dadosEnv.Alcunha || '');
+                                $('#inputDataNascimento').val(dadosEnv.data_nascimento || dadosEnv.nascimento || dadosEnv.Nascimento || '').trigger('change');
+                                $('#inputEstadoCivil').val(dadosEnv.estado_civil || dadosEnv.EstCivil || '');
+                                $('#inputNaturalidade').val(dadosEnv.naturalidade || dadosEnv.Naturalidade || '');
+                                $('#inputInstrucao').val(dadosEnv.instrucao || dadosEnv.Instrucao || '');
+                                $('#inputRG').val(dadosEnv.rg || dadosEnv.RG || '');
+                                $('#inputCPF').val(dadosEnv.cpf || dadosEnv.CPF || '');
+                                $('#inputTelefone').val(dadosEnv.telefone || dadosEnv.Telefone || '');
+                                $('#inputProfissao').val(dadosEnv.profissao || dadosEnv.Profissao || '');
+                                $('#inputMae').val(dadosEnv.mae || dadosEnv.Mae || '');
+                                $('#inputPai').val(dadosEnv.pai || dadosEnv.Pai || '');
+                                $('#inputEndereco').val(dadosEnv.endereco || dadosEnv.Endereco || '');
+                                
+                                $('#abasPrincipais a[href="#aba-condutor"]').tab('show');
+                                
+                                $('#formCondutor input').addClass('is-valid');
+                                setTimeout(() => { $('#formCondutor input').removeClass('is-valid'); }, 2000);
+                            });
+                            
+                        } else {
+                            $('#emptyStateEnvolvidos').removeClass('d-none');
+                            $('#populatedStateEnvolvidos').addClass('d-none');
+                        }
+                        
+                        var modalEl = document.getElementById('modalImportarBoeGeral');
+                        if (modalEl) {
+                            var modal = bootstrap.Modal.getInstance(modalEl);
+                            if (modal) modal.hide();
+                        }
+                        
+                        self.mostrarSucesso('Extração concluída. Clique nos envolvidos extraídos para preencher os dados.');
+                    } else {
+                        self.mostrarErro('Falha na extração dos dados.');
+                    }
+                }
+            });
+        }
     },
 
     // NOVA FUNÇÃO: Observar mudanças no formulário geral para transmitir dados

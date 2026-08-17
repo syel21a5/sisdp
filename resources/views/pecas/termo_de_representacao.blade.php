@@ -52,8 +52,12 @@
                     encontrava o(a) Bel(a). <strong>{{ $dadosArray['delegado'] ?? 'NÃO INFORMADO' }}</strong>, respectivo(a) Delegado(a) de
                     Polícia, comigo Escrivão, servindo ao seu cargo e ao final assinado, aí
                     compareceu o(a) Sr(ª). <strong>{{ $dadosArray['nome'] ?? 'NÃO INFORMADO' }}</strong>, já qualificado(a) nos autos, o(a)
-                    qual manifestou à Autoridade Policial o desejo de representar
-                    criminalmente em relação ao(s) imputado(s) do ilícito noticiado no
+                    qual manifestou à Autoridade Policial o desejo de representar criminalmente
+                    @if(!empty($dadosArray['autores_representacao']))
+                        em desfavor de <strong>{{ implode(', ', (array) $dadosArray['autores_representacao']) }}</strong>, apontado(s) como autor(es) do ilícito noticiado no
+                    @else
+                        em relação ao(s) imputado(s) do ilícito noticiado no
+                    @endif
                     Boletim de Ocorrência nº <strong>{{ $dadosArray['boe'] ?? 'NÃO INFORMADO' }}</strong>, a fim de que sejam adotadas as
                     providências, atendendo a condição de procedibilidade para oferecimento
                     de proposta ou de denúncia pelo Ministério Público. Nada mais havendo,

@@ -439,16 +439,166 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        const dadosCodificados = btoa(unescape(encodeURIComponent(JSON.stringify(dados))));
-        const url = rotasImpressao[documentoSelecionado].replace('--DADOS--', dadosCodificados);
-        window.open(url, "_blank");
+        // Função para executar a impressão real (com ou sem autores selecionados)
+        const executarImpressao = (dadosImpressao) => {
+            const dadosCodificados = btoa(unescape(encodeURIComponent(JSON.stringify(dadosImpressao))));
+            const url = rotasImpressao[documentoSelecionado].replace('--DADOS--', dadosCodificados);
+            window.open(url, "_blank");
+        };
+
+        // Lógica especial para o TERMO DE REPRESENTACAO e AUTO DE APREENSAO
+        if (documentoSelecionado === 'TERMO DE REPRESENTACAO' || documentoSelecionado === 'AUTO DE APRESENTACAO E APREENSAO') {
+            // Busca os autores dos chips na tela
+            let autoresDaTela = [];
+            $('.chip-envolvido-extraido').each(function() {
+                if ($(this).attr('data-papel') === 'autor') {
+                    const json = JSON.parse($(this).attr('data-json') || '{}');
+                    const nomeStr = json.nome || json.Nome || $(this).text().trim();
+                    if (nomeStr) autoresDaTela.push(nomeStr.toUpperCase());
+                }
+            });
+            // Usa os da tela ou os globais se a tela não tiver
+            const autoresFinal = autoresDaTela.length > 0 ? autoresDaTela : (window.autoresExtraidos || []);
+
+            if (documentoSelecionado === 'TERMO DE REPRESENTACAO') {
+                if (autoresFinal.length > 1) {
+                    // Monta os checkboxes para o SweetAlert
+                    let checkboxesHtml = '<div class="text-start mt-3" style="max-height: 200px; overflow-y: auto;">';
+                    autoresFinal.forEach((autor, idx) => {
+                        checkboxesHtml += `
+                            <div class="form-check mb-2">
+                                <input class="form-check-input autor-checkbox-swal" type="checkbox" value="${autor}" id="autorCheck${idx}" checked>
+                                <label class="form-check-label" for="autorCheck${idx}">${autor}</label>
+                            </div>
+                        `;
+                    });
+                    checkboxesHtml += '</div>';
+
+                    Swal.fire({
+                        title: 'Selecionar Autores',
+                        html: `Este BOE possui múltiplos autores. Contra quais deles a vítima deseja representar?<br>${checkboxesHtml}`,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: 'Gerar Documento',
+                        cancelButtonText: 'Cancelar',
+                        preConfirm: () => {
+                            const selecionados = [];
+                            $('.autor-checkbox-swal:checked').each(function() {
+                                selecionados.push($(this).val());
+                            });
+                            if (selecionados.length === 0) {
+                                Swal.showValidationMessage('Selecione pelo menos um autor!');
+                            }
+                            return selecionados;
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            dados.autores_representacao = result.value;
+                            executarImpressao(dados);
+                        }
+                    });
+                    return; // Interrompe o fluxo normal para esperar o modal
+                } else if (autoresFinal.length === 1) {
+                    dados.autores_representacao = autoresFinal;
+                }
+            } else if (documentoSelecionado === 'AUTO DE APRESENTACAO E APREENSAO') {
+                if (autoresFinal.length > 1) {
+                    let objetos = (dados.apreensao || '').split('\n').map(o => o.trim()).filter(o => o !== '' && o !== '-');
+                    
+                    if (objetos.length > 0) {
+                        let formHtml = '<div class="text-start mt-3" style="max-height: 300px; overflow-y: auto;">';
+                        objetos.forEach((obj, idx) => {
+                            let options = autoresFinal.map(a => `<option value="${a}">${a}</option>`).join('');
+                            formHtml += `
+                                <div class="mb-3 p-2 border rounded" style="background: #f8f9fa;">
+                                    <label class="form-label d-block text-truncate" style="font-size: 0.85rem; font-weight: bold;" title="${obj}">${obj}</label>
+                                    <select class="form-select form-select-sm obj-autor-select" data-obj="${encodeURIComponent(obj)}">
+                                        <option value="TODOS">Todos os Autores</option>
+                                        <option value="NENHUM">Não especificar</option>
+                                        ${options}
+                                    </select>
+                                </div>
+                            `;
+                        });
+                        formHtml += '</div>';
+
+                        Swal.fire({
+                            title: 'Vincular Objetos',
+                            html: `Quem estava com o quê?<br>${formHtml}`,
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonText: 'Gerar Documento',
+                            cancelButtonText: 'Cancelar',
+                            preConfirm: () => {
+                                let relacoes = [];
+                                $('.obj-autor-select').each(function() {
+                                    relacoes.push({ 
+                                        objeto: decodeURIComponent($(this).attr('data-obj')), 
+                                        autor: $(this).val() 
+                                    });
+                                });
+                                return relacoes;
+                            }
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                let todosOuNenhum = true;
+                                let porAutor = {};
+                                let objetosGerais = [];
+                                
+                                result.value.forEach(r => {
+                                    if(r.autor !== 'NENHUM' && r.autor !== 'TODOS') {
+                                        todosOuNenhum = false;
+                                        if(!porAutor[r.autor]) porAutor[r.autor] = [];
+                                        let cleanObj = r.objeto.replace(/[;.]+$/, '');
+                                        porAutor[r.autor].push(cleanObj);
+                                    } else {
+                                        let cleanObj = r.objeto.replace(/[;.]+$/, '');
+                                        objetosGerais.push(cleanObj);
+                                    }
+                                });
+
+                                if (todosOuNenhum) {
+                                    dados.texto_poder_de = 'em poder de <strong>' + autoresFinal.join(' e ') + '</strong>';
+                                } else {
+                                    let linhasApreensao = [];
+                                    
+                                    // Adiciona objetos gerais primeiro (se houver)
+                                    if (objetosGerais.length > 0) {
+                                        linhasApreensao.push('Objetos gerais apreendidos:');
+                                        objetosGerais.forEach(obj => linhasApreensao.push(obj));
+                                    }
+
+                                    // Adiciona os grupos por autor
+                                    for (let autor in porAutor) {
+                                        linhasApreensao.push(`Objetos apreendidos em poder de <strong>${autor}</strong>:`);
+                                        porAutor[autor].forEach(obj => linhasApreensao.push(obj));
+                                    }
+
+                                    // Sobrescreve a lista de objetos formatada e agrupada
+                                    dados.apreensao = linhasApreensao.join('\n');
+                                    dados.texto_poder_de = '<strong>em poder de quem de direito, conforme especificado acima</strong>';
+                                }
+                                executarImpressao(dados);
+                            }
+                        });
+                        return;
+                    } else {
+                        dados.texto_poder_de = 'em poder de <strong>' + autoresFinal.join(' e ') + '</strong>';
+                    }
+                } else if (autoresFinal.length === 1) {
+                    dados.texto_poder_de = 'em poder de <strong>' + autoresFinal[0] + '</strong>';
+                }
+            }
+        }
+
+        // Fluxo normal para outros documentos ou se tiver apenas 1 autor
+        executarImpressao(dados);
     });
 
     // === AUTOCOMPLETE PARA DOCUMENTOS ===
     (function () {
         const documentos = [
-            "TERMO DE DECLARACAO",
-            "TERMO DE DEPOIMENTO",
+            "TERMO DE LIBERACAO DE MENOR - INFRATOR",
             "AUTO DE APRESENTACAO E APREENSAO",
             "TERMO DE RESTITUICAO",
             "TERMO DE RENUNCIA E DESISTENCIA DE REPRESENTACAO",

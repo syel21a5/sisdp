@@ -57,12 +57,45 @@
                     já qualificado nos autos, <strong>o qual na presença das testemunhas abaixo assinadas apresentou à Autoridade Policial o que a seguir passa a expor:</strong>
                 </p>
                 <p style="line-height: 1.6; margin: 0.2em 0; padding: 0;">&nbsp;</p>
+                @php
+                    $apreensaoFormatada = 'NÃO INFORMADO';
+                    if (!empty($dadosArray['apreensao'])) {
+                        $linhas = array_values(array_filter(array_map('trim', explode("\n", $dadosArray['apreensao']))));
+                        if (count($linhas) > 0) {
+                            $linhasFormatadas = [];
+                            $totalLinhas = count($linhas);
+                            
+                            foreach ($linhas as $idx => $linha) {
+                                // Se for cabeçalho de grupo de autores
+                                if (strpos($linha, '<strong>') === 0 || preg_match('/^Objetos apreendidos/i', $linha)) {
+                                    // Adiciona um espaçamento extra antes do cabeçalho (se não for o primeiro item)
+                                    $prefix = ($idx > 0) ? '<br><br>' : '';
+                                    $linhasFormatadas[] = $prefix . $linha;
+                                    continue;
+                                }
+
+                                $linha = rtrim($linha, ';.');
+                                $proximaLinha = isset($linhas[$idx + 1]) ? $linhas[$idx + 1] : null;
+                                
+                                // É a última linha de tudo ou a última linha deste grupo?
+                                $isLastOfGroup = ($idx === $totalLinhas - 1) || ($proximaLinha && (strpos($proximaLinha, '<strong>') === 0 || preg_match('/^Objetos apreendidos/i', $proximaLinha)));
+                                
+                                if ($isLastOfGroup) {
+                                    $linhasFormatadas[] = $linha . '.';
+                                } else {
+                                    $linhasFormatadas[] = $linha . ';';
+                                }
+                            }
+                            $apreensaoFormatada = implode('<br>', $linhasFormatadas);
+                        }
+                    }
+                @endphp
                 <p style="text-align: justify; line-height: 1.6; margin: 0.2em 0; padding: 0;">
-                    <strong>{{ !empty($dadosArray['apreensao']) ? $dadosArray['apreensao'] : 'NÃO INFORMADO' }}</strong>;
+                    <strong>{!! $apreensaoFormatada !!}</strong>
                 </p>
                 <p style="line-height: 1.6; margin: 0.2em 0; padding: 0;">&nbsp;</p>
                 <p style="text-align: justify; line-height: 1.6; margin: 0.2em 0; padding: 0;">
-                    Que se referiu haver apreendido o material supra em poder de <span style="background-color: cyan;">INSERIR NOME DO AUTOR</span>;
+                    Que se referiu haver apreendido o material supra {!! !empty($dadosArray['texto_poder_de']) ? $dadosArray['texto_poder_de'] : 'em poder de <span style="background-color: cyan;">INSERIR NOME DO AUTOR</span>' !!};
                     Fato alusivo ao Boletim de Ocorrência nº <strong>{{ !empty($dadosArray['boe']) ? $dadosArray['boe'] : 'NÃO INFORMADO' }}</strong>.
                     Nada mais havendo a constar, determinou a Autoridade Policial que fosse lavrado o presente auto, assinando-o juntamente com o apresentador,
                     as testemunhas, e comigo, escrivão que o digitei.
