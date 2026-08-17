@@ -203,6 +203,15 @@ class BoeVincularController extends Controller
                 return response()->json(['success' => false, 'message' => 'Esta pessoa já está vinculada com este papel.']);
             }
 
+            // ✅ FIX (17/08/2026): Hierarquia estrita — uma pessoa tem UM papel por BOE.
+            // Ao vincular a pessoa a um papel, remove vínculos da MESMA pessoa em OUTROS papéis
+            // (ex: pessoa estava em OUTRO e agora virou AUTOR → remove o OUTRO).
+            // Isso evita a duplicação AUTOR+OUTRO no mesmo procedimento.
+            BoePessoaVinculo::where('boe', $request->boe)
+                ->where('pessoa_id', $request->pessoa_id)
+                ->where('tipo_vinculo', '!=', $request->tipo)
+                ->delete();
+
             // ✅ REFORÇO DE SEGURANÇA: Verificar se o usuário é o dono do procedimento
             $user = Auth::user();
             $cadprincipal = DB::table('cadprincipal')->where('BOE', $request->boe)->first();

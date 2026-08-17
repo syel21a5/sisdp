@@ -351,11 +351,11 @@
     </script>
 
     <!-- Scripts específicos -->
-    <script src="{{ asset('js/script_geral.js') }}"></script>
-    <script src="{{ asset('js/script_condutor.js') }}"></script>
-    <script src="{{ asset('js/menu_lateral.js') }}"></script>
+    <script src="{{ asset('js/script_geral.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/script_condutor.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/menu_lateral.js') }}?v={{ time() }}"></script>
     <script src="{{ asset('js/config_pessoais.js') }}?v={{ time() }}"></script>
-    <script src="{{ asset('js/apreensao_celular/script.js') }}"></script>
+    <script src="{{ asset('js/apreensao_celular/script.js') }}?v={{ time() }}"></script>
 
     <!-- ✅ MODAL CONFIGURAÇÕES PESSOAIS (NOVO) -->
     <div class="modal fade" id="modalConfigPessoais" tabindex="-1" aria-labelledby="modalConfigPessoaisLabel" aria-hidden="true">

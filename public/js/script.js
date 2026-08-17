@@ -526,6 +526,45 @@ window.OcorrenciasApp = {
         this.atualizarChips(novoTipo);
         this.atualizarEstadoBotoes();
 
+        // ✅ FIX (17/08/2026): Persistir a troca de papel IMEDIATAMENTE no banco.
+        // Antes dependia de clicar em "Editar"; se a validação falhasse (ex: Incidência Penal
+        // vazia), a troca sumia ao reabrir o procedimento. Agora chama /boe/vinculos/adicionar
+        // que também remove o papel antigo da mesma pessoa (hierarquia estrita: 1 papel por pessoa).
+        const boeAtual = $('#inputBOE').val();
+        if (boeAtual && vinculo && vinculo.pessoa_id) {
+            const papelMap = {
+                'vitimas': 'VITIMA',
+                'autores': 'AUTOR',
+                'testemunhas': 'TESTEMUNHA',
+                'condutores': 'CONDUTOR',
+                'outros': 'OUTRO'
+            };
+            const tipoNovo = papelMap[novoTipo];
+            if (tipoNovo) {
+                $.ajax({
+                    url: '/boe/vinculos/adicionar',
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                    data: { boe: boeAtual, pessoa_id: vinculo.pessoa_id, tipo: tipoNovo },
+                    success: (resp) => {
+                        if (resp && resp.success) {
+                            // Atualiza o vinculo_id do chip movido para o novo vínculo
+                            const idxNovo = this.vinculos[novoTipo] ? this.vinculos[novoTipo].length - 1 : -1;
+                            if (idxNovo > -1 && this.vinculos[novoTipo][idxNovo]) {
+                                this.vinculos[novoTipo][idxNovo].vinculo_id = resp.vinculo_id || null;
+                            }
+                            console.log('✅ Troca de papel persistida:', nome, '->', novoTipo);
+                        } else {
+                            console.warn('⚠️ Falha ao persistir troca de papel:', resp && resp.message);
+                        }
+                    },
+                    error: (xhr) => {
+                        console.warn('⚠️ Erro ao persistir troca de papel:', xhr.responseJSON?.message || 'erro');
+                    }
+                });
+            }
+        }
+
         $('#modalTrocarPapel').modal('hide');
         this.pendingSwitch = null;
     },
