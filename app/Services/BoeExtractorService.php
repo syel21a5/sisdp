@@ -100,9 +100,11 @@ class BoeExtractorService
             if (!isset($dados[$k]) || !is_array($dados[$k])) {
                 $dados[$k] = [];
             }
-            // Normaliza em caixa alta e remove vazios e repetidos
+            // Normaliza em caixa alta, limpa ruídos como "SEM DEFICIENCIAS", e remove vazios e repetidos
             $dados[$k] = array_values(array_unique(array_filter(array_map(function($nome) {
-                return strtoupper(trim($nome));
+                $nome = strtoupper(trim($nome));
+                $nome = preg_replace('/^SEM DEFICI[EÊ]NCIAS?\s+/i', '', $nome);
+                return trim($nome);
             }, $dados[$k]))));
         }
 
