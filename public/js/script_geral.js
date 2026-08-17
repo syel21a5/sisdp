@@ -164,6 +164,10 @@ const OcorrenciasApp = {
                                                 <li><a class="dropdown-item mudar-papel-item" href="#" data-papel="outros" data-cor="linear-gradient(135deg, #6c757d, #495057)"><i class="bi bi-circle-fill text-secondary me-2"></i> Outros</a></li>
                                             </ul>
                                         </div>
+                                        
+                                        <button type="button" class="btn btn-sm btn-link text-white p-0 m-0 ms-1 border-0 btn-deletar-chip" title="Remover Envolvido">
+                                            <i class="bi bi-x-circle fs-6"></i>
+                                        </button>
                                     </div>
                                 `;
                                 container.append(chipHtml);
@@ -178,6 +182,17 @@ const OcorrenciasApp = {
                             // Previne que clicar no botão dropdown ou no menu acione a função do chip
                             $('.btn-trocar-papel').off('click').on('click', function(e) {
                                 e.stopPropagation();
+                            });
+                            $('.dropdown-menu').off('click').on('click', function(e) {
+                                e.stopPropagation();
+                            });
+                            
+                            // Botão para deletar o chip
+                            $('.btn-deletar-chip').off('click').on('click', function(e) {
+                                e.stopPropagation();
+                                $(this).closest('.chip-envolvido-extraido').fadeOut(300, function() {
+                                    $(this).remove();
+                                });
                             });
                             
                             $('.mudar-papel-item').off('click').on('click', function(e) {
