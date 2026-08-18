@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 
 class ApfdPessoaDetalheController extends Controller
 {
@@ -57,6 +58,20 @@ class ApfdPessoaDetalheController extends Controller
             ], $data));
         }
 
+        // ✅ NOVO: Salvar oitiva como arquivo JSON em storage/oitivas/{boe}/
+        if ($request->interrogatorio && $request->boe) {
+            $this->salvarOitivaArquivo($request->boe, $request->pessoa_id, $request->papel, $request->interrogatorio);
+        }
+
+        \Log::info('[OITIVA] Salvar chamado', [
+            'pessoa_id' => $request->pessoa_id,
+            'boe' => $request->boe,
+            'papel' => $request->papel,
+            'tem_interrogatorio' => !empty($request->interrogatorio),
+            'tamanho' => strlen($request->interrogatorio ?? ''),
+            'preview' => substr($request->interrogatorio ?? '', 0, 100)
+        ]);
+
         return response()->json(['success' => true]);
     }
 
@@ -88,9 +103,37 @@ class ApfdPessoaDetalheController extends Controller
     public function buscarPorBoe($boe, $pessoaId, $papel)
     {
         try {
+            // ✅ FONTE PRIMÁRIA: Arquivo JSON (preserva formatação HTML perfeitamente)
+            $conteudoArquivo = $this->lerOitivaArquivo($boe, $pessoaId, $papel);
+            if ($conteudoArquivo) {
+                return response()->json(['success' => true, 'data' => [
+                    'interrogatorio' => $conteudoArquivo,
+                    'nota_culpa' => '',
+                    'fonte' => 'arquivo'
+                ]]);
+            }
+
+            // Fallback: se mudaram o papel, busca qualquer arquivo dessa pessoa neste BOE
+            $dir = storage_path('oitivas/' . preg_replace('/[^a-zA-Z0-9_\-]/', '_', $boe));
+            if (is_dir($dir)) {
+                $pattern = $dir . '/' . $pessoaId . '_*.json';
+                $arquivos = glob($pattern);
+                if (!empty($arquivos)) {
+                    $json = json_decode(file_get_contents(end($arquivos)), true);
+                    if (!empty($json['conteudo'])) {
+                        return response()->json(['success' => true, 'data' => [
+                            'interrogatorio' => $json['conteudo'],
+                            'nota_culpa' => '',
+                            'fonte' => 'arquivo_fallback'
+                        ]]);
+                    }
+                }
+            }
+
+            // ✅ FONTE SECUNDÁRIA: Banco de dados (fallback)
             $cad = DB::table('cadprincipal')->where('BOE', $boe)->first();
             if (!$cad) {
-                return response()->json(['success' => false, 'message' => 'Procedimento (BOE) não localizado.'], 404);
+                return response()->json(['success' => true, 'data' => ['interrogatorio' => '', 'nota_culpa' => '']]);
             }
 
             $registro = DB::table('apfd_pessoas_detalhes')
@@ -99,8 +142,6 @@ class ApfdPessoaDetalheController extends Controller
                 ->where('papel', $papel)
                 ->first();
 
-            // Fallback: se mudaram a pessoa de papel (ex: era Testemunha, virou Autor),
-            // a oitiva estava salva com o papel antigo. Busca qualquer oitiva dessa pessoa neste BOE.
             if (!$registro) {
                 $registro = DB::table('apfd_pessoas_detalhes')
                     ->where('cadprincipal_id', $cad->id)
@@ -116,6 +157,7 @@ class ApfdPessoaDetalheController extends Controller
             return response()->json(['success' => true, 'data' => [
                 'interrogatorio' => $registro->interrogatorio,
                 'nota_culpa' => $registro->nota_culpa,
+                'fonte' => 'banco'
             ]]);
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'message' => 'Erro ao buscar oitiva: ' . $e->getMessage()], 500);
@@ -145,5 +187,61 @@ class ApfdPessoaDetalheController extends Controller
         }
 
         return response()->json(['success' => true, 'data' => $result]);
+    }
+
+    // =============================================
+    // MÉTODOS DE ARQUIVO (storage/oitivas/)
+    // =============================================
+
+    /**
+     * Salva o conteúdo da oitiva como arquivo JSON.
+     * Estrutura: storage/oitivas/{boe_sanitizado}/{pessoa_id}_{papel}.json
+     */
+    private function salvarOitivaArquivo($boe, $pessoaId, $papel, $conteudo)
+    {
+        try {
+            $boeSafe = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $boe);
+            $dir = storage_path('oitivas/' . $boeSafe);
+
+            if (!File::isDirectory($dir)) {
+                File::makeDirectory($dir, 0755, true);
+            }
+
+            $arquivo = $dir . '/' . $pessoaId . '_' . $papel . '.json';
+            $dados = [
+                'pessoa_id' => (int) $pessoaId,
+                'boe' => $boe,
+                'papel' => $papel,
+                'conteudo' => $conteudo,
+                'salvo_em' => now()->toDateTimeString()
+            ];
+
+            File::put($arquivo, json_encode($dados, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            \Log::info('[OITIVA] Arquivo salvo: ' . $arquivo);
+        } catch (\Throwable $e) {
+            \Log::warning('[OITIVA] Erro ao salvar arquivo: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Lê o conteúdo da oitiva do arquivo JSON.
+     * Retorna o HTML da oitiva ou null se não encontrar.
+     */
+    private function lerOitivaArquivo($boe, $pessoaId, $papel)
+    {
+        try {
+            $boeSafe = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $boe);
+            $arquivo = storage_path('oitivas/' . $boeSafe . '/' . $pessoaId . '_' . $papel . '.json');
+
+            if (!File::exists($arquivo)) {
+                return null;
+            }
+
+            $json = json_decode(File::get($arquivo), true);
+            return $json['conteudo'] ?? null;
+        } catch (\Throwable $e) {
+            \Log::warning('[OITIVA] Erro ao ler arquivo: ' . $e->getMessage());
+            return null;
+        }
     }
 }

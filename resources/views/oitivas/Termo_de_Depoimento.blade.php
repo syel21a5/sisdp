@@ -41,7 +41,11 @@
         <!-- ÁREA DO EDITOR -->
         <div class="editor-area">
             <div id="editor" class="preservar-espacamento">
-                <!-- CONTEÚDO DO TERMO DE DEPOIMENTO (ESPECÍFICO) -->
+                @if(!empty($dadosArray['_conteudo_salvo']) && (strpos($dadosArray['_conteudo_salvo'], 'TERMO DE') !== false || strpos($dadosArray['_conteudo_salvo'], '<!-- CONTEUDO') !== false))
+                    <!-- MODO SNAPSHOT COMPLETO: Renderiza o documento inteiro exatamente como foi salvo -->
+                    {!! $dadosArray['_conteudo_salvo'] !!}
+                @else
+                    <!-- MODO TEMPLATE DINÂMICO: Renderiza o modelo preenchido com dados atuais -->
                 <p style="text-align: center; line-height: 1.6; margin: 0.2em 0; padding: 0;">
                     <strong style="font-size: 20pt;">TERMO DE DEPOIMENTO</strong>
                 </p>
@@ -99,6 +103,7 @@
                     <p style="line-height: 1.4; margin: 0.1em 0; padding: 0;">&nbsp;</p>
                     <p style="line-height: 1.4; margin: 0.1em 0; padding: 0;">ESCRIVÃO(Ã):</p>
                 </div>
+                @endif
             </div>
 
             <div class="editor-stats">
@@ -149,6 +154,7 @@
 
     <!-- ✅ DEPENDÊNCIAS DO SISTEMA -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- TinyMCE 6 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.3/tinymce.min.js" referrerpolicy="origin"></script>
     <script src="{{ asset('js/DocumentoService.js') }}?v={{ time() }}_oi"></script>

@@ -44,6 +44,12 @@ function printDocument() {
 function salvarOitivaBotao() {
     const dados = window.dadosParaImpressao || {};
     const content = tinymce.activeEditor.getContent();
+    console.log('🔍 [DEBUG SAVE] dados._pessoa_id:', dados._pessoa_id, 'dados._boe:', dados._boe, 'dados._papel:', dados._papel);
+    console.log('🔍 [DEBUG SAVE] HTML do editor (últimos 500 chars):', content.substring(content.length - 500));
+    // Procura "se segue" no HTML pra verificar se a regex vai encontrar
+    const idxSS = content.toLowerCase().indexOf('se segue');
+    const idxNM = content.toLowerCase().indexOf('nada mais');
+    console.log('🔍 [DEBUG SAVE] "se segue" em idx:', idxSS, '/ "nada mais" em idx:', idxNM);
     if (typeof DocumentoService !== 'undefined' && DocumentoService.salvarOitiva) {
         DocumentoService.salvarOitiva(dados, content, 'conteudo-declaracao');
     } else {

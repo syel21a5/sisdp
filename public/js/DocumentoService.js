@@ -32,47 +32,10 @@ const DocumentoService = {
             return;
         }
 
-        // Extrai o texto digitado (remove o cabeçalho fixo do termo)
-        let textoOitiva = '';
-        try {
-            // Cria um elemento temporário para analisar o HTML ATUAL do editor
-            const tempDiv = document.createElement('div');
-            // Utilizamos diretamente a extração via Expressão Regular para suportar diversos finais
-            // Isso evita que formatações aplicadas "por fora" da tag span pelo TinyMCE sejam perdidas.
-            let htmlTemp = conteudoHtml;
-            // Busca o último 'QUE,' ou 'QUE:' no documento (lidando com possíveis tags HTML ou espaços no meio)
-            const regexStart = /(?:QUE|Que|que)[\s\xA0]*(?:<[^>]+>)*[\s\xA0]*[,:]/gi;
-            let match;
-            let lastStartRegexMatch = null;
-            let lastStartMatchIndex = -1;
-            
-            while ((match = regexStart.exec(htmlTemp)) !== null) {
-                lastStartRegexMatch = match[0];
-                lastStartMatchIndex = match.index;
-            }
-            
-            if (lastStartMatchIndex !== -1) {
-                const startExtractIndex = lastStartMatchIndex + lastStartRegexMatch.length;
-                const regexFim = /\.?\s*(?:<[^>]+>)*\s*Nada mais (havendo|disse|declarou|a acrescentar)/i;
-                const substring = htmlTemp.substring(startExtractIndex);
-                const matchFim = substring.match(regexFim);
-                
-                if (matchFim) {
-                    let extracted = substring.substring(0, matchFim.index);
-                    // Limpa APENAS a tag <span id="conteudo-..."> inicial se ela existir, preservando formatações (<span style="...">, <strong>, etc)
-                    extracted = extracted.replace(/^\s*<span\s+id="conteudo-[^"]+"[^>]*>/i, '');
-                    // Limpa o fechamento de span apenas se sobrar no final perdido
-                    extracted = extracted.replace(/<\/span>\s*$/i, '');
-                    textoOitiva = extracted.trim();
-                } else {
-                    textoOitiva = htmlTemp.trim();
-                }
-            } else {
-                textoOitiva = htmlTemp.trim();
-            }
-        } catch (e) {
-            textoOitiva = conteudoHtml.trim();
-        }
+        // Agora salvamos o documento HTML INTEIRO (snapshot 100% fiel)
+        // Isso evita bugs de regex e perda de formatações nas pontas do texto
+        let textoOitiva = conteudoHtml.trim();
+        console.log('✅ [OITIVA] HTML completo capturado (' + textoOitiva.length + ' chars)');
 
         const limpo = textoOitiva.replace(/<[^>]*>/g, '').trim();
         if (!limpo || limpo.toUpperCase().includes('ESCREVER AQUI')) {
@@ -644,12 +607,13 @@ const DocumentoService = {
                     icon: 'document-properties',
                     tooltip: 'Gerar Documento Oficial em PDF',
                     onAction: function (_) {
+                        if (typeof salvarOitivaBotao === 'function') salvarOitivaBotao();
                         if (onPrint) onPrint();
                     }
                 });
 
                 editor.ui.registry.addButton('salvaroitiva', {
-                    text: '💾 SALVAR OITIVA',
+                    text: 'SALVAR OITIVA',
                     icon: 'save',
                     tooltip: 'Salvar o texto desta oitiva no banco (vinculado à pessoa e a este BOE)',
                     onAction: function (_) {
@@ -698,6 +662,7 @@ const DocumentoService = {
  * 🎯 Função interna: grava a oitiva no banco (apfd_pessoas_detalhes.interrogatorio)
  */
 function _gravarOitiva(pessoaId, boe, papel, textoOitiva) {
+    console.log('📤 [OITIVA] _gravarOitiva enviando:', { pessoaId, boe, papel, textoLength: textoOitiva.length, preview: textoOitiva.substring(0, 80) });
     $.ajax({
         url: '/apfd/detalhes/salvar',
         method: 'POST',
@@ -718,14 +683,41 @@ function _gravarOitiva(pessoaId, boe, papel, textoOitiva) {
                     const channel = new BroadcastChannel('sisdepol_events');
                     channel.postMessage({ type: 'oitiva_salva', boe: boe });
                 } catch(e) {}
-                alert('✅ Oitiva salva com sucesso! Você pode reabrir pelo botão 📝 no chip.');
+                
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Salvo com sucesso!',
+                        text: 'O documento foi salvo. Você pode reabrir pelo botão 📝 no chip.',
+                        timer: 3000,
+                        showConfirmButton: false
+                    });
+                } else {
+                    alert('✅ Oitiva salva com sucesso! Você pode reabrir pelo botão 📝 no chip.');
+                }
             } else {
-                alert('❌ ' + ((resp && resp.message) || 'Erro ao salvar a oitiva.'));
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro ao salvar',
+                        text: ((resp && resp.message) || 'Ocorreu um erro inesperado ao salvar.')
+                    });
+                } else {
+                    alert('❌ ' + ((resp && resp.message) || 'Erro ao salvar a oitiva.'));
+                }
             }
         },
         error: function (xhr) {
-            console.error('❌ [OITIVA] Erro ao salvar oitiva:', xhr.responseText);
-            alert('❌ Erro ao salvar a oitiva. Verifique o console (F12).');
+            console.error('❌ [OITIVA] Falha ao salvar:', xhr.responseText);
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Falha na comunicação',
+                    text: 'Não foi possível conectar ao servidor para salvar.'
+                });
+            } else {
+                alert('❌ Falha na comunicação com o servidor ao salvar oitiva.');
+            }
         }
     });
 }

@@ -303,11 +303,19 @@ window.OcorrenciasApp = {
             $.ajax({
                 url: `/apfd/detalhes/por-boe/${encodeURIComponent(data.boe)}/${data.pessoaId}/${data.papel}`,
                 method: 'GET',
+                cache: false,
                 success: (resp) => {
-                    const textoSalvo = (resp && resp.success && resp.data && resp.data.interrogatorio) ? resp.data.interrogatorio : '';
+                    console.log('🔍 [OITIVA] Resposta do backend:', JSON.stringify(resp).substring(0, 500));
+                    let textoSalvo = (resp && resp.success && resp.data && resp.data.interrogatorio) ? resp.data.interrogatorio : '';
+                    
+                    // ✅ Não extraímos mais o texto! Mantemos o HTML completo exatamente como foi salvo
+                    // para garantir 100% de fidelidade (WYSIWYG) no editor.
+                    
+                    console.log('🔍 [OITIVA] textoSalvo final:', textoSalvo ? `${textoSalvo.substring(0, 100)}... (${textoSalvo.length} chars)` : '(VAZIO)');
                     this.abrirEditorOitiva(termoEscolhido, data.boe, data.pessoaId, data.papel, textoSalvo);
                 },
-                error: () => {
+                error: (xhr) => {
+                    console.error('❌ [OITIVA] Erro ao buscar oitiva:', xhr.status, xhr.responseText);
                     this.abrirEditorOitiva(termoEscolhido, data.boe, data.pessoaId, data.papel, '');
                 }
             });
@@ -1731,6 +1739,7 @@ window.OcorrenciasApp = {
         dados._papel = papel;
         // Se tem texto salvo, coloca na sessão p/ o editor preencher
         if (textoSalvo) dados._conteudo_salvo = textoSalvo;
+        console.log('🔍 [OITIVA] _abrirEditorComSessao → _conteudo_salvo:', dados._conteudo_salvo ? `${String(dados._conteudo_salvo).substring(0, 80)}... (${String(dados._conteudo_salvo).length} chars)` : '(NÃO DEFINIDO)');
 
         const urlRota = {
             interrogatorio: '/interrogatorio', 
@@ -2562,8 +2571,14 @@ window.OcorrenciasApp = {
                     // Apreensão
                     $('#inputApreensao').val(response.data.Apreensao || '');
 
-                    // ✅ NOVO: Carregar envolvidos
-                    this.carregarEnvolvidos(response.data);
+                    // ✅ FIX: Só carregar envolvidos do JSON legado se NÃO houver BOE.
+                    // Quando há BOE, carregarVinculosDoBoe() (chamado abaixo) é a fonte de verdade.
+                    // Carregar dos dois causava "fantasmas": o JSON não reflete trocas de papel
+                    // feitas via /boe/vinculos/adicionar, e o backup de manuais restaurava esses nomes.
+                    const _boeCheck = response.data.BOE || response.data.boe || '';
+                    if (!_boeCheck) {
+                        this.carregarEnvolvidos(response.data);
+                    }
 
                     // ✅ NOVO: Capturar is_owner da resposta e bloquear/desbloquear formulário
                     this.isOwner = response.data.is_owner !== undefined ? response.data.is_owner : true;
