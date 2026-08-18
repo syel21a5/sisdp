@@ -64,6 +64,7 @@
                         $permCopilotIa = isset($permissions['copilot_ia']) ? $permissions['copilot_ia'] : true;
                         $permVerificarSei = isset($permissions['verificar_sei']) ? $permissions['verificar_sei'] : true;
                         $permVerApenasProrias = isset($permissions['ver_apenas_proprias']) ? $permissions['ver_apenas_proprias'] : false;
+                        $permRelatorios = isset($permissions['relatorios']) ? $permissions['relatorios'] : true;
                     @endphp
 
                     <h5 class="fw-bold mt-5 mb-3 border-bottom border-2 border-primary pb-2 d-flex align-items-center"><i class="bi bi-shield-lock-fill text-primary me-2 fs-4"></i> Controle de Permissões</h5>
@@ -86,6 +87,10 @@
                                     <div class="form-check form-switch mb-2 fs-6">
                                         <input type="checkbox" class="form-check-input cursor-pointer" id="perm_intimacao" name="perm_intimacao" {{ old('perm_intimacao', $permIntimacao) ? 'checked' : '' }}>
                                         <label class="form-check-label fw-semibold cursor-pointer" for="perm_intimacao">Módulo Intimações</label>
+                                    </div>
+                                    <div class="form-check form-switch mb-2 fs-6">
+                                        <input type="checkbox" class="form-check-input cursor-pointer" id="perm_relatorios" name="perm_relatorios" {{ old('perm_relatorios', $permRelatorios) ? 'checked' : '' }}>
+                                        <label class="form-check-label fw-semibold cursor-pointer" for="perm_relatorios"><i class="bi bi-file-earmark-bar-graph-fill text-success"></i> Menu Relatórios (Procedimentos/Antecedentes)</label>
                                     </div>
                                     
                                     <hr class="my-3 opacity-25">

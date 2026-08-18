@@ -67,6 +67,7 @@
                 $canApfd = isset($userPermissions['apfd']) ? $userPermissions['apfd'] : true;
                 $canAuditoriaChips = isset($userPermissions['auditoria_chips']) ? $userPermissions['auditoria_chips'] : false;
                 $canInfopol = isset($userPermissions['infopol']) ? $userPermissions['infopol'] : true;
+                $canRelatorios = isset($userPermissions['relatorios']) ? $userPermissions['relatorios'] : true;
             @endphp
             @if(!$hasMenuAccess)
                 <!-- <span class="access-indicator">Acesso Restrito</span> -->
@@ -129,7 +130,7 @@
                 </li>
             @endif
             <!-- NOVO MENU RELATÓRIOS (Dropdown) -->
-            @if($hasMenuAccess)
+            @if($hasMenuAccess && $canRelatorios)
             <li class="nav-item">
                 <a class="nav-link collapsed" href="#submenuRelatorios" data-bs-toggle="collapse" 
                    aria-expanded="false" role="button">

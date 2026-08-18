@@ -59,6 +59,10 @@
                                         <input type="checkbox" class="form-check-input cursor-pointer" id="perm_intimacao" name="perm_intimacao" {{ old('perm_intimacao', true) ? 'checked' : '' }}>
                                         <label class="form-check-label fw-semibold cursor-pointer" for="perm_intimacao">Módulo Intimações</label>
                                     </div>
+                                    <div class="form-check form-switch mb-2 fs-6">
+                                        <input type="checkbox" class="form-check-input cursor-pointer" id="perm_relatorios" name="perm_relatorios" {{ old('perm_relatorios', true) ? 'checked' : '' }}>
+                                        <label class="form-check-label fw-semibold cursor-pointer" for="perm_relatorios"><i class="bi bi-file-earmark-bar-graph-fill text-success"></i> Menu Relatórios (Procedimentos/Antecedentes)</label>
+                                    </div>
                                     
                                     <hr class="my-3 opacity-25">
                                     <h6 class="text-muted fw-bold small text-uppercase mb-2">Novos Operacionais</h6>

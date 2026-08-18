@@ -57,6 +57,7 @@
                 $canApfd = isset($userPermissions['apfd']) ? $userPermissions['apfd'] : true;
                 $canAuditoriaChips = isset($userPermissions['auditoria_chips']) ? $userPermissions['auditoria_chips'] : false;
                 $canInfopol = isset($userPermissions['infopol']) ? $userPermissions['infopol'] : true;
+                $canRelatorios = isset($userPermissions['relatorios']) ? $userPermissions['relatorios'] : true;
             @endphp
             @if(!$hasMenuAccess)
                 <!-- <span class="access-indicator">Acesso Restrito</span> -->
@@ -117,7 +118,7 @@
                 </a>
             </li>
             @endif
-            @if($hasMenuAccess)
+            @if($hasMenuAccess && $canRelatorios)
             <li>
                 <div class="sidebar-group-card">
                     <button class="menu-toggle" type="button" onclick="toggleSubmenu('relatorios-submenu')">

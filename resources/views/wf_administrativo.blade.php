@@ -107,6 +107,7 @@
                 $canIntimacao = isset($userPermissions['intimacao']) ? $userPermissions['intimacao'] : true;
                 $canApreensaoOutros = isset($userPermissions['apreensao_outros']) ? $userPermissions['apreensao_outros'] : true;
                 $canApfd = isset($userPermissions['apfd']) ? $userPermissions['apfd'] : true;
+                $canRelatorios = isset($userPermissions['relatorios']) ? $userPermissions['relatorios'] : true;
             @endphp
             @if(!$hasMenuAccess)
             @endif
@@ -151,7 +152,7 @@
                 </a>
             </li>
             @endif
-            @if($hasMenuAccess)
+            @if($hasMenuAccess && $canRelatorios)
             <li class="{{ !$hasMenuAccess ? 'menu-disabled' : '' }}">
                 <a href="#" class="{{ !$hasMenuAccess ? 'permission-tooltip' : '' }}">
                     <i class="bi bi-file-earmark-text"></i>Relatórios

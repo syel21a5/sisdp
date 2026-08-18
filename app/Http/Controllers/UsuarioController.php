@@ -56,7 +56,8 @@ class UsuarioController extends Controller
                 'extracao_boe_ia' => $request->has('perm_extracao_boe_ia'),
                 'copilot_ia' => $request->has('perm_copilot_ia'),
                 'verificar_sei' => $request->has('perm_verificar_sei'),
-                'ver_apenas_proprias' => $request->has('perm_ver_apenas_proprias')
+                'ver_apenas_proprias' => $request->has('perm_ver_apenas_proprias'),
+                'relatorios' => $request->has('perm_relatorios')
             ]
         ];
 
@@ -108,7 +109,8 @@ class UsuarioController extends Controller
                 'extracao_boe_ia' => $request->has('perm_extracao_boe_ia'),
                 'copilot_ia' => $request->has('perm_copilot_ia'),
                 'verificar_sei' => $request->has('perm_verificar_sei'),
-                'ver_apenas_proprias' => $request->has('perm_ver_apenas_proprias')
+                'ver_apenas_proprias' => $request->has('perm_ver_apenas_proprias'),
+                'relatorios' => $request->has('perm_relatorios')
             ]
         ];
 
