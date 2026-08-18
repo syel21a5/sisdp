@@ -207,6 +207,28 @@ class PdfService
         $content = preg_replace('/<div class="ql-editor"([^>]*)>(.*?)<\/div>/is', '$2', $content);
         $content = preg_replace('/<span class="ql-cursor">[^<]*<\/span>/', '', $content);
 
+        // 8. Remover a marcação cyan de "ESCREVER AQUI..." (guia visual de onde digitar).
+        //    Ela é só um indicador para o usuário — nunca deve aparecer no PDF final.
+        $content = self::limparMarcacaoCyan($content);
+
         return trim($content);
+    }
+
+    /**
+     * Remove a marcação cyan de "ESCREVER AQUI..." (background-color: cyan)
+     * do HTML. Usada tanto na geração de PDF quanto na leitura de oitivas salvas,
+     * para que o guia visual nunca vaze para o documento final.
+     */
+    public static function limparMarcacaoCyan($content)
+    {
+        if (empty($content) || !is_string($content)) {
+            return $content;
+        }
+
+        $content = preg_replace('/background-color\s*:\s*(?:cyan|aqua|#0ff|#00ffff|rgb\(\s*0\s*,\s*255\s*,\s*255\s*\))\s*;?/i', '', $content);
+        // Limpa atributos style que ficaram vazios após a remoção acima
+        $content = preg_replace('/\s*style\s*=\s*(""|\'\')/', '', $content);
+
+        return $content;
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use App\Services\PdfService;
 
 class ApfdPessoaDetalheController extends Controller
 {
@@ -31,7 +32,7 @@ class ApfdPessoaDetalheController extends Controller
         }
 
         $data = [
-            'interrogatorio' => $request->interrogatorio,
+            'interrogatorio' => PdfService::limparMarcacaoCyan($request->interrogatorio ?? ''),
             'nota_culpa' => $request->nota_culpa,
             'dados_complementares' => $request->dados_complementares ? json_encode($request->dados_complementares) : null,
             'updated_at' => now()
@@ -60,7 +61,7 @@ class ApfdPessoaDetalheController extends Controller
 
         // ✅ NOVO: Salvar oitiva como arquivo JSON em storage/oitivas/{boe}/
         if ($request->interrogatorio && $request->boe) {
-            $this->salvarOitivaArquivo($request->boe, $request->pessoa_id, $request->papel, $request->interrogatorio);
+            $this->salvarOitivaArquivo($request->boe, $request->pessoa_id, $request->papel, PdfService::limparMarcacaoCyan($request->interrogatorio));
         }
 
         \Log::info('[OITIVA] Salvar chamado', [
@@ -107,7 +108,7 @@ class ApfdPessoaDetalheController extends Controller
             $conteudoArquivo = $this->lerOitivaArquivo($boe, $pessoaId, $papel);
             if ($conteudoArquivo) {
                 return response()->json(['success' => true, 'data' => [
-                    'interrogatorio' => $conteudoArquivo,
+                    'interrogatorio' => PdfService::limparMarcacaoCyan($conteudoArquivo),
                     'nota_culpa' => '',
                     'fonte' => 'arquivo'
                 ]]);
@@ -122,7 +123,7 @@ class ApfdPessoaDetalheController extends Controller
                     $json = json_decode(file_get_contents(end($arquivos)), true);
                     if (!empty($json['conteudo'])) {
                         return response()->json(['success' => true, 'data' => [
-                            'interrogatorio' => $json['conteudo'],
+                            'interrogatorio' => PdfService::limparMarcacaoCyan($json['conteudo']),
                             'nota_culpa' => '',
                             'fonte' => 'arquivo_fallback'
                         ]]);
@@ -155,7 +156,7 @@ class ApfdPessoaDetalheController extends Controller
             }
 
             return response()->json(['success' => true, 'data' => [
-                'interrogatorio' => $registro->interrogatorio,
+                'interrogatorio' => PdfService::limparMarcacaoCyan($registro->interrogatorio),
                 'nota_culpa' => $registro->nota_culpa,
                 'fonte' => 'banco'
             ]]);
