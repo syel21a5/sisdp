@@ -1,4 +1,4 @@
-// veiculo.js - VERSÃO COMPLETA CORRIGIDA
+﻿// veiculo.js - VERSÃO COMPLETA CORRIGIDA
 $(document).ready(function () {
     // === VERIFICA SE O FORMULÁRIO EXISTE NA PÁGINA ===
     if (!$('#formVeiculo').length) return;

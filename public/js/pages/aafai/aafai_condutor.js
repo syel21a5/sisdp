@@ -1,4 +1,4 @@
-// JavaScript para Editor AAFAI - CONDUTOR (Versão TinyMCE)
+﻿// JavaScript para Editor AAFAI - CONDUTOR (Versão TinyMCE)
 
 function printDocument() {
     console.log('🟢 GERANDO PDF AAFAI CONDUTOR COM TINYMCE...');

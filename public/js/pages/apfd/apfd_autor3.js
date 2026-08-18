@@ -1,12 +1,12 @@
-// JavaScript para Editor APFD - AUTOR 3 (Versão TinyMCE)
+﻿// JavaScript para Editor APFD - AUTOR (Versão TinyMCE)
 
 function printDocument() {
-    console.log('🟢 GERANDO PDF APFD AUTOR 3 COM TINYMCE...');
+    console.log('🟢 GERANDO PDF APFD AUTOR COM TINYMCE...');
     const dados = window.dadosParaImpressao || {};
     let content = tinymce.activeEditor ? tinymce.activeEditor.getContent() : document.getElementById('editor').innerHTML;
 
     const dadosParaEnviar = {
-        'orgao_emissor': 'APFD AUTOR 3',
+        'orgao_emissor': 'APFD AUTOR',
         'cidade': dados.cidade || 'NÃO INFORMADO',
         'delegacia': dados.delegacia || 'NÃO INFORMADO',
         'delegado': dados.delegado || '',

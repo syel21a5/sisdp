@@ -1,4 +1,4 @@
-// script_outros.js - VERSÃO ADAPTADA PARA OUTROS
+﻿// script_outros.js - VERSÃO ADAPTADA PARA OUTROS
 $(document).ready(function () {
     // === Configuração global de CSRF ===
     $.ajaxSetup({
@@ -653,7 +653,7 @@ $(document).ready(function () {
                 Object.assign(dados, dadosAtuaisOutro);
                 dados.testemunha1 = dadosAtuaisOutro;
 
-                // Verifica rotas (Usa rotas da testemunha 1 como padrão para "Outros")
+                // Verifica rotas (Usa rotas da TESTEMUNHA como padrão para "Outros")
                 if (typeof rotasImpressaoTestemunha1 !== 'undefined' && rotasImpressaoTestemunha1[documentoSelecionado]) {
                     const rota = rotasImpressaoTestemunha1[documentoSelecionado];
                     console.log('🚀 Enviando para DocumentoService (via Outros):', { documentoSelecionado, dados });

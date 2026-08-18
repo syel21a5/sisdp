@@ -1,4 +1,4 @@
-/**
+﻿/**
  * JS para Auto de Avaliação utilizando TinyMCE 6 e DocumentoService
  */
 

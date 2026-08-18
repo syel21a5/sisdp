@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Sisdepol AI Copilot
  * Gerencia a interface de chat lateral e a execução de comandos da API do DeepSeek
  */

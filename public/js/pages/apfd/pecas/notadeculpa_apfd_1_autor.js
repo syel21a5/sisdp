@@ -1,4 +1,4 @@
-/**
+﻿/**
  * JS para Nota de Culpa APFD 1 Autor utilizando TinyMCE 6 e DocumentoService
  */
 

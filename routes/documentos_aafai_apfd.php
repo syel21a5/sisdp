@@ -114,6 +114,11 @@ Route::middleware(['auth', 'permission:apfd'])->group(function () {
         return $processarDocumento($dados, 'aafai.aafai_condutor');
     })->name('aafai.condutor');
 
+    // 🔽 ROTA GET DO AAFAI - VITIMA 1
+    Route::get('/aafai-vitima1/{dados?}', function ($dados = null) use ($processarDocumento) {
+        return $processarDocumento($dados, 'aafai.aafai_vitima1');
+    })->name('aafai.vitima1');
+
     // 🔽 ROTA GET DO APFD - VITIMA 1
     Route::get('/apfd-vitima1/{dados?}', function ($dados = null) use ($processarDocumento) {
         return $processarDocumento($dados, 'apfd.apfd_vitima1');

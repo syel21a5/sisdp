@@ -1,4 +1,4 @@
-/**
+﻿/**
  * JS para Ofícios MP utilizando TinyMCE 6 e DocumentoService
  */
 

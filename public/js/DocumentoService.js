@@ -1,4 +1,4 @@
-/**
+﻿/**
  * DocumentoService.js
  * Centraliza a lógica de geração de documentos (PDF/Editor) do SisDP.
  * Resolve o problema de URLs Longas (Erro 414) usando POST + Cache Session.

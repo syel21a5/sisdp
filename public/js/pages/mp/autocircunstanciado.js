@@ -1,4 +1,4 @@
-/**
+﻿/**
  * JS para Auto Circunstanciado utilizando TinyMCE 6 e DocumentoService
  */
 
@@ -13,7 +13,7 @@ function printDocument() {
 
     // Dados para envio via POST
     const dadosParaEnviar = {
-        'orgao_emissor': 'AUTO CIRCUNSTANCIADO - AUTOR 1',
+        'orgao_emissor': 'AUTO CIRCUNSTANCIADO - AUTOR',
         'cidade': dados.cidade || 'NÃO INFORMADO',
         'delegacia': dados.delegacia || 'NÃO INFORMADO',
         'delegado': dados.delegado || '',

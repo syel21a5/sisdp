@@ -1,4 +1,4 @@
-// ROTAS DE IMPRESSAO PARA TODAS AS ABAS - ARQUIVO JS PURO CORRIGIDO
+﻿// ROTAS DE IMPRESSAO PARA TODAS AS ABAS - ARQUIVO JS PURO CORRIGIDO
 // Arquivo: public/js/rotas_impressao.js
 
 // ROTAS PARA A ABA INICIO
@@ -41,8 +41,8 @@ var rotasImpressaoCondutor = {
 var rotasImpressaoVitima1 = {
     'TERMO DE DECLARACAO': "/declaracao/--DADOS--",
     'TERMO DE DEPOIMENTO': "/depoimento/--DADOS--",
-    'AAFAI - VITIMA 1': "/aafai-vitima1/--DADOS--",
-    'APFD - VITIMA 1': "/apfd-vitima1/--DADOS--",
+    'AAFAI - VITIMA': "/aafai-vitima1/--DADOS--",
+    'APFD - VITIMA': "/apfd-vitima1/--DADOS--",
     'AUTO DE APRESENTACAO E APREENSAO': "/auto-apreensao/--DADOS--",
     'TERMO DE RESTITUICAO': "/documentos/termo-restituicao/--DADOS--",
     'TERMO DE RENUNCIA E DESISTENCIA DE REPRESENTACAO': "/documentos/termo-renuncia-representacao/--DADOS--",
@@ -61,8 +61,8 @@ var rotasImpressaoVitima1 = {
 var rotasImpressaoTestemunha1 = {
     'TERMO DE DECLARACAO': "/declaracao/--DADOS--",
     'TERMO DE DEPOIMENTO': "/depoimento/--DADOS--",
-    'AAFAI - TESTEMUNHA 1': "/aafai-testemunha1/--DADOS--",
-    'APFD - TESTEMUNHA 1': "/apfd-testemunha1/--DADOS--",
+    'AAFAI - TESTEMUNHA': "/aafai-testemunha1/--DADOS--",
+    'APFD - TESTEMUNHA': "/apfd-testemunha1/--DADOS--",
     'AUTO DE APRESENTACAO E APREENSAO': "/auto-apreensao/--DADOS--",
     'TERMO DE RESTITUICAO': "/documentos/termo-restituicao/--DADOS--",
     'TERMO DE RENUNCIA E DESISTENCIA DE REPRESENTACAO': "/documentos/termo-renuncia-representacao/--DADOS--",
@@ -78,8 +78,8 @@ var rotasImpressaoTestemunha1 = {
 var rotasImpressaoOutro = {
     'TERMO DE DECLARACAO': "/declaracao/--DADOS--",
     'TERMO DE DEPOIMENTO': "/depoimento/--DADOS--",
-    'AAFAI - TESTEMUNHA 1': "/aafai-testemunha1/--DADOS--",
-    'APFD - TESTEMUNHA 1': "/apfd-testemunha1/--DADOS--",
+    'AAFAI - TESTEMUNHA': "/aafai-testemunha1/--DADOS--",
+    'APFD - TESTEMUNHA': "/apfd-testemunha1/--DADOS--",
     'AUTO DE APRESENTACAO E APREENSAO': "/auto-apreensao/--DADOS--",
     'TERMO DE RESTITUICAO': "/documentos/termo-restituicao/--DADOS--",
     'TERMO DE RENUNCIA E DESISTENCIA DE REPRESENTACAO': "/documentos/termo-renuncia-representacao/--DADOS--",
@@ -97,10 +97,10 @@ var rotasImpressaoOutro = {
 var rotasImpressaoAutor1 = {
     'TERMO DE INTERROGATORIO': "/interrogatorio/--DADOS--",
     'INTERROGATORIO - APFD': "/interrogatorio-autor1apfd/--DADOS--",
-    'AAFAI - AUTOR 1': "/aafai-autor1/--DADOS--",
-    'APFD - AUTOR 1': "/apfd-autor1/--DADOS--",
-    'APFD - AUTOR 1 COM FIANÇA': "/apfd-autor1-com-fianca/--DADOS--",
-    'APFD - AUTOR 1 SEM FIANÇA': "/apfd-autor1-sem-fianca/--DADOS--",
+    'AAFAI - AUTOR': "/aafai-autor1/--DADOS--",
+    'APFD - AUTOR': "/apfd-autor1/--DADOS--",
+    'APFD - AUTOR COM FIANÇA': "/apfd-autor1-com-fianca/--DADOS--",
+    'APFD - AUTOR SEM FIANÇA': "/apfd-autor1-sem-fianca/--DADOS--",
     'NOTA DE CULPA': "/notadeculpa-dinamica/--DADOS--",
     'NOTA DE CIENCIA - GARANTIAS CONSTITUCIONAIS': "/notadeculpa-dinamica/--DADOS--?tipo=ciencia",
     'AUTO DE APRESENTACAO E APREENSAO': "/auto-apreensao/--DADOS--",
@@ -112,7 +112,7 @@ var rotasImpressaoAutor1 = {
     "LAUDO TRAUMATOLOGICO": "/pericia-traumatologico/--DADOS--",
     "LAUDO TRAUMATOLOGICO IML": "/termo-traumatologico-iml/--DADOS--",
     "CERTIDAO DE ASSINATURA INDIVIDUAL": "/certidao-assinaturas-individual/--DADOS--",
-    'AUTO CIRCUNSTACIADO - AUTOR 1': "/autocircunstanciado/--DADOS--",
+    'AUTO CIRCUNSTACIADO - AUTOR': "/autocircunstanciado/--DADOS--",
     'COMUNICACAO DE APFD': "/oficios-apfd-dinamico/--DADOS--",
     'COMUNICACAO DE APFD - UNICO OFICIO': "/oficios-apfd-unico/--DADOS--",
     'COMUNICACAO DE APFD - 1 AUTOR': "/oficios-apfd-dinamico/--DADOS--",

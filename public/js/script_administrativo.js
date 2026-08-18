@@ -1,4 +1,4 @@
-$(document).ready(function () {
+﻿$(document).ready(function () {
     console.log('✅ Script Administrativo Avançado carregado');
 
     // Configuração do token CSRF

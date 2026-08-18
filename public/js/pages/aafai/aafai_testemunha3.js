@@ -1,12 +1,12 @@
-// JavaScript para Editor AAFAI - TESTEMUNHA 3 (Versão TinyMCE)
+﻿// JavaScript para Editor AAFAI - TESTEMUNHA (Versão TinyMCE)
 
 function printDocument() {
-    console.log('🟢 GERANDO PDF AAFAI TESTEMUNHA 3 COM TINYMCE...');
+    console.log('🟢 GERANDO PDF AAFAI TESTEMUNHA COM TINYMCE...');
     const dados = window.dadosParaImpressao || {};
     let content = tinymce.activeEditor ? tinymce.activeEditor.getContent() : document.getElementById('editor').innerHTML;
 
     const dadosParaEnviar = {
-        'orgao_emissor': 'AAFAI TESTEMUNHA 3',
+        'orgao_emissor': 'AAFAI TESTEMUNHA',
         'cidade': dados.cidade || 'NÃO INFORMADO',
         'delegacia': dados.delegacia || 'NÃO INFORMADO',
         'delegado': dados.delegado || '',

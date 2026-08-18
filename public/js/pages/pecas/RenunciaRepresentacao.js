@@ -1,4 +1,4 @@
-/**
+﻿/**
  * JS para Termo de Renúncia de Representação utilizando TinyMCE 6 e DocumentoService
  */
 

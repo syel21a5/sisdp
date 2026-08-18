@@ -1,4 +1,4 @@
-/**
+﻿/**
  * JS para Rol de Testemunhas utilizando TinyMCE 6 e DocumentoService
  */
 

@@ -1,4 +1,4 @@
-$(document).ready(function () {
+﻿$(document).ready(function () {
     // Funções de feedback visual (modais)
     // Usam window.mostrarSucesso e window.mostrarErro definidos em script.js
 

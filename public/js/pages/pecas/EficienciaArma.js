@@ -1,4 +1,4 @@
-/**
+﻿/**
  * JS para Eficiência de Arma de Fogo utilizando TinyMCE 6 e DocumentoService
  */
 

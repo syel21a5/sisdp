@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SISTEMA DE CHIPS PARA MÚLTIPLOS ENVOLVIDOS
  * Permite adicionar várias vítimas, autores, testemunhas e condutores
  * usando chips azuis estilo Bootstrap

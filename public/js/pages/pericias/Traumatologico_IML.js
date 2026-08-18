@@ -1,4 +1,4 @@
-/**
+﻿/**
  * JS para Requisição de Traumatológico IML utilizando TinyMCE 6 e DocumentoService
  */
 

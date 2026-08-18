@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SISTEMA DE VÍNCULOS DINÂMICOS (APFD)
  * 
  * Este script substitui a lógica antiga de colunas fixas (vitima1, vitima2...)

@@ -1,15 +1,15 @@
-// JavaScript para Editor APFD - TESTEMUNHA 1 (Versão TinyMCE)
+﻿// JavaScript para Editor APFD - TESTEMUNHA (Versão TinyMCE)
 
 // Função principal para gerar PDF com DOMPDF
 function printDocument() {
-    console.log('🟢 GERANDO PDF APFD TESTEMUNHA 1 COM TINYMCE...');
+    console.log('🟢 GERANDO PDF APFD TESTEMUNHA COM TINYMCE...');
 
     const dados = window.dadosParaImpressao || {};
     let content = tinymce.activeEditor ? tinymce.activeEditor.getContent() : document.getElementById('editor').innerHTML;
 
     // Adicionar todos os dados necessários
     const dadosParaEnviar = {
-        'orgao_emissor': 'APFD TESTEMUNHA 1',
+        'orgao_emissor': 'APFD TESTEMUNHA',
         'cidade': dados.cidade || 'NÃO INFORMADO',
         'delegacia': dados.delegacia || 'NÃO INFORMADO',
         'delegado': dados.delegado || '',
@@ -38,7 +38,7 @@ function printDocument() {
 
 // ✅ CONFIGURAÇÃO INICIAL
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Iniciando Editor Testemunha 1...');
+    console.log('Iniciando Editor TESTEMUNHA...');
     
     // Inicializar TinyMCE usando nosso serviço central
     DocumentoService.initTinyMCE('#editor', printDocument);

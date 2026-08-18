@@ -1,7 +1,7 @@
-// JavaScript para Editor APFD - TESTEMUNHA 2 (Versão TinyMCE)
+﻿// JavaScript para Editor APFD - TESTEMUNHA (Versão TinyMCE)
 
 function printDocument() {
-    console.log('🟢 GERANDO PDF APFD TESTEMUNHA 2 COM TINYMCE...');
+    console.log('🟢 GERANDO PDF APFD TESTEMUNHA COM TINYMCE...');
     const dados = window.dadosParaImpressao || {};
     let content = tinymce.activeEditor ? tinymce.activeEditor.getContent() : document.getElementById('editor').innerHTML;
 
@@ -27,7 +27,7 @@ function printDocument() {
     form.appendChild(conteudoInput);
 
     const dadosParaEnviar = {
-        'orgao_emissor': 'APFD TESTEMUNHA 2',
+        'orgao_emissor': 'APFD TESTEMUNHA',
         'cidade': dados.cidade || 'NÃO INFORMADO',
         'delegacia': dados.delegacia || 'NÃO INFORMADO',
         'delegado': dados.delegado || '',

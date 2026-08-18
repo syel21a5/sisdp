@@ -1,4 +1,4 @@
-// script_autor1.js - VERSÃO CORRIGIDA PARA VALORES ACIMA DE 999
+﻿// script_autor1.js - VERSÃO CORRIGIDA PARA VALORES ACIMA DE 999
 $(document).ready(function () {
     // === Configuração global de CSRF ===
     $.ajaxSetup({
@@ -776,8 +776,8 @@ $(document).ready(function () {
     (function () {
         const documentos = [
             "TERMO DE INTERROGATORIO",
-            "AAFAI - AUTOR 1",
-            "APFD - AUTOR 1",
+            "AAFAI - AUTOR",
+            "APFD - AUTOR",
             "NOTA DE CULPA",
             "NOTA DE CIENCIA - GARANTIAS CONSTITUCIONAIS",
             "AUTO DE APRESENTACAO E APREENSAO",
@@ -789,7 +789,7 @@ $(document).ready(function () {
             "LAUDO TRAUMATOLOGICO",
             "LAUDO TRAUMATOLOGICO IML",
             "CERTIDAO DE ASSINATURA INDIVIDUAL",
-            "AUTO CIRCUNSTACIADO - AUTOR 1",
+            "AUTO CIRCUNSTACIADO - AUTOR",
             "COMUNICACAO DE APFD",
             "COMUNICACAO DE APFD - UNICO OFICIO",
             "MANDADO DE PRISAO - OFICIOS",

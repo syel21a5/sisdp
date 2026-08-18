@@ -1,4 +1,4 @@
-// script_intimacao.js - VERSÃO COMPLETA COM PREENCHIMENTO AUTOMÁTICO E PADRONIZAÇÃO
+﻿// script_intimacao.js - VERSÃO COMPLETA COM PREENCHIMENTO AUTOMÁTICO E PADRONIZAÇÃO
 
 window.initIntimacaoIfPresent = function () {
     // === VERIFICA SE O FORMULÁRIO EXISTE NA PÁGINA ===

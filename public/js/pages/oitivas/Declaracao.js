@@ -1,4 +1,4 @@
-/**
+﻿/**
  * JS para Termo de Declaração utilizando TinyMCE 6 e DocumentoService
  */
 

@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>APFD VÍTIMA 1 - Editor Profissional</title>
+    <title>APFD VÍTIMA - Editor Profissional</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="{{ asset('css/formularios.css') }}" rel="stylesheet">
@@ -15,7 +15,7 @@
         <div class="editor-header">
             <h1 class="editor-title">
                 <i class="fas fa-file-contract"></i>
-                Editor do APFD VÍTIMA 1
+                Editor do APFD VÍTIMA
             </h1>
         </div>
 
@@ -51,7 +51,7 @@
                     <br>
                 </p>
 
-                <!-- VITIMA 1 - SEM A DIV EXTRA -->
+                <!-- VITIMA - SEM A DIV EXTRA -->
                 <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px; text-align: justify;">
                     Na sequência, passou a Autoridade a inquirir a <strong>VÍTIMA</strong>: {{ !empty($dadosArray['nome']) ? $dadosArray['nome'] : 'NÃO INFORMADO' }},
                     <strong>ALCUNHA</strong>: {{ !empty($dadosArray['alcunha']) ? $dadosArray['alcunha'] : 'NÃO INFORMADO' }},
@@ -67,13 +67,21 @@
                     <strong>MÃE</strong>: {{ !empty($dadosArray['mae']) ? $dadosArray['mae'] : 'NÃO INFORMADO' }},
                     <strong>PAI</strong>: {{ !empty($dadosArray['pai']) ? $dadosArray['pai'] : 'NÃO INFORMADO' }},
                     <strong>ENDEREÇO</strong>: {{ !empty($dadosArray['endereco']) ? $dadosArray['endereco'] : 'NÃO INFORMADO' }}. Sabendo ler e escrever, inquirida pela Autoridade
-                    passou a declarar <strong>QUE</strong>: _________________
+                    passou a declarar:
                 </p>
-
                 <p class="ql-align-justify preservar-espacamento">
                     <br>
                 </p>
-
+                <p style="text-align: justify; line-height: 1.6; margin: 0.2em 0; padding: 0;">
+                    <span id="conteudo-depoimento">
+                    @if(!empty($dadosArray['_conteudo_salvo']))
+                    {!! $dadosArray['_conteudo_salvo'] !!}
+                    @else
+                    {...ESCREVER AQUI A DECLARAÇÃO...}
+                    @endif
+                    </span>
+                </p>
+                <p style="line-height: 1.6; margin: 0.2em 0; padding: 0;">&nbsp;</p>
                 <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px; text-align: justify;">
                     Nada mais disse nem lhe foi perguntado. Lido e achado conforme, determinou a Autoridade que fosse encerrado o presente Termo, o
                     qual assina juntamente com o(a) declarante, e comigo Escrivão que digitei.
@@ -139,7 +147,7 @@
         };
 
         // DEBUG: Verificar se os dados estão chegando
-        console.log('Dados carregados para APFD Vítima 1:', window.dadosParaImpressao);
+        console.log('Dados carregados para APFD VÍTIMA:', window.dadosParaImpressao);
     </script>
 
     

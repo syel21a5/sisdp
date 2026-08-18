@@ -1,8 +1,8 @@
-// JavaScript para Editor APFD - VÍTIMA 1 (Versão TinyMCE)
+﻿// JavaScript para Editor APFD - VITIMA (Versão TinyMCE)
 
 // Função principal para gerar PDF com DOMPDF
 function printDocument() {
-    console.log('🟢 GERANDO PDF APFD VÍTIMA 1 COM TINYMCE...');
+    console.log('🟢 GERANDO PDF APFD VÍTIMA COM TINYMCE...');
 
     const dados = window.dadosParaImpressao || {};
 
@@ -38,7 +38,7 @@ function printDocument() {
 
     // Adicionar todos os dados necessários
     const dadosParaEnviar = {
-        'orgao_emissor': 'APFD VÍTIMA 1',
+        'orgao_emissor': 'APFD VÍTIMA',
         'cidade': dados.cidade || 'NÃO INFORMADO',
         'delegacia': dados.delegacia || 'NÃO INFORMADO',
         'delegado': dados.delegado || '',
@@ -76,7 +76,7 @@ function printDocument() {
 
 // ✅ CONFIGURAÇÃO INICIAL
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Iniciando Editor Vítima 1...');
+    console.log('Iniciando Editor VÍTIMA...');
     
     // Inicializar TinyMCE usando nosso serviço central
     DocumentoService.initTinyMCE('#editor', printDocument);

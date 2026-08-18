@@ -1,4 +1,4 @@
-/**
+﻿/**
  * JS para Ofício Família APFD Dinâmico utilizando TinyMCE 6 e DocumentoService
  */
 

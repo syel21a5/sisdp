@@ -1,4 +1,4 @@
-/**
+﻿/**
  * JS para Termo de Restituição utilizando TinyMCE 6 e DocumentoService
  */
 

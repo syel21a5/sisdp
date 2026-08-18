@@ -1,4 +1,4 @@
-/**
+﻿/**
  * VÍNCULOS COMPLETOS BOE - TODOS OS ENVOLVIDOS
  * VERSÃO CORRIGIDA - COM MENSAGENS DE SUCESSO PARA TODOS OS ENVOLVIDOS
  *
@@ -41,7 +41,7 @@ function tratarErroVinculoCompleto(xhr, tipo, funcaoLimpar, funcaoMensagem) {
 }
 
 // =============================================
-// ✅ VÍTIMA 1 - CORRIGIDO (JÁ FUNCIONAVA)
+// ✅ VÍTIMA - CORRIGIDO (JÁ FUNCIONAVA)
 // =============================================
 
 window.carregarVitima1Vinculada = function (boe) {
@@ -99,14 +99,14 @@ function mostrarMensagemVitima1(mensagem, tipo = 'info') {
 }
 
 // =============================================
-// ✅ VÍTIMA 2 & 3 - REMOVIDO
+// ✅ VÍTIMA & 3 - REMOVIDO
 // =============================================
 
 
 
 
 // =============================================
-// ✅ TESTEMUNHA 1 - CORRIGIDO (AGORA COM MENSAGENS)
+// ✅ TESTEMUNHA - CORRIGIDO (AGORA COM MENSAGENS)
 // =============================================
 
 window.carregarTestemunha1Vinculada = function (boe) {
@@ -160,7 +160,7 @@ function mostrarMensagemTestemunha1(mensagem, tipo = 'info') {
 
 
 // =============================================
-// ✅ TESTEMUNHA 2 & 3 - REMOVIDO
+// ✅ TESTEMUNHA & 3 - REMOVIDO
 // =============================================
 
 
@@ -168,7 +168,7 @@ function mostrarMensagemTestemunha1(mensagem, tipo = 'info') {
 
 
 // =============================================
-// ✅ AUTOR 1 - CORRIGIDO (AGORA COM MENSAGENS)
+// ✅ AUTOR - CORRIGIDO (AGORA COM MENSAGENS)
 // =============================================
 
 window.carregarAutor1Vinculado = function (boe) {
@@ -222,7 +222,7 @@ function mostrarMensagemAutor1(mensagem, tipo = 'info') {
 
 
 // =============================================
-// ✅ AUTOR 2 & 3 - REMOVIDO
+// ✅ AUTOR & 3 - REMOVIDO
 // =============================================
 
 

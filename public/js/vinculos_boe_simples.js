@@ -1,4 +1,4 @@
-// vinculos_boe_simples.js - VERSÃO CORRIGIDA PARA AMBIENTES
+﻿// vinculos_boe_simples.js - VERSÃO CORRIGIDA PARA AMBIENTES
 console.log('🚀 Sistema de vínculos BOE carregado!');
 
 // ✅ ROTAS FIXAS (SEM BLADE) - SIMPLES

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * JS para Despacho de Conclusão utilizando TinyMCE 6 e DocumentoService
  */
 

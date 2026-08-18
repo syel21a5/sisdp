@@ -1,7 +1,7 @@
-// JavaScript para Editor AAFAI - VÍTIMA 3 (Versão TinyMCE)
+﻿// JavaScript para Editor AAFAI - VITIMA (Versão TinyMCE)
 
 function printDocument() {
-    console.log('🟢 GERANDO PDF AAFAI VÍTIMA 3 COM TINYMCE...');
+    console.log('🟢 GERANDO PDF AAFAI VÍTIMA COM TINYMCE...');
     const dados = window.dadosParaImpressao || {};
     let content = tinymce.activeEditor ? tinymce.activeEditor.getContent() : document.getElementById('editor').innerHTML;
 
@@ -28,7 +28,7 @@ function printDocument() {
 
     const vitima = dados.vitima3 || {};
     const dadosParaEnviar = {
-        'orgao_emissor': 'AAFAI VÍTIMA 3',
+        'orgao_emissor': 'AAFAI VÍTIMA',
         'cidade': dados.cidade || 'NÃO INFORMADO',
         'delegacia': dados.delegacia || 'NÃO INFORMADO',
         'delegado': dados.delegado || '',

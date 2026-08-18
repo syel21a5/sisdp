@@ -1,4 +1,4 @@
-// script_testemunha1.js - VERSÃO COMPLETA E CORRIGIDA COM VÍNCULOS
+﻿// script_testemunha1.js - VERSÃO COMPLETA E CORRIGIDA COM VÍNCULOS
 $(document).ready(function () {
     // === Configuração global de CSRF ===
     $.ajaxSetup({
@@ -577,8 +577,8 @@ $(document).ready(function () {
             "TERMO DE DECLARACAO",
             "TERMO DE DEPOIMENTO",
 
-            "AAFAI - TESTEMUNHA 1",
-            "APFD - TESTEMUNHA 1",
+            "AAFAI - TESTEMUNHA",
+            "APFD - TESTEMUNHA",
             "AUTO DE APRESENTACAO E APREENSAO",
             "TERMO DE RESTITUICAO",
             "TERMO DE RENUNCIA E DESISTENCIA DE REPRESENTACAO",

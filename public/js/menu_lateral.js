@@ -1,4 +1,4 @@
-// menu_lateral.js - Controle do menu lateral
+﻿// menu_lateral.js - Controle do menu lateral
 document.addEventListener('DOMContentLoaded', function () {
     // Funções para controle do menu lateral
     function toggleSubmenu(id) {

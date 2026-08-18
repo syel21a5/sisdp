@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Configurações Pessoais Automáticas (Sincronizado na Nuvem)
  * Salva e carrega dados de preenchimento padrão do usuário logado via banco de dados.
  */

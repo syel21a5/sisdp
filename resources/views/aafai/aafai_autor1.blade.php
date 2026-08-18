@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>AAFAI AUTOR 1 - Editor Profissional</title>
+    <title>AAFAI AUTOR - Editor Profissional</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -15,7 +15,7 @@
         <div class="editor-header">
             <h1 class="editor-title">
                 <i class="fas fa-file-contract"></i>
-                Editor do AAFAI AUTOR 1
+                Editor do AAFAI AUTOR
             </h1>
         </div>
 
@@ -77,17 +77,21 @@
                 </p>
 
                 <p class="ql-align-justify preservar-espacamento">
-                    <br>
+                    <span>A seguir, tendo a Autoridade Policial dado ciência a(o) adolescente infrator(a), do nome do(a) responsável pela sua apreensão, declinou-lhe, ainda, o próprio nome, tornando-o conhecedor de seus direitos individuais constantes da Lei Federal nº. 8.069/90 - Estatuto da Criança e do Adolescente - solicitando que fosse avisado(a) a pessoa de seu (sua) <strong>{{ !empty($dadosArray['parente']) ? $dadosArray['parente'] : (!empty($dadosArray['Parente']) ? $dadosArray['Parente'] : 'NÃO INFORMADO') }}</strong>, a saber: <strong>{{ !empty($dadosArray['familia']) ? $dadosArray['familia'] : (!empty($dadosArray['Familia']) ? $dadosArray['Familia'] : 'NÃO INFORMADO') }}</strong>. Interrogado(a) acerca da imputação que lhe é feita, <u><strong>RESPONDEU:</strong></u> QUE,</span>
                 </p>
-
                 <p class="ql-align-justify preservar-espacamento">
-                    <span>A seguir, tendo a Autoridade Policial dado ciência a(o) adolescente infrator(a), do nome do(a) responsável pela sua apreensão, declinou-lhe, ainda, o próprio nome, tornando-o conhecedor de seus direitos individuais constantes da Lei Federal nº. 8.069/90 - Estatuto da Criança e do Adolescente - solicitando que fosse avisado(a) <span style="background-color: cyan;">(sua respectiva genitora, em seu endereço residencial)</span>. Interrogado(a) acerca da imputação que lhe é feita, RESPONDEU: <strong>QUE</strong>,</span>
-                </p>
-
-                 <p class="ql-align-justify preservar-espacamento">
                     <br>
                 </p>
-
+                <p style="text-align: justify; line-height: 1.6; margin: 0.2em 0; padding: 0;">
+                    <span id="conteudo-interrogatorio">
+                    @if(!empty($dadosArray['_conteudo_salvo']))
+                    {!! $dadosArray['_conteudo_salvo'] !!}
+                    @else
+                    {...ESCREVER AQUI O INTERROGATÓRIO...}
+                    @endif
+                    </span>
+                </p>
+                <p style="line-height: 1.6; margin: 0.2em 0; padding: 0;">&nbsp;</p>
                 <p class="ql-align-justify preservar-espacamento">
                     <span><strong>QUE</strong>, nada mais tem a declarar.</span>
                 </p>

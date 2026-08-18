@@ -1,4 +1,4 @@
-/**
+﻿/**
  * JS para Termo de Compromisso em Juízo utilizando TinyMCE 6 e DocumentoService
  */
 

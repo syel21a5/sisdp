@@ -1,4 +1,4 @@
-/**
+﻿/**
  * JS para Laudo Traumatológico Hospitalar utilizando TinyMCE 6 e DocumentoService
  */
 

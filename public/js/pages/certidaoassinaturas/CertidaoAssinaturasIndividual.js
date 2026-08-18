@@ -1,4 +1,4 @@
-/**
+﻿/**
  * JS para Certidão de Assinaturas Individual utilizando TinyMCE 6 e DocumentoService
  */
 

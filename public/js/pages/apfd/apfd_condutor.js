@@ -1,4 +1,4 @@
-// No início do arquivo apfd_condutor.js, adicione:
+﻿// No início do arquivo apfd_condutor.js, adicione:
 console.log('🟢 APFD CONDUTOR - JavaScript específico carregado');
 
 // Identificar número de autores pela URL

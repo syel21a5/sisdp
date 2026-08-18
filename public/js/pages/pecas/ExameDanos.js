@@ -1,4 +1,4 @@
-/**
+﻿/**
  * JS para Exame de Danos e Constatação utilizando TinyMCE 6 e DocumentoService
  */
 

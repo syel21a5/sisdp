@@ -1,4 +1,4 @@
-/**
+﻿/**
  * JS para Perícia em Local de Crime utilizando TinyMCE 6 e DocumentoService
  */
 

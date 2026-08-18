@@ -1,4 +1,4 @@
-/**
+﻿/**
  * JS para Ofício Recolhimento MP utilizando TinyMCE 6 e DocumentoService
  */
 

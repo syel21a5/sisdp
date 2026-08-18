@@ -1,4 +1,4 @@
-// script_geral.js - Código reorganizado para o formulário geral
+﻿// script_geral.js - Código reorganizado para o formulário geral
 
 // Global Modal Helpers removidos. Agora residentes em public/js/core.js
 

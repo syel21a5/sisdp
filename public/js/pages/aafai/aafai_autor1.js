@@ -1,7 +1,7 @@
-// JavaScript para Editor AAFAI - AUTOR 1 (Versão TinyMCE)
+﻿// JavaScript para Editor AAFAI - AUTOR (Versão TinyMCE)
 
 function printDocument() {
-    console.log('🟢 GERANDO PDF AAFAI AUTOR 1 COM TINYMCE...');
+    console.log('🟢 GERANDO PDF AAFAI AUTOR COM TINYMCE...');
     const dados = window.dadosParaImpressao || {};
     let content = tinymce.activeEditor ? tinymce.activeEditor.getContent() : document.getElementById('editor').innerHTML;
 
@@ -26,10 +26,10 @@ function printDocument() {
     conteudoInput.value = content;
     form.appendChild(conteudoInput);
 
-    // AAFAI Autor 1 espera dados no nível raiz
+    // AAFAI AUTOR espera dados no nível raiz
     const pessoa = dados.autor1 || {};
     const dadosParaEnviar = {
-        'orgao_emissor': 'AAFAI AUTOR 1',
+        'orgao_emissor': 'AAFAI AUTOR',
         'cidade': dados.cidade || 'NÃO INFORMADO',
         'delegacia': dados.delegacia || 'NÃO INFORMADO',
         'delegado': dados.delegado || '',

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * JS para Perícia em Veículo utilizando TinyMCE 6 e DocumentoService
  */
 

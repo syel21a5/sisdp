@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>APFD AUTOR 2 - Editor Profissional</title>
+    <title>APFD AUTOR - Editor Profissional</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="{{ asset('css/formularios.css') }}" rel="stylesheet">
@@ -15,7 +15,7 @@
         <div class="editor-header">
             <h1 class="editor-title">
                 <i class="fas fa-file-contract"></i>
-                Editor do APFD AUTOR 2
+                Editor do APFD AUTOR
             </h1>
         </div>
 
@@ -78,11 +78,19 @@
                         <strong>{{ !empty($dadosArray['parente']) ? $dadosArray['parente'] : (!empty($dadosArray['Parente']) ? $dadosArray['Parente'] : 'NÃO INFORMADO') }}</strong>, a saber:
                         <strong>{{ !empty($dadosArray['familia']) ? $dadosArray['familia'] : (!empty($dadosArray['Familia']) ? $dadosArray['Familia'] : 'NÃO INFORMADO') }}</strong>, residente no endereço supra.
                         <strong>Interrogado na forma do Art. 187, §§ 1º e 2º do Código de Processo Penal, RESPONDEU</strong>: QUE, não tem advogado nem
-                        indica um para este ato; QUE, _________________;
+                        indica um para este ato.
                 </p>
-
-                 <p class="ql-align-justify preservar-espacamento">
+                <p class="ql-align-justify preservar-espacamento">
                     <br>
+                </p>
+                <p style="text-align: justify; line-height: 1.6; margin: 0.2em 0; padding: 0;">
+                    <span id="conteudo-interrogatorio">
+                    @if(!empty($dadosArray['_conteudo_salvo']))
+                    {!! $dadosArray['_conteudo_salvo'] !!}
+                    @else
+                    {...ESCREVER AQUI O INTERROGATÓRIO...}
+                    @endif
+                    </span>
                 </p>
 
                 <p class="ql-align-justify preservar-espacamento">

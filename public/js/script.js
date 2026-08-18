@@ -1,4 +1,4 @@
-// script_ip.js - Código reorganizado COM FALLBACK PARA VÍNCULOS E AUTOCOMPLETE DE DOCUMENTOS
+﻿// script_ip.js - Código reorganizado COM FALLBACK PARA VÍNCULOS E AUTOCOMPLETE DE DOCUMENTOS
 // Objeto principal para encapsular toda a funcionalidade
 window.ocTabs = window.ocTabs || {};
 window.ocTabs.ensureTab = function (id, label, linkId) {
@@ -1760,7 +1760,7 @@ window.OcorrenciasApp = {
             "CERTIDAO DE ASSINATURA APFD": "/certidao-assinaturas-apfd",
             "AAFAI CONDUTOR": "/aafai-condutor",
             "APFD CONDUTOR": "/apfd-condutor",
-            "AUTO CIRCUNSTACIADO - AUTOR 1": "/autocircunstanciado",
+            "AUTO CIRCUNSTACIADO - AUTOR": "/autocircunstanciado",
             "COMUNICACAO DE APFD": "/oficios-apfd-dinamico",
             "COMUNICACAO DE APFD - UNICO OFICIO": "/oficios-apfd-unico",
             "MANDADO DE PRISAO - OFICIOS": "/oficios-mp",
@@ -1768,14 +1768,14 @@ window.OcorrenciasApp = {
             "APFD - OFICIO FAMILIA": "/oficiofamilia-apfd",
             "MANDADO DE PRISAO - RECOLHIMENTO": "/recolhimento-mp",
             "TERMO DE LIBERACAO DE MENOR - INFRATOR": "/liberacao-infrator",
-            "AAFAI - AUTOR 1": "/aafai-autor1",
-            "APFD - AUTOR 1": "/apfd-autor1",
+            "AAFAI - AUTOR": "/aafai-autor1",
+            "APFD - AUTOR": "/apfd-autor1",
             "NOTA DE CULPA": "/notadeculpa-dinamica",
             "NOTA DE CIENCIA - GARANTIAS CONSTITUCIONAIS": "/notadeculpa-dinamica?tipo=ciencia",
-            "AAFAI - TESTEMUNHA 1": "/aafai-testemunha1",
-            "APFD - TESTEMUNHA 1": "/apfd-testemunha1",
-            "AAFAI - VITIMA 1": "/aafai-vitima1",
-            "APFD - VITIMA 1": "/apfd-vitima1"
+            "AAFAI - TESTEMUNHA": "/aafai-testemunha1",
+            "APFD - TESTEMUNHA": "/apfd-testemunha1",
+            "AAFAI - VITIMA": "/aafai-vitima1",
+            "APFD - VITIMA": "/apfd-vitima1"
         };
         
         // Se a rota tiver query param (?tipo=ciencia), precisamos separar a base para concatenar o /--DADOS--

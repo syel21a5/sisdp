@@ -1,4 +1,4 @@
-// Configurar o editor Quill com módulos expandidos
+﻿// Configurar o editor Quill com módulos expandidos
 const quill = new Quill('#editor', {
     modules: {
         toolbar: {

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * core.js - Centralização de Utilitários Globais do SisDP
  * Este arquivo deve ser carregado em TODAS as páginas após o jQuery, Bootstrap e SweetAlert2.
  */

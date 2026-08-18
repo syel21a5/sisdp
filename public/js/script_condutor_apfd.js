@@ -1,4 +1,4 @@
-// script_condutor_apfd.js - VERSÃO OTIMIZADA COM BUSCA AUTOMÁTICA
+﻿// script_condutor_apfd.js - VERSÃO OTIMIZADA COM BUSCA AUTOMÁTICA
 $(document).ready(function () {
     // === ✅✅✅ OBJETO DE ROTAS DE IMPRESSÃO (CORRIGIDO) ===
     const rotasImpressaoCondutor = window.RotasImpressao?.condutor || {

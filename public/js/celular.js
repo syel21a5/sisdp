@@ -1,4 +1,4 @@
-// celular.js - VERSÃO COMPLETA CORRIGIDA
+﻿// celular.js - VERSÃO COMPLETA CORRIGIDA
 $(document).ready(function () {
     // === VERIFICA SE O FORMULÁRIO EXISTE NA PÁGINA ===
     if (!$('#formCelular').length) return;

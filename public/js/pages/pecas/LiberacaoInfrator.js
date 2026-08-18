@@ -1,4 +1,4 @@
-/**
+﻿/**
  * JS para Termo de Liberação do Infrator utilizando TinyMCE 6 e DocumentoService
  */
 

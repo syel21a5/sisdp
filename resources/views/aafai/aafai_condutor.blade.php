@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
@@ -100,6 +100,76 @@ if (!function_exists('exibirDado')) {
         }
     }
 }
+
+// ✅ LÓGICA DINÂMICA PARA AUTORES (CHIPS)
+$autores = [];
+if (isset($dadosArray['autores'])) {
+    $rawAutores = $dadosArray['autores'];
+    if (is_string($rawAutores)) {
+        $decoded = json_decode($rawAutores, true);
+        if (is_array($decoded)) {
+            $autores = $decoded;
+        }
+    } elseif (is_array($rawAutores)) {
+        $autores = $rawAutores;
+    }
+}
+$autores = array_values(array_filter($autores, function ($a) {
+    $n = strtoupper(trim($a['nome'] ?? ''));
+    return $n !== '' && $n !== 'NÃO INFORMADO' && strpos($n, 'AUTOR') === false;
+}));
+if (empty($autores)) {
+    for ($i = 1; $i <= 5; $i++) {
+        if (isset($dadosArray["autor$i"]) && !empty($dadosArray["autor$i"]['nome']) && strtoupper($dadosArray["autor$i"]['nome']) !== 'NÃO INFORMADO' && strpos(strtoupper($dadosArray["autor$i"]['nome']), 'AUTOR') === false) {
+            $autores[] = $dadosArray["autor$i"];
+        }
+    }
+}
+if (empty($autores)) { $autores[] = $dadosArray['autor1'] ?? ['nome' => 'NÃO INFORMADO']; }
+$autoresNomes = array_map(function ($a) { return $a['nome'] ?? 'NÃO INFORMADO'; }, $autores);
+if (count($autoresNomes) === 1) { $listaAutores = $autoresNomes[0]; } else { $ultimo = array_pop($autoresNomes); $listaAutores = implode(', ', $autoresNomes) . ' e ' . $ultimo; }
+
+// ✅ LÓGICA DINÂMICA PARA VÍTIMAS (CHIPS)
+$vitimas = [];
+if (isset($dadosArray['vitimas'])) {
+    $rawVitimas = $dadosArray['vitimas'];
+    if (is_string($rawVitimas)) { $decoded = json_decode($rawVitimas, true); if (is_array($decoded)) { $vitimas = $decoded; } } elseif (is_array($rawVitimas)) { $vitimas = $rawVitimas; }
+}
+$vitimas = array_values(array_filter($vitimas, function ($v) {
+    $n = strtoupper(trim($v['nome'] ?? '')); return $n !== '' && $n !== 'NÃO INFORMADO' && strpos($n, 'VITIMA') === false;
+}));
+if (empty($vitimas)) {
+    for ($i = 1; $i <= 3; $i++) {
+        if (isset($dadosArray["vitima$i"]) && !empty($dadosArray["vitima$i"]['nome']) && strtoupper($dadosArray["vitima$i"]['nome']) !== 'NÃO INFORMADO' && strpos(strtoupper($dadosArray["vitima$i"]['nome']), 'VITIMA') === false) {
+            $vitimas[] = $dadosArray["vitima$i"];
+        }
+    }
+}
+if (empty($vitimas)) { $vitimas[] = $dadosArray['vitima1'] ?? ['nome' => 'NÃO INFORMADO']; }
+$totalVitimas = count($vitimas);
+$vitimasNomes = array_map(function ($v) { return $v['nome'] ?? 'NÃO INFORMADO'; }, $vitimas);
+if ($totalVitimas === 1) { $listaVitimas = $vitimasNomes[0]; $textoVitima = 'da VÍTIMA'; } elseif ($totalVitimas === 2) { $listaVitimas = $vitimasNomes[0] . ' e ' . $vitimasNomes[1]; $textoVitima = 'das VÍTIMAS'; } elseif ($totalVitimas === 3) { $listaVitimas = $vitimasNomes[0] . ', ' . $vitimasNomes[1] . ' e ' . $vitimasNomes[2]; $textoVitima = 'das VÍTIMAS'; } else { $listaVitimas = $vitimasNomes[0] . ', ' . $vitimasNomes[1] . ' e outras'; $textoVitima = 'das VÍTIMAS'; }
+
+// ✅ LÓGICA DINÂMICA PARA TESTEMUNHAS (CHIPS)
+$testemunhas = [];
+if (isset($dadosArray['testemunhas'])) {
+    $rawTestemunhas = $dadosArray['testemunhas'];
+    if (is_string($rawTestemunhas)) { $decoded = json_decode($rawTestemunhas, true); if (is_array($decoded)) { $testemunhas = $decoded; } } elseif (is_array($rawTestemunhas)) { $testemunhas = $rawTestemunhas; }
+}
+$testemunhas = array_values(array_filter($testemunhas, function ($t) {
+    $n = strtoupper(trim($t['nome'] ?? '')); return $n !== '' && $n !== 'NÃO INFORMADO' && strpos($n, 'TESTEMUNHA') === false;
+}));
+if (empty($testemunhas)) {
+    for ($i = 1; $i <= 3; $i++) {
+        if (isset($dadosArray["testemunha$i"]) && !empty($dadosArray["testemunha$i"]['nome']) && strtoupper($dadosArray["testemunha$i"]['nome']) !== 'NÃO INFORMADO' && strpos(strtoupper($dadosArray["testemunha$i"]['nome']), 'TESTEMUNHA') === false) {
+            $testemunhas[] = $dadosArray["testemunha$i"];
+        }
+    }
+}
+if (empty($testemunhas)) { $testemunhas[] = $dadosArray['testemunha1'] ?? ['nome' => 'NÃO INFORMADO']; }
+$testemunhas = array_slice($testemunhas, 0, 2);
+$testemunhasNomes = array_map(function ($t) { return $t['nome'] ?? 'NÃO INFORMADO'; }, $testemunhas);
+if (count($testemunhasNomes) === 1) { $listaTestemunhas = $testemunhasNomes[0]; $textoTestemunha = 'da TESTEMUNHA'; } else { $ultimo = array_pop($testemunhasNomes); $listaTestemunhas = implode(', ', $testemunhasNomes) . ' e ' . $ultimo; $textoTestemunha = 'das TESTEMUNHAS'; }
 ?>
 
     <div class="editor-wrapper">
@@ -169,15 +239,21 @@ if (!function_exists('exibirDado')) {
                     <strong>ENDEREÇO</strong>: <?php echo exibirDado($dadosArray, 'condutor', 'endereco'); ?>.
                     Compromissado(a) na forma da lei, advertido(a) das penas cominadas ao falso testemunho, prometeu dizer a verdade do que
                     soubesse e lhe fosse perguntado. Inquirido(a), respondeu: QUE apresenta em flagrante por ato
-                    infracional: <strong>{{ !empty($listaAutores) ? $listaAutores : 'NÃO INFORMADO' }}</strong>, na presença
-                    da(s) VÍTIMA(S) <strong>{{ !empty($listaVitimas) ? $listaVitimas : 'NÃO INFORMADO' }}</strong> e das TESTEMUNHAS:
-                    <strong>{{ !empty($listaTestemunhas) ? $listaTestemunhas : 'NÃO INFORMADO' }}</strong>, pelos motivos que, a seguir, passa a
-                    expor: QUE
+                    infracional: <strong><?php echo $listaAutores; ?></strong>, na presença
+                    <?php echo $textoVitima; ?>: <strong><?php echo $listaVitimas; ?></strong> e <?php echo $textoTestemunha; ?>:
+                    <strong><?php echo $listaTestemunhas; ?></strong>, pelos motivos que, a seguir, passa a
+                    expor:
                 </p>
-
-                <p class="ql-align-justify preservar-espacamento">
-                    <br>
+                <p style="text-align: justify; line-height: 1.6; margin: 0.2em 0; padding: 0;">
+                    <span id="conteudo-depoimento">
+                    @if(!empty($dadosArray['_conteudo_salvo']))
+                    {!! $dadosArray['_conteudo_salvo'] !!}
+                    @else
+                    {...ESCREVER AQUI O DEPOIMENTO...}
+                    @endif
+                    </span>
                 </p>
+                <p style="line-height: 1.6; margin: 0.2em 0; padding: 0;">&nbsp;</p>
 
                 <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px; text-align: justify;">
                     Nada mais disse nem lhe foi perguntado, determinou a Autoridade Policial encerrar este Termo,

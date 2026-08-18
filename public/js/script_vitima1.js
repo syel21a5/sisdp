@@ -1,4 +1,4 @@
-// script_vitima1.js - VERSÃO COMPLETA E CORRIGIDA COM VÍNCULOS
+﻿// script_vitima1.js - VERSÃO COMPLETA E CORRIGIDA COM VÍNCULOS
 $(document).ready(function () {
     // === Configuração global de CSRF ===
     $.ajaxSetup({
@@ -511,7 +511,7 @@ $(document).ready(function () {
     // Usam window.mostrarSucesso e window.mostrarErro definidos em script.js
 
 
-    // === IMPRESSÃO DE DOCUMENTOS VÍTIMA 1 ===
+    // === IMPRESSÃO DE DOCUMENTOS VÍTIMA ===
     $('#btnImprimirDocumentoVitima1').click(function () {
         const nome = $('#inputNomeVitima1').val();
         const documentoSelecionado = $('#termoDocumentoVitima1').val().trim().toUpperCase();
@@ -580,8 +580,8 @@ $(document).ready(function () {
             "TERMO DE DECLARACAO",
             "TERMO DE DEPOIMENTO",
             
-            "AAFAI - VITIMA 1", // ✅ MANTIDO
-            "APFD - VITIMA 1",
+            "AAFAI - VITIMA", // ✅ MANTIDO
+            "APFD - VITIMA",
             "AUTO DE APRESENTACAO E APREENSAO",
             "TERMO DE RESTITUICAO",
             "TERMO DE RENUNCIA E DESISTENCIA DE REPRESENTACAO",
@@ -692,7 +692,7 @@ window.atualizarDadosAafaiCondutor = function () {
             nome: nome,
             alcunha: alcunha
         };
-        console.log('✅ Dados da Vítima 1 atualizados no AAFAI Condutor:', { nome, alcunha });
+        console.log('✅ Dados da VÍTIMA atualizados no AAFAI Condutor:', { nome, alcunha });
     }
 };
 

@@ -83,12 +83,18 @@
                 <p style="line-height: 1.6; margin: 0.2em 0; padding: 0;">&nbsp;</p>
                 <p style="text-align: justify; line-height: 1.6; margin: 0.2em 0; padding: 0;">
                     Compromissada na forma da lei e advertida das penas cominadas ao falso testemunho prometeu dizer a verdade do que soubesse e lhe fosse perguntada. Aos costumes nada disse. Inquirida pela Autoridade Policial passou a responder:
+                </p>
+                <p style="line-height: 1.6; margin: 0.2em 0; padding: 0;">&nbsp;</p>
+                <p style="text-align: justify; line-height: 1.6; margin: 0.2em 0; padding: 0;">
                     @if(!empty($dadosArray['_conteudo_salvo']))
                     <span id="conteudo-depoimento">{!! $dadosArray['_conteudo_salvo'] !!}</span>
                     @else
-                    <span id="conteudo-depoimento" style="background-color: cyan;">ESCREVER AQUI O DEPOIMENTO</span>
+                    <span id="conteudo-depoimento">{...ESCREVER AQUI O DEPOIMENTO...}</span>
                     @endif
-                    Nada mais havendo a acrescentar, lido e achado conforme, o presente termo é lavrado em referência ao Boletim de Ocorrência nº
+                </p>
+                <p style="line-height: 1.6; margin: 0.2em 0; padding: 0;">&nbsp;</p>
+                <p style="text-align: justify; line-height: 1.6; margin: 0.2em 0; padding: 0;">
+                    . Nada mais havendo a acrescentar, lido e achado conforme, o presente termo é lavrado em referência ao Boletim de Ocorrência nº
                     <strong>{{ !empty($dadosArray['boe']) ? $dadosArray['boe'] : 'NÃO INFORMADO' }}</strong>,
                     e vai devidamente assinado pela Autoridade Policial, pela testemunha, e por mim escrivão que o digitei.
                 </p>

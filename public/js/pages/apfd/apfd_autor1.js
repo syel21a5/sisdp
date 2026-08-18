@@ -1,15 +1,15 @@
-// JavaScript para Editor APFD - AUTOR 1 (Versão TinyMCE)
+﻿// JavaScript para Editor APFD - AUTOR (Versão TinyMCE)
 
 // Função principal para gerar PDF com DOMPDF
 function printDocument() {
-    console.log('🟢 GERANDO PDF APFD AUTOR 1 COM TINYMCE...');
+    console.log('🟢 GERANDO PDF APFD AUTOR COM TINYMCE...');
 
     const dados = window.dadosParaImpressao || {};
     let content = tinymce.activeEditor ? tinymce.activeEditor.getContent() : document.getElementById('editor').innerHTML;
 
     // Adicionar todos os dados necessários
     const dadosParaEnviar = {
-        'orgao_emissor': 'APFD AUTOR 1',
+        'orgao_emissor': 'APFD AUTOR',
         'cidade': dados.cidade || 'NÃO INFORMADO',
         'delegacia': dados.delegacia || 'NÃO INFORMADO',
         'delegado': dados.delegado || '',
@@ -40,7 +40,7 @@ function printDocument() {
 
 // ✅ CONFIGURAÇÃO INICIAL
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Iniciando Editor Autor 1...');
+    console.log('Iniciando Editor AUTOR...');
     
     // Inicializar TinyMCE usando nosso serviço central
     DocumentoService.initTinyMCE('#editor', printDocument);

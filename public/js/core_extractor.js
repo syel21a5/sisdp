@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Core Extractor
  * Lida com as interações do modal de importação (Texto/PDF) e IA, 
  * disparando eventos para as páginas específicas manipularem os dados retornados.

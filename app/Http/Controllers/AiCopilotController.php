@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -80,11 +80,11 @@ TOLERÂNCIA A ERROS DE DIGITAÇÃO E AMBIGUIDADE (MUITO IMPORTANTE):
 
 LISTA DE DOCUMENTOS DISPONÍVEIS NO SISTEMA (Use APENAS estes nomes):
 - TERMO DE INTERROGATORIO, TERMO DE DECLARACAO, TERMO DE DEPOIMENTO
-- AAFAI - AUTOR 1, APFD - AUTOR 1, NOTA DE CULPA, NOTA DE CIENCIA - GARANTIAS CONSTITUCIONAIS
-- AAFAI - TESTEMUNHA 1, APFD - TESTEMUNHA 1
-- AAFAI - VITIMA 1, APFD - VITIMA 1
+- AAFAI - AUTOR, APFD - AUTOR, NOTA DE CULPA, NOTA DE CIENCIA - GARANTIAS CONSTITUCIONAIS
+- AAFAI - TESTEMUNHA, APFD - TESTEMUNHA
+- AAFAI - VITIMA, APFD - VITIMA
 - CERTIDAO DE ASSINATURA INDIVIDUAL, CERTIDAO DE ASSINATURA APFD, AAFAI CONDUTOR, APFD CONDUTOR
-- AUTO CIRCUNSTACIADO - AUTOR 1, COMUNICACAO DE APFD, COMUNICACAO DE APFD - UNICO OFICIO
+- AUTO CIRCUNSTACIADO - AUTOR, COMUNICACAO DE APFD, COMUNICACAO DE APFD - UNICO OFICIO
 - MANDADO DE PRISAO - OFICIOS, MANDADO DE PRISAO - OFICIO FAMILIA, APFD - OFICIO FAMILIA, MANDADO DE PRISAO - RECOLHIMENTO
 - AUTO DE APRESENTACAO E APREENSAO, TERMO DE RESTITUICAO
 - TERMO DE RENUNCIA E DESISTENCIA DE REPRESENTACAO, TERMO DE REPRESENTACAO, TERMO DE COMPROMISSO, TERMO DE LIBERACAO DE MENOR - INFRATOR
@@ -97,7 +97,7 @@ Se o documento for PROCEDIMENTO GERAL/GENÉRICO (ex: DESPACHO DE CONCLUSAO, ROL 
 Se o documento for PESSOAL (qualquer outro da lista, incluindo OFÍCIOS, MANDADOS, APFD, AAFAI), você DEVE OBRIGATORIAMENTE passar o ID da pessoa correta. Se o usuário não disse quem é, olhe para as pessoas disponíveis no contexto da tela: se houver APENAS UMA pessoa naquele papel (ex: apenas 1 autor), ou se for óbvio de quem se trata, NÃO PERGUNTE nada, apenas abra o documento para ela. Só pergunte se houver DUAS OU MAIS opções válidas e estiver ambíguo. NUNCA passe 0 para documentos que exigem pessoa.
 
 REGRAS DE DOCUMENTOS POR PAPEL:
-As regras abaixo são apenas para as "oitivas" principais. Para os demais documentos (Laudos, Representações, Certidões, Autos, Ofícios), você tem liberdade para abrir conforme o pedido, adaptando para o papel correto (ex: se for AAFAI para autor, use "AAFAI - AUTOR 1").
+As regras abaixo são apenas para as "oitivas" principais. Para os demais documentos (Laudos, Representações, Certidões, Autos, Ofícios), você tem liberdade para abrir conforme o pedido, adaptando para o papel correto (ex: se for AAFAI para autor, use "AAFAI - AUTOR").
 - AUTOR só possui "TERMO DE INTERROGATORIO". NUNCA possui depoimento ou declaração.
 - VITIMA só possui "TERMO DE DECLARACAO". NUNCA possui depoimento ou interrogatório.
 - TESTEMUNHA e CONDUTOR só possuem "TERMO DE DEPOIMENTO". NUNCA possuem interrogatório ou declaração.

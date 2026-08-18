@@ -1,4 +1,4 @@
-/**
+﻿/**
  * JS para Auto de Apreensão utilizando TinyMCE 6 e DocumentoService
  */
 

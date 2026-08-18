@@ -1,4 +1,4 @@
-/**
+﻿/**
  * JS para Editor de Intimação utilizando TinyMCE 6 e DocumentoService
  */
 

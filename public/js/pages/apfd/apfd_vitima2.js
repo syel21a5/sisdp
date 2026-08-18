@@ -1,7 +1,7 @@
-// JavaScript para Editor APFD - VÍTIMA 2 (Versão TinyMCE)
+﻿// JavaScript para Editor APFD - VITIMA (Versão TinyMCE)
 
 function printDocument() {
-    console.log('🟢 GERANDO PDF APFD VÍTIMA 2 COM TINYMCE...');
+    console.log('🟢 GERANDO PDF APFD VÍTIMA COM TINYMCE...');
     const dados = window.dadosParaImpressao || {};
     let content = tinymce.activeEditor ? tinymce.activeEditor.getContent() : document.getElementById('editor').innerHTML;
 
@@ -27,7 +27,7 @@ function printDocument() {
     form.appendChild(conteudoInput);
 
     const dadosParaEnviar = {
-        'orgao_emissor': 'APFD VÍTIMA 2',
+        'orgao_emissor': 'APFD VÍTIMA',
         'cidade': dados.cidade || 'NÃO INFORMADO',
         'delegacia': dados.delegacia || 'NÃO INFORMADO',
         'delegado': dados.delegado || '',

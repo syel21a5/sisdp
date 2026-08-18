@@ -1,4 +1,4 @@
-// script_condutor.js - VERSÃO COMPLETA COM PREENCHIMENTO AUTOMÁTICO PARA INTIMAÇÃO
+﻿// script_condutor.js - VERSÃO COMPLETA COM PREENCHIMENTO AUTOMÁTICO PARA INTIMAÇÃO
 document.addEventListener('DOMContentLoaded', function () {
     if (!window.jQuery) { return; }
     var $ = window.jQuery;

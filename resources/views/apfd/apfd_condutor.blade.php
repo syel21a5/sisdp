@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
@@ -280,13 +280,20 @@ if (count($testemunhasNomes) === 1) {
                         delito: <strong><?php echo $listaAutores; ?></strong>, na presença
                         <?php echo $textoVitima; ?>: <strong><?php echo $listaVitimas; ?></strong> e <?php echo $textoTestemunha; ?>:
                         <strong><?php echo $listaTestemunhas; ?></strong>, pelos motivos que, a seguir, passa a
-                        expor: QUE
+                    expor:
                     </p>
-
-                    <p class="ql-align-justify preservar-espacamento">
-                        <br>
+                    <p style="text-align: justify; line-height: 1.6; margin: 0.2em 0; padding: 0;">
+                        <span id="conteudo-depoimento">
+                        @if(!empty($dadosArray['_conteudo_salvo']))
+                        {!! $dadosArray['_conteudo_salvo'] !!}
+                        @else
+                        {...ESCREVER AQUI O DEPOIMENTO...}
+                        @endif
+                        </span>
                     </p>
-
+                    <p style="line-height: 1.6; margin: 0.2em 0; padding: 0;">&nbsp;</p>
+                    
+                    <p style="line-height: 1.6; margin: 0.2em 0px; padding: 0px; text-align: justify;">
                     Nada mais disse nem lhe foi perguntado, determinou a Autoridade Policial encerrar este Termo,
                     que, após ser lido e achado conforme, o
                     qual assina juntamente com o Condutor e comigo Escrivão que digitei.
