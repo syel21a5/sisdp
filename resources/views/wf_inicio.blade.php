@@ -1149,10 +1149,10 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
     <!-- ✅✅✅ ORDEM CORRIGIDA DOS SCRIPTS -->
-    <script src="{{ asset('js/vinculos_boe_simples.js') }}"></script>
-    <script src="{{ asset('js/vinculos_completo.js') }}"></script>
+    <script src="{{ asset('js/vinculos_boe_simples.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/vinculos_completo.js') }}?v={{ time() }}"></script>
     <script src="{{ asset('js/script.js') }}?v={{ time() }}_fix4"></script>
-    <script src="{{ asset('js/menu_lateral.js') }}"></script>
+    <script src="{{ asset('js/menu_lateral.js') }}?v={{ time() }}"></script>
     <script src="{{ asset('js/config_pessoais.js') }}?v={{ time() }}"></script>
     <script src="{{ asset('js/script_apfd.js') }}?v={{ time() }}_fix3"></script>
     <script>
@@ -1496,12 +1496,12 @@
         });
     </script>
     <script src="{{ asset('js/DocumentoService.js') }}?v={{ time() }}"></script>
-    <script src="{{ asset('js/chips_envolvidos.js') }}"></script>
-    <script src="{{ asset('js/script_condutor_apfd.js') }}"></script>
-    <script src="{{ asset('js/script_vitima1.js') }}"></script>
-    <script src="{{ asset('js/script_testemunha1.js') }}"></script>
-    <script src="{{ asset('js/script_autor1.js') }}"></script>
-    <script src="{{ asset('js/script_outros.js') }}"></script>
+    <script src="{{ asset('js/chips_envolvidos.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/script_condutor_apfd.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/script_vitima1.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/script_testemunha1.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/script_autor1.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/script_outros.js') }}?v={{ time() }}"></script>
 
     <!-- Script para atualizar data/hora -->
     <script>

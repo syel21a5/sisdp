@@ -296,7 +296,7 @@ if (count($testemunhasNomes) === 1) { $listaTestemunhas = $testemunhasNomes[0]; 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
     
-    <script src="{{ asset('js/DocumentoService.js') }}"></script>
+    <script src="{{ asset('js/DocumentoService.js') }}?v={{ time() }}"></script>
 
     <!-- Dados para JavaScript - CORRIGIDO -->
     <script>
