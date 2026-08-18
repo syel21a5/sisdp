@@ -130,7 +130,7 @@
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.3/tinymce.min.js" referrerpolicy="origin"></script>
-    <script src="{{ asset('js/DocumentoService.js')?v={{ time() }} }}"></script>
+    <script src="{{ asset('js/DocumentoService.js') }}"></script>
     
     
 
@@ -149,7 +149,7 @@
     </script>
 
     <!-- JavaScript principal - CÓPIA IDÊNTICA DO AUTOR1 -->
-    <script src="{{ asset('js/pages/aafai/aafai_autor2.js')?v={{ time() }} }}"></script>
+    <script src="{{ asset('js/pages/aafai/aafai_autor2.js') }}"></script>
 </body>
 </html>
 

@@ -426,7 +426,7 @@
     <script src="https://npmcdn.com/flatpickr/dist/l10n/pt.js"></script>
     
     <!-- JS Central do Sistema -->
-    <script src="{{ asset('js/core.js')?v={{ time() }} }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/core.js') }}?v={{ time() }}"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -448,9 +448,9 @@
     </script>
     </script>
 
-    <script src="{{ asset('js/core_extractor.js')?v={{ time() }} }}?v={{ time() }}"></script>
-    <script src="{{ asset('js/script_intimacao.js')?v={{ time() }} }}?v={{ time() }}"></script>
-    <script src="{{ asset('js/menu_lateral.js')?v={{ time() }} }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/core_extractor.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/script_intimacao.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/menu_lateral.js') }}?v={{ time() }}"></script>
 
 </body>
 </html>

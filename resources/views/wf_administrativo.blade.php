@@ -817,7 +817,7 @@
     <script src="https://npmcdn.com/flatpickr/dist/l10n/pt.js"></script>
 
     <!-- JS Central do Sistema -->
-    <script src="{{ asset('js/core.js')?v={{ time() }} }}"></script>
+    <script src="{{ asset('js/core.js') }}"></script>
 
     <!-- Scripts específicos da página -->
     <script>
@@ -837,8 +837,8 @@
     };
     </script>
 
-    <script src="{{ asset('js/script_administrativo.js')?v={{ time() }} }}"></script>
-    <script src="{{ asset('js/menu_lateral.js')?v={{ time() }} }}"></script>
+    <script src="{{ asset('js/script_administrativo.js') }}"></script>
+    <script src="{{ asset('js/menu_lateral.js') }}"></script>
 
     <!-- Datalists para Autocomplete -->
     <datalist id="listCrimes">

@@ -196,7 +196,7 @@ if ($dadosBase64 && empty($dadosArray)) {
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.3/tinymce.min.js" referrerpolicy="origin"></script>
-    <script src="{{ asset('js/DocumentoService.js')?v={{ time() }} }}"></script>
+    <script src="{{ asset('js/DocumentoService.js') }}"></script>
     
     
 
@@ -235,7 +235,7 @@ if ($dadosBase64 && empty($dadosArray)) {
     </script>
 
     <!-- ✅ MESMO JS DO APFD CONDUTOR ORIGINAL QUE FUNCIONA -->
-    <script src="{{ asset('js/pages/mp/autocircunstanciado.js')?v={{ time() }} }}?v=<?php echo time(); ?>"></script>
+    <script src="{{ asset('js/pages/mp/autocircunstanciado.js') }}?v=<?php echo time(); ?>"></script>
 
 </body>
 </html>

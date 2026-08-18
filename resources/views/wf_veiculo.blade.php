@@ -475,7 +475,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
     <!-- JS Central do Sistema -->
-    <script src="{{ asset('js/core.js')?v={{ time() }} }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/core.js') }}?v={{ time() }}"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -491,9 +491,9 @@
     </script>
 
     <!-- JavaScript específico do veículo -->
-    <script src="{{ asset('js/core_extractor.js')?v={{ time() }} }}?v={{ time() }}"></script>
-    <script src="{{ asset('js/veiculo.js')?v={{ time() }} }}?v={{ time() }}"></script>
-    <script src="{{ asset('js/menu_lateral.js')?v={{ time() }} }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/core_extractor.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/veiculo.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/menu_lateral.js') }}?v={{ time() }}"></script>
 
 </body>
 </html>

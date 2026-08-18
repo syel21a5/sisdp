@@ -1087,7 +1087,7 @@
 
     
     <!-- JS Central do Sistema (Modais Originais Restabelecidos) -->
-    <script src="{{ asset('js/core.js')?v={{ time() }} }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/core.js') }}?v={{ time() }}"></script>
 
     <!-- DataTables JS -->
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
@@ -1143,18 +1143,18 @@
     </script>
 
     <!-- ✅ CORREÇÃO: Rotas PRIMEIRO (cache-busting p/ evitar JS antigo no navegador) -->
-    <script src="{{ asset('js/rotas_impressao.js')?v={{ time() }} }}?v={{ time() }}_fix3"></script>
+    <script src="{{ asset('js/rotas_impressao.js') }}?v={{ time() }}_fix3"></script>
 
     <!-- Chart.js para os gráficos de Distribuição de Status -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
     <!-- ✅✅✅ ORDEM CORRIGIDA DOS SCRIPTS -->
-    <script src="{{ asset('js/vinculos_boe_simples.js')?v={{ time() }} }}"></script>
-    <script src="{{ asset('js/vinculos_completo.js')?v={{ time() }} }}"></script>
-    <script src="{{ asset('js/script.js')?v={{ time() }} }}?v={{ time() }}_fix4"></script>
-    <script src="{{ asset('js/menu_lateral.js')?v={{ time() }} }}"></script>
-    <script src="{{ asset('js/config_pessoais.js')?v={{ time() }} }}?v={{ time() }}"></script>
-    <script src="{{ asset('js/script_apfd.js')?v={{ time() }} }}?v={{ time() }}_fix3"></script>
+    <script src="{{ asset('js/vinculos_boe_simples.js') }}"></script>
+    <script src="{{ asset('js/vinculos_completo.js') }}"></script>
+    <script src="{{ asset('js/script.js') }}?v={{ time() }}_fix4"></script>
+    <script src="{{ asset('js/menu_lateral.js') }}"></script>
+    <script src="{{ asset('js/config_pessoais.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/script_apfd.js') }}?v={{ time() }}_fix3"></script>
     <script>
         // Lógica de Alertas de Pendências com Filtros e Paginação
         $(document).ready(function() {
@@ -1495,13 +1495,13 @@
             }
         });
     </script>
-    <script src="{{ asset('js/DocumentoService.js')?v={{ time() }} }}?v={{ time() }}"></script>
-    <script src="{{ asset('js/chips_envolvidos.js')?v={{ time() }} }}"></script>
-    <script src="{{ asset('js/script_condutor_apfd.js')?v={{ time() }} }}"></script>
-    <script src="{{ asset('js/script_vitima1.js')?v={{ time() }} }}"></script>
-    <script src="{{ asset('js/script_testemunha1.js')?v={{ time() }} }}"></script>
-    <script src="{{ asset('js/script_autor1.js')?v={{ time() }} }}"></script>
-    <script src="{{ asset('js/script_outros.js')?v={{ time() }} }}"></script>
+    <script src="{{ asset('js/DocumentoService.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/chips_envolvidos.js') }}"></script>
+    <script src="{{ asset('js/script_condutor_apfd.js') }}"></script>
+    <script src="{{ asset('js/script_vitima1.js') }}"></script>
+    <script src="{{ asset('js/script_testemunha1.js') }}"></script>
+    <script src="{{ asset('js/script_autor1.js') }}"></script>
+    <script src="{{ asset('js/script_outros.js') }}"></script>
 
     <!-- Script para atualizar data/hora -->
     <script>
@@ -1575,7 +1575,7 @@
 
 
 
-    <script src="{{ asset('js/script_intimacao.js')?v={{ time() }} }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/script_intimacao.js') }}?v={{ time() }}"></script>
 
     {{-- Auto-carregar registro se vier da Consulta de Antecedentes via ?abrir_id= --}}
     <script>
@@ -1642,7 +1642,7 @@
         </div>
     </div>
     
-    <script src="{{ asset('js/copilot.js')?v={{ time() }} }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/copilot.js') }}?v={{ time() }}"></script>
 </body>
 </html>
 

@@ -234,8 +234,8 @@
 
 
     <!-- JS Central do Sistema -->
-    <script src="{{ asset('js/core.js')?v={{ time() }} }}"></script>
-    <script src="{{ asset('js/DocumentoService.js')?v={{ time() }} }}"></script>
+    <script src="{{ asset('js/core.js') }}"></script>
+    <script src="{{ asset('js/DocumentoService.js') }}"></script>
 
     @stack('scripts')
 

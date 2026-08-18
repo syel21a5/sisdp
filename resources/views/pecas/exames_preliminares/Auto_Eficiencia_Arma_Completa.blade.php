@@ -189,7 +189,7 @@
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.3/tinymce.min.js" referrerpolicy="origin"></script>
-    <script src="{{ asset('js/DocumentoService.js')?v={{ time() }} }}"></script>
+    <script src="{{ asset('js/DocumentoService.js') }}"></script>
 
     <!-- Dados para JavaScript -->
     <script>
@@ -197,6 +197,6 @@
     </script>
 
     <!-- JavaScript principal -->
-    <script src="{{ asset('js/pages/pecas/EficienciaArma.js')?v={{ time() }} }}"></script>
+    <script src="{{ asset('js/pages/pecas/EficienciaArma.js') }}"></script>
 </body>
 </html>
