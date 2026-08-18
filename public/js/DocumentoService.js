@@ -602,6 +602,24 @@ const DocumentoService = {
                 }
             `,
             setup: function(editor) {
+                // ✅ A marcação cyan ("ESCREVER AQUI...") é só um guia visual de onde escrever.
+                // Assim que o usuário digita ou cola, o fundo cyan é removido para o texto
+                // digitado/colado não herdar a cor da marcação.
+                const limparMarcacaoGuia = function () {
+                    try {
+                        const body = editor.getBody();
+                        const todos = body.querySelectorAll('*');
+                        for (let i = 0; i < todos.length; i++) {
+                            const bg = todos[i].style && todos[i].style.backgroundColor;
+                            if (bg && /cyan|rgb\s*\(\s*0\s*,\s*255\s*,\s*255\s*\)|#0ff|#00ffff/i.test(bg)) {
+                                todos[i].style.backgroundColor = '';
+                            }
+                        }
+                    } catch (e) { /* silencioso */ }
+                };
+                editor.on('input', limparMarcacaoGuia);
+                editor.on('PastePostProcess', limparMarcacaoGuia);
+
                 editor.ui.registry.addButton('gerarpdf', {
                     text: 'GERAR PDF',
                     icon: 'document-properties',
