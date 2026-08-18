@@ -165,10 +165,10 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- TinyMCE 6 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.3/tinymce.min.js" referrerpolicy="origin"></script>
-    <script src="{{ asset('js/DocumentoService.js') }}?v={{ time() }}_oi"></script>
+    <script src="{{ asset('js/DocumentoService.js')?v={{ time() }} }}?v={{ time() }}_oi"></script>
 
     <!-- JavaScript principal -->
-    <script src="{{ asset('js/pages/oitivas/Interrogatorio.js') }}?v={{ time() }}_oi"></script>
+    <script src="{{ asset('js/pages/oitivas/Interrogatorio.js')?v={{ time() }} }}?v={{ time() }}_oi"></script>
 </body>
 </html>
 

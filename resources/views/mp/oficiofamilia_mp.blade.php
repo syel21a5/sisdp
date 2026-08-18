@@ -247,7 +247,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- TinyMCE 6 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.3/tinymce.min.js" referrerpolicy="origin"></script>
-    <script src="{{ asset('js/DocumentoService.js') }}"></script>
+    <script src="{{ asset('js/DocumentoService.js')?v={{ time() }} }}"></script>
 
     <!-- Dados para JavaScript -->
     <script>
@@ -289,7 +289,7 @@
     </script>
 
     <!-- ✅ JS CORRIGIDO PARA MP -->
-    <script src="{{ asset('js/pages/mp/oficiofamilia_mp.js') }}?v=<?php echo time(); ?>"></script>
+    <script src="{{ asset('js/pages/mp/oficiofamilia_mp.js')?v={{ time() }} }}?v=<?php echo time(); ?>"></script>
 
 </body>
 </html>

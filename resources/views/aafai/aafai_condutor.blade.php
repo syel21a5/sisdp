@@ -296,7 +296,7 @@ if (count($testemunhasNomes) === 1) { $listaTestemunhas = $testemunhasNomes[0]; 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
     
-    <script src="{{ asset('js/DocumentoService.js') }}"></script>
+    <script src="{{ asset('js/DocumentoService.js')?v={{ time() }} }}"></script>
 
     <!-- Dados para JavaScript - CORRIGIDO -->
     <script>
@@ -323,6 +323,6 @@ if (count($testemunhasNomes) === 1) { $listaTestemunhas = $testemunhasNomes[0]; 
     </script>
 
     <!-- ✅ JS ESPECÍFICO PARA AAFAI CONDUTOR -->
-    <script src="{{ asset('js/pages/aafai/aafai_condutor.js') }}?v=<?php echo time(); ?>"></script>
+    <script src="{{ asset('js/pages/aafai/aafai_condutor.js')?v={{ time() }} }}?v=<?php echo time(); ?>"></script>
 </body>
 </html>

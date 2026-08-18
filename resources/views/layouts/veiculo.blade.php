@@ -135,7 +135,7 @@
                 </div>
             </form>
 
-    <script src="{{ asset('js/core.js') }}"></script>
+    <script src="{{ asset('js/core.js')?v={{ time() }} }}"></script>
 
     <!-- Flatpickr JS -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -156,7 +156,7 @@
     </script>
 
     <!-- Script específico -->
-    <script src="{{ asset('js/veiculo.js') }}"></script>
+    <script src="{{ asset('js/veiculo.js')?v={{ time() }} }}"></script>
 </body>
 </html>
 

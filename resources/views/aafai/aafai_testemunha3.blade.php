@@ -121,7 +121,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.3/tinymce.min.js" referrerpolicy="origin"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="{{ asset('js/DocumentoService.js') }}"></script>
+    <script src="{{ asset('js/DocumentoService.js')?v={{ time() }} }}"></script>
     
     
 
@@ -155,7 +155,7 @@
     </script>
 
     <!-- JavaScript principal - CAMINHO ALTERADO -->
-    <script src="{{ asset('js/pages/aafai/aafai_testemunha3.js') }}"></script>
+    <script src="{{ asset('js/pages/aafai/aafai_testemunha3.js')?v={{ time() }} }}"></script>
 </body>
 </html>
 

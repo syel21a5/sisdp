@@ -439,7 +439,7 @@ $textoDesfecho = "Após as formalidades legais, " . implode("</p><p style=\"text
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- TinyMCE 6 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.3/tinymce.min.js" referrerpolicy="origin"></script>
-    <script src="{{ asset('js/DocumentoService.js') }}"></script>
+    <script src="{{ asset('js/DocumentoService.js')?v={{ time() }} }}"></script>
 
     <script>
         window.dadosParaImpressao = {
@@ -453,7 +453,7 @@ $textoDesfecho = "Após as formalidades legais, " . implode("</p><p style=\"text
             autores: <?php echo json_encode($autores); ?>
         };
     </script>
-    <script src="{{ asset('js/pages/apfd/oficios/oficios_apfd_dinamico.js') }}?v=<?php echo time(); ?>"></script>
+    <script src="{{ asset('js/pages/apfd/oficios/oficios_apfd_dinamico.js')?v={{ time() }} }}?v=<?php echo time(); ?>"></script>
 </body>
 
 </html>

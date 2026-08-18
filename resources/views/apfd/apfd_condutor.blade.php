@@ -368,17 +368,17 @@ if (count($testemunhasNomes) === 1) {
         <script>
             console.log('🟢 BLADE APFD CONDUTOR CARREGADO');
             console.log('🟢 Rota:', '{{ request()->path() }}');
-            console.log('🟢 Deveria carregar JS:', '{{ asset('js/pages/apfd/apfd_condutor.js') }}');
+            console.log('🟢 Deveria carregar JS:', '{{ asset('js/pages/apfd/apfd_condutor.js')?v={{ time() }} }}');
         </script>
 
 
         
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.3/tinymce.min.js" referrerpolicy="origin"></script>
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        <script src="{{ asset('js/DocumentoService.js') }}"></script>
+        <script src="{{ asset('js/DocumentoService.js')?v={{ time() }} }}"></script>
         
         <!-- ✅ JS ESPECÍFICO PARA APFD CONDUTOR -->
-        <script src="{{ asset('js/pages/apfd/apfd_condutor.js') }}?v=<?php echo time(); ?>"></script>
+        <script src="{{ asset('js/pages/apfd/apfd_condutor.js')?v={{ time() }} }}?v=<?php echo time(); ?>"></script>
 
 </body>
 

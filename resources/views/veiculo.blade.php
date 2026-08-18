@@ -348,5 +348,5 @@
 </script>
 
 <!-- Incluir o JavaScript específico do veículo -->
-<script src="{{ asset('js/veiculo.js') }}?v={{ time() }}"></script>
+<script src="{{ asset('js/veiculo.js')?v={{ time() }} }}?v={{ time() }}"></script>
 

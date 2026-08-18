@@ -495,7 +495,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
     <!-- JS Central do Sistema -->
-    <script src="{{ asset('js/core.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/core.js')?v={{ time() }} }}?v={{ time() }}"></script>
 
     <!-- Rotas do Celular -->
     <script>
@@ -528,9 +528,9 @@
     </script>
 
     <!-- JavaScript específico do celular -->
-    <script src="{{ asset('js/core_extractor.js') }}?v={{ time() }}"></script>
-    <script src="{{ asset('js/celular.js') }}?v={{ time() }}"></script>
-    <script src="{{ asset('js/menu_lateral.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/core_extractor.js')?v={{ time() }} }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/celular.js')?v={{ time() }} }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/menu_lateral.js')?v={{ time() }} }}?v={{ time() }}"></script>
 
 </body>
 </html>

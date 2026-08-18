@@ -317,8 +317,8 @@
         'somenteNativo' => true
     ])
 
-    <script src="{{ asset('js/core.js') }}?v={{ time() }}"></script>
-    <script src="{{ asset('js/core_extractor.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/core.js')?v={{ time() }} }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/core_extractor.js')?v={{ time() }} }}?v={{ time() }}"></script>
 
     <!-- Flatpickr JS -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -352,11 +352,11 @@
     </script>
 
     <!-- Scripts específicos -->
-    <script src="{{ asset('js/script_geral.js') }}?v={{ time() }}"></script>
-    <script src="{{ asset('js/script_condutor.js') }}?v={{ time() }}"></script>
-    <script src="{{ asset('js/menu_lateral.js') }}?v={{ time() }}"></script>
-    <script src="{{ asset('js/config_pessoais.js') }}?v={{ time() }}"></script>
-    <script src="{{ asset('js/apreensao_celular/script.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/script_geral.js')?v={{ time() }} }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/script_condutor.js')?v={{ time() }} }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/menu_lateral.js')?v={{ time() }} }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/config_pessoais.js')?v={{ time() }} }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/apreensao_celular/script.js')?v={{ time() }} }}?v={{ time() }}"></script>
 
     <!-- ✅ MODAL CONFIGURAÇÕES PESSOAIS (NOVO) -->
     <div class="modal fade" id="modalConfigPessoais" tabindex="-1" aria-labelledby="modalConfigPessoaisLabel" aria-hidden="true">
