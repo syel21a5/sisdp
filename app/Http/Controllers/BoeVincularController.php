@@ -35,7 +35,7 @@ class BoeVincularController extends Controller
             ];
 
             // Buscar o cadprincipal (procedimento) para saber o id e verificar oitivas
-            $cadprincipalInfo = DB::table('cadprincipal')->where('BOE', $boe)->first();
+            $cadprincipalInfo = DB::table('cadprincipal')->where('BOE', $boe)->orderByDesc('id')->first();
             $cadprincipalId = $cadprincipalInfo ? $cadprincipalInfo->id : null;
 
             // Pré-carregar pessoas que têm oitiva/interrogatório salvo neste procedimento
@@ -82,7 +82,7 @@ class BoeVincularController extends Controller
             }
 
             // ✅ NOVO: Retornar info sobre o dono do procedimento
-            $cadprincipal = DB::table('cadprincipal')->where('BOE', $boe)->first();
+            $cadprincipal = DB::table('cadprincipal')->where('BOE', $boe)->orderByDesc('id')->first();
             $user = Auth::user();
             $isOwner = true;
             $ownerName = null;
@@ -214,7 +214,7 @@ class BoeVincularController extends Controller
 
             // ✅ REFORÇO DE SEGURANÇA: Verificar se o usuário é o dono do procedimento
             $user = Auth::user();
-            $cadprincipal = DB::table('cadprincipal')->where('BOE', $request->boe)->first();
+            $cadprincipal = DB::table('cadprincipal')->where('BOE', $request->boe)->orderByDesc('id')->first();
 
             $isOwner = false;
             if ($user && $user->nivel_acesso === 'administrador') {
@@ -336,7 +336,7 @@ class BoeVincularController extends Controller
 
             // ✅ NOVO: Verificar permissão de exclusão
             $user = Auth::user();
-            $cadprincipal = DB::table('cadprincipal')->where('BOE', $vinculo->boe)->first();
+            $cadprincipal = DB::table('cadprincipal')->where('BOE', $vinculo->boe)->orderByDesc('id')->first();
 
             $isOwner = true;
             if ($cadprincipal && $cadprincipal->usuario_id) {
@@ -384,7 +384,7 @@ class BoeVincularController extends Controller
             }
 
             $user = Auth::user();
-            $cadprincipal = DB::table('cadprincipal')->where('BOE', $vinculo->boe)->first();
+            $cadprincipal = DB::table('cadprincipal')->where('BOE', $vinculo->boe)->orderByDesc('id')->first();
 
             $isOwner = true;
             if ($cadprincipal && $cadprincipal->usuario_id) {
@@ -424,7 +424,7 @@ class BoeVincularController extends Controller
             }
 
             $user = Auth::user();
-            $cadprincipal = DB::table('cadprincipal')->where('BOE', $vinculo->boe)->first();
+            $cadprincipal = DB::table('cadprincipal')->where('BOE', $vinculo->boe)->orderByDesc('id')->first();
 
             $isOwner = true;
             if ($cadprincipal && $cadprincipal->usuario_id) {
@@ -467,7 +467,7 @@ class BoeVincularController extends Controller
 
         try {
             $user = Auth::user();
-            $cadprincipal = DB::table('cadprincipal')->where('BOE', $boe)->first();
+            $cadprincipal = DB::table('cadprincipal')->where('BOE', $boe)->orderByDesc('id')->first();
             $isOwner = false;
             if ($user && $user->nivel_acesso === 'administrador') {
                 $isOwner = true;

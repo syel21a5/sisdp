@@ -410,7 +410,7 @@ const OcorrenciasApp = {
         $('#btnExcluir').prop('disabled', true);
     },
 
-    salvarRegistro: function() {
+    salvarRegistro: function(confirmarBoe) {
         if (!this.validarCamposObrigatorios()) return;
 
         const $btn = $('#btnSalvar');
@@ -422,6 +422,10 @@ const OcorrenciasApp = {
         const formDadosComplementares = $('#dados-complementares form').serializeArray();
         const formApreensao = $('#apreensao form').serializeArray();
         const allData = formData.concat(formDocumentos, formDadosComplementares, formApreensao);
+
+        if (confirmarBoe) {
+            allData.push({ name: 'confirmar_boe', value: '1' });
+        }
 
         $.ajax({
             url: rotas.geral.salvar,
@@ -476,7 +480,14 @@ const OcorrenciasApp = {
                 }
             },
             error: (xhr) => {
-                const mensagem = xhr.responseJSON?.message || 'Erro ao salvar | Boletim de Ocorrência já cadastrado no sistema!';
+                const resp = xhr.responseJSON || {};
+                if (resp.code === 'BOE_DUPLICADO') {
+                    window.confirmarBoeDuplicado(resp.message, resp.procedimentos, () => {
+                        this.salvarRegistro(true);
+                    });
+                    return;
+                }
+                const mensagem = resp.message || 'Erro ao salvar | Boletim de Ocorrência já cadastrado no sistema!';
                 this.mostrarErro(mensagem);
             },
             complete: () => {
@@ -484,7 +495,7 @@ const OcorrenciasApp = {
             }
         });
     },
-    editarRegistro: function() {
+    editarRegistro: function(confirmarBoe) {
         if (!this.currentId) {
             this.mostrarErro('Nenhum registro selecionado para editar.');
             return;
@@ -500,6 +511,10 @@ const OcorrenciasApp = {
         const formDadosComplementares = $('#dados-complementares form').serializeArray();
         const formApreensao = $('#apreensao form').serializeArray();
         const allData = formData.concat(formDocumentos, formDadosComplementares, formApreensao);
+
+        if (confirmarBoe) {
+            allData.push({ name: 'confirmar_boe', value: '1' });
+        }
 
         $.ajax({
             url: `${rotas.geral.atualizar}/${this.currentId}`,
@@ -549,7 +564,14 @@ const OcorrenciasApp = {
                 }
             },
             error: (xhr) => {
-                this.mostrarErro('Erro ao editar: ' + (xhr.responseJSON?.message || 'Erro desconhecido'));
+                const resp = xhr.responseJSON || {};
+                if (resp.code === 'BOE_DUPLICADO') {
+                    window.confirmarBoeDuplicado(resp.message, resp.procedimentos, () => {
+                        this.editarRegistro(true);
+                    });
+                    return;
+                }
+                this.mostrarErro('Erro ao editar: ' + (resp.message || 'Erro desconhecido'));
             },
             complete: () => {
                 $btn.prop('disabled', false).html(originalHtml);

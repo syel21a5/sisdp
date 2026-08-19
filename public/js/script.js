@@ -2879,7 +2879,7 @@ window.OcorrenciasApp = {
         $('#btnExcluir').prop('disabled', true);
     },
 
-    salvarRegistro: function () {
+    salvarRegistro: function (confirmarBoe) {
         if (!this.validarCamposObrigatorios()) return;
 
         const $btn = $('#btnSalvar');
@@ -2897,6 +2897,10 @@ window.OcorrenciasApp = {
         const formDocumentos = $('#formDocumentos').serializeArray();
         const formApreensao = $('#formApreensao').serializeArray();
         const allData = formData.concat(formDocumentos, formApreensao);
+
+        if (confirmarBoe) {
+            allData.push({ name: 'confirmar_boe', value: '1' });
+        }
 
         $.ajax({
             url: rotas.inicio.salvar,
@@ -2981,14 +2985,22 @@ window.OcorrenciasApp = {
                 }
             },
             error: (xhr) => {
-                const mensagem = xhr.responseJSON?.message || 'Erro ao salvar | Boletim de Ocorrência já cadastrado no sistema!';
+                const resp = xhr.responseJSON || {};
+                if (resp.code === 'BOE_DUPLICADO') {
+                    window.confirmarBoeDuplicado(resp.message, resp.procedimentos, () => {
+                        this.salvarRegistro(true);
+                    });
+                    $('#btnSalvar').prop('disabled', false).html('<i class="bi bi-save"></i> Salvar');
+                    return;
+                }
+                const mensagem = resp.message || 'Erro ao salvar | Boletim de Ocorrência já cadastrado no sistema!';
                 this.mostrarErro(mensagem);
                 $('#btnSalvar').prop('disabled', false).html('<i class="bi bi-save"></i> Salvar');
             }
         });
     },
 
-    editarRegistro: function () {
+    editarRegistro: function (confirmarBoe) {
         if (!this.currentId) {
             this.mostrarErro('Nenhum registro selecionado para editar.');
             return;
@@ -3006,6 +3018,10 @@ window.OcorrenciasApp = {
         const formDocumentos = $('#formDocumentos').serializeArray();
         const formApreensao = $('#formApreensao').serializeArray();
         const allData = formData.concat(formDocumentos, formApreensao);
+
+        if (confirmarBoe) {
+            allData.push({ name: 'confirmar_boe', value: '1' });
+        }
         
         // ✅ CORREÇÃO: Utilizar Method Spoofing do Laravel.
         // Enviar arrays (como autores[]) via HTTP PUT direto causa falha no parse do PHP,
@@ -3028,7 +3044,15 @@ window.OcorrenciasApp = {
                 }
             },
             error: (xhr) => {
-                this.mostrarErro('Erro ao editar: ' + (xhr.responseJSON?.message || 'Erro desconhecido'));
+                const resp = xhr.responseJSON || {};
+                if (resp.code === 'BOE_DUPLICADO') {
+                    window.confirmarBoeDuplicado(resp.message, resp.procedimentos, () => {
+                        this.editarRegistro(true);
+                    });
+                    $('#btnEditar').prop('disabled', false).html('<i class="bi bi-pencil-square"></i> Editar');
+                    return;
+                }
+                this.mostrarErro('Erro ao editar: ' + (resp.message || 'Erro desconhecido'));
                 $('#btnEditar').prop('disabled', false).html('<i class="bi bi-pencil-square"></i> Editar');
             }
         });

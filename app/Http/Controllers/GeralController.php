@@ -99,14 +99,22 @@ class GeralController extends Controller
             'Apreensao' => 'nullable|string'
         ]);
 
-        // Verifica se já existe um BOE igual
-        $boeExistente = DB::table('cadprincipal')->where('BOE', $request->boe)->exists();
+        // BOE pode ter múltiplos IPs (desmembramento de inquérito).
+        // Sem confirmação explícita, bloqueia e devolve a lista de procedimentos existentes.
+        if (!$request->boolean('confirmar_boe')) {
+            $existentes = DB::table('cadprincipal')
+                ->where('BOE', $request->boe)
+                ->orderByDesc('id')
+                ->get(['id', 'ip', 'data']);
 
-        if ($boeExistente) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Já existe um registro com esse BOE.'
-            ], 409);
+            if ($existentes->isNotEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'code' => 'BOE_DUPLICADO',
+                    'message' => 'Este BOE já possui procedimento(s) cadastrado(s). Deseja cadastrar outro IP vinculado ao mesmo BOE?',
+                    'procedimentos' => $existentes
+                ], 409);
+            }
         }
 
         try {
@@ -185,17 +193,31 @@ class GeralController extends Controller
             'Apreensao' => 'nullable|string'
         ]);
 
-        // Verifica se existe outro registro com o mesmo BOE (exceto o atual)
-        $boeRepetido = DB::table('cadprincipal')
-            ->where('BOE', $request->boe)
-            ->where('id', '!=', $id)
-            ->exists();
-
-        if ($boeRepetido) {
+        // BOE pode ter múltiplos IPs (desmembramento de inquérito).
+        // Só exige confirmação quando o BOE está sendo ALTERADO para um já existente.
+        $boeAtual = DB::table('cadprincipal')->where('id', $id)->value('BOE');
+        if ($boeAtual === null) {
             return response()->json([
                 'success' => false,
-                'message' => 'Já existe outro registro com esse BOE.'
-            ], 409);
+                'message' => 'Registro não encontrado.'
+            ], 404);
+        }
+
+        if ($request->boe !== $boeAtual && !$request->boolean('confirmar_boe')) {
+            $existentes = DB::table('cadprincipal')
+                ->where('BOE', $request->boe)
+                ->where('id', '!=', $id)
+                ->orderByDesc('id')
+                ->get(['id', 'ip', 'data']);
+
+            if ($existentes->isNotEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'code' => 'BOE_DUPLICADO',
+                    'message' => 'Este BOE já possui outro(s) procedimento(s). Deseja salvar mesmo assim?',
+                    'procedimentos' => $existentes
+                ], 409);
+            }
         }
 
         try {

@@ -194,14 +194,22 @@ class InicioController extends Controller
             'outros.*' => 'string|max:100'
         ]);
 
-        // Verifica se já existe um BOE igual
-        $boeExistente = DB::table('cadprincipal')->where('BOE', $request->boe)->exists();
+        // BOE pode ter múltiplos IPs (desmembramento de inquérito).
+        // Sem confirmação explícita, bloqueia e devolve a lista de procedimentos existentes.
+        if (!$request->boolean('confirmar_boe')) {
+            $existentes = DB::table('cadprincipal')
+                ->where('BOE', $request->boe)
+                ->orderByDesc('id')
+                ->get(['id', 'ip', 'data']);
 
-        if ($boeExistente) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Já existe um registro com esse BOE.'
-            ], 409);
+            if ($existentes->isNotEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'code' => 'BOE_DUPLICADO',
+                    'message' => 'Este BOE já possui procedimento(s) cadastrado(s). Deseja cadastrar outro IP vinculado ao mesmo BOE?',
+                    'procedimentos' => $existentes
+                ], 409);
+            }
         }
 
         try {
@@ -316,16 +324,21 @@ class InicioController extends Controller
             ], 404);
         }
 
-        if ($request->boe !== $boeAtual) {
-            $boeRepetido = DB::table('cadprincipal')
+        // BOE pode ter múltiplos IPs (desmembramento de inquérito).
+        // Sem confirmação explícita, bloqueia e devolve a lista de procedimentos existentes.
+        if (!$request->boolean('confirmar_boe')) {
+            $existentes = DB::table('cadprincipal')
                 ->where('BOE', $request->boe)
                 ->where('id', '!=', $id)
-                ->exists();
+                ->orderByDesc('id')
+                ->get(['id', 'ip', 'data']);
 
-            if ($boeRepetido) {
+            if ($existentes->isNotEmpty()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Já existe outro registro com esse BOE.'
+                    'code' => 'BOE_DUPLICADO',
+                    'message' => 'Este BOE já possui outro(s) procedimento(s). Deseja salvar mesmo assim?',
+                    'procedimentos' => $existentes
                 ], 409);
             }
         }
@@ -584,13 +597,17 @@ class InicioController extends Controller
         }
 
         // NOVO: Verificar se o BOE extraído já existe no banco (cadprincipal)
+        // Pode haver múltiplos procedimentos (IPs) para o mesmo BOE (desmembramento).
+        $registrosExistentes = [];
         $registroExistenteId = null;
         if (!empty($result['dados']['boe'])) {
-            $registro = DB::table('cadprincipal')
+            $registrosExistentes = DB::table('cadprincipal')
                 ->where('BOE', $result['dados']['boe'])
-                ->first();
-            if ($registro) {
-                $registroExistenteId = $registro->id;
+                ->orderByDesc('id')
+                ->get(['id', 'ip', 'data'])
+                ->toArray();
+            if (!empty($registrosExistentes)) {
+                $registroExistenteId = $registrosExistentes[0]->id;
             }
         }
 
@@ -599,7 +616,8 @@ class InicioController extends Controller
             'dados' => $result['dados'],
             'celulares' => $result['dados']['celulares'] ?? [],
             'veiculos' => $result['dados']['veiculos'] ?? [],
-            'registroExistenteId' => $registroExistenteId
+            'registroExistenteId' => $registroExistenteId,
+            'registrosExistentes' => $registrosExistentes
         ]);
     }
     private function normalizarTexto($string)

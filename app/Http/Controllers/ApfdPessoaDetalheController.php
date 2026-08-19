@@ -24,7 +24,7 @@ class ApfdPessoaDetalheController extends Controller
         // Resolve o cadprincipal_id pelo BOE (usado quando salvo a partir do editor de documento)
         $cadprincipalId = $request->cadprincipal_id;
         if (!$cadprincipalId && $request->boe) {
-            $cad = DB::table('cadprincipal')->where('BOE', $request->boe)->first();
+            $cad = DB::table('cadprincipal')->where('BOE', $request->boe)->orderByDesc('id')->first();
             $cadprincipalId = $cad ? $cad->id : null;
         }
         if (!$cadprincipalId) {
@@ -132,7 +132,7 @@ class ApfdPessoaDetalheController extends Controller
             }
 
             // ✅ FONTE SECUNDÁRIA: Banco de dados (fallback)
-            $cad = DB::table('cadprincipal')->where('BOE', $boe)->first();
+            $cad = DB::table('cadprincipal')->where('BOE', $boe)->orderByDesc('id')->first();
             if (!$cad) {
                 return response()->json(['success' => true, 'data' => ['interrogatorio' => '', 'nota_culpa' => '']]);
             }

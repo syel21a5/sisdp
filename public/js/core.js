@@ -217,6 +217,75 @@ window.confirmarExclusaoGenerica = function (mensagem, callback) {
     });
 };
 
+// === CONFIRMAÇÃO DE BOE DUPLICADO (múltiplos IPs no mesmo BOE) ===
+window.confirmarBoeDuplicado = function (mensagem, procedimentos, callback) {
+    // Remove qualquer modal antigo
+    $('#modalConfirmacaoBoeDuplicado').remove();
+    $('.modal-backdrop').remove();
+
+    const modalId = 'modalConfirmacaoBoeDuplicado';
+
+    // Monta a lista de procedimentos existentes
+    let listaHtml = '';
+    if (Array.isArray(procedimentos) && procedimentos.length) {
+        listaHtml = '<div class="text-start mx-auto mb-3" style="max-width: 320px;">' +
+            '<div class="fw-bold text-secondary small mb-2"><i class="bi bi-folder2-open me-1"></i>Procedimentos já vinculados a este BOE:</div>' +
+            '<ul class="list-unstyled mb-0">';
+        procedimentos.forEach(function (p) {
+            const ip = p.ip || '—';
+            const data = p.data ? String(p.data).substring(0, 10) : '—';
+            listaHtml += `<li class="d-flex align-items-center gap-2 py-1 border-bottom border-light">` +
+                `<i class="bi bi-file-earmark-text text-warning"></i>` +
+                `<span class="fw-bold small">IP ${ip}</span>` +
+                `<span class="text-muted small ms-auto">${data}</span></li>`;
+        });
+        listaHtml += '</ul></div>';
+    }
+
+    const modalHtml = `
+        <div class="modal fade" id="${modalId}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg rounded-4" style="overflow: hidden;">
+                    <div class="modal-header bg-warning text-dark border-0 justify-content-center py-3">
+                        <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>BOE já cadastrado</h5>
+                    </div>
+                    <div class="modal-body text-center p-4">
+                        <div class="mb-3">
+                            <i class="bi bi-files text-warning" style="font-size: 4rem; display: block; animation: pulse 1s infinite;"></i>
+                        </div>
+                        <h6 class="fw-bold text-secondary mb-3 fs-6">${mensagem}</h6>
+                        ${listaHtml}
+                        <p class="small text-muted mb-3">Um mesmo BOE pode ter mais de um IP (desmembramento de inquérito).</p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <button type="button" class="btn btn-secondary rounded-pill fw-bold shadow-sm" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" id="btnConfirmarBoeDuplicado" class="btn btn-warning rounded-pill fw-bold shadow-sm text-dark">Cadastrar mesmo assim</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <style>
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.1); }
+                100% { transform: scale(1); }
+            }
+        </style>
+    `;
+
+    $('body').append(modalHtml);
+    const modalEl = document.getElementById(modalId);
+    const modal = new bootstrap.Modal(modalEl, { focus: true });
+    modal.show();
+
+    $('#btnConfirmarBoeDuplicado').off('click').on('click', function () {
+        if (typeof callback === 'function') {
+            callback();
+        }
+        modal.hide();
+    });
+};
+
 // === MODO FOCO DE LEITURA (DARK MODE) GLOBAL ===
 $(document).ready(function() {
     // 1. Criar o botão flutuante e injetar no body

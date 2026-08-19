@@ -47,6 +47,7 @@ class PromptGeneratorController extends Controller
             $cadprincipal = DB::table('cadprincipal')
                 ->where('BOE', $boe)
                 ->orWhere('boe_pm', $boe)
+                ->orderByDesc('id')
                 ->first();
 
             // 2. Buscar dados da pessoa (se tiver pessoa_id)
@@ -339,7 +340,7 @@ class PromptGeneratorController extends Controller
                     // NOVO: Verificar se o BOE extraído já existe no banco (cadprincipal)
                     $registroExistenteId = null;
                     if (!empty($cachedData['boe'])) {
-                        $registro = DB::table('cadprincipal')->where('BOE', $cachedData['boe'])->first();
+                        $registro = DB::table('cadprincipal')->where('BOE', $cachedData['boe'])->orderByDesc('id')->first();
                         if ($registro) $registroExistenteId = $registro->id;
                     }
 
@@ -371,7 +372,7 @@ class PromptGeneratorController extends Controller
                         // NOVO: Verificar se o BOE extraído já existe no banco (cadprincipal)
                         $registroExistenteId = null;
                         if (!empty($cachedData['boe'])) {
-                            $registro = DB::table('cadprincipal')->where('BOE', $cachedData['boe'])->first();
+                            $registro = DB::table('cadprincipal')->where('BOE', $cachedData['boe'])->orderByDesc('id')->first();
                             if ($registro) $registroExistenteId = $registro->id;
                         }
 
@@ -412,6 +413,7 @@ class PromptGeneratorController extends Controller
             if (!empty($dados['boe'])) {
                 $registro = DB::table('cadprincipal')
                     ->where('BOE', $dados['boe'])
+                    ->orderByDesc('id')
                     ->first();
                 if ($registro) {
                     $registroExistenteId = $registro->id;
