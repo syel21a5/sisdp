@@ -11,6 +11,77 @@ use App\Models\BoePessoaVinculo;
 class BoeVincularController extends Controller
 {
     /**
+     * Nomes-placeholder que nunca devem virar pessoa/vínculo.
+     * O auto-hidratar e o sugerirVinculo ignoram estes valores.
+     */
+    const NOMES_PLACEHOLDER = [
+        'DESCONHECIDO',
+        'DESCONHECIDA',
+        'NAO INFORMADO',
+        'NÃO INFORMADO',
+        'NAO CONSTA',
+        'NÃO CONSTA',
+        'IGNORADO',
+        'IGNORADA',
+        'SEM IDENTIFICACAO',
+        'SEM IDENTIFICAÇÃO',
+        'NAO IDENTIFICADO',
+        'NÃO IDENTIFICADO',
+    ];
+
+    /**
+     * Normaliza um nome: maiúsculas, sem acentos, espaços extras removidos.
+     * Usado para comparar nomes sem duplicar pessoas por diferença de grafia.
+     */
+    private static function normalizarNome(string $nome): string
+    {
+        $nome = mb_strtoupper(trim($nome), 'UTF-8');
+        // Remove acentos (ex: LEUGIM vs LEUGIN não é acento, mas Á vs A sim)
+        $nome = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $nome) ?: $nome;
+        // Colapsa espaços múltiplos
+        $nome = preg_replace('/\s+/', ' ', $nome) ?: $nome;
+        return trim($nome);
+    }
+
+    /**
+     * Busca uma pessoa na cadpessoa por nome NORMALIZADO (sem acentos, maiúsculas).
+     * Se não achar exato, tenta variação sem acentos. Nunca cria pessoa duplicada
+     * por diferença boba de grafia (ex: LEUGIN vs LEUGIM -> N vs M pega via levenshtein).
+     * Retorna null se não achar.
+     */
+    private static function buscarPessoaPorNomeNormalizado(string $nome): ?object
+    {
+        $nomeNormalizado = self::normalizarNome($nome);
+
+        // 1. Busca exata primeiro (mais rápido)
+        $pessoa = DB::table('cadpessoa')->where('Nome', $nome)->first();
+        if ($pessoa) {
+            return $pessoa;
+        }
+
+        // 2. Busca por nome normalizado (ignora acentos/caixa)
+        $pessoas = DB::table('cadpessoa')->select('IdCad', 'Nome')->get();
+        $melhor = null;
+        $melhorDist = 2; // tolerância de até 2 caracteres de diferença
+        foreach ($pessoas as $p) {
+            $norm = self::normalizarNome($p->Nome);
+            if ($norm === $nomeNormalizado) {
+                return $p;
+            }
+            // Fallback por similaridade (pega LEUGIN vs LEUGIM, digitação etc.)
+            if (mb_strlen($nomeNormalizado) >= 10 && mb_strlen($norm) >= 10) {
+                $dist = levenshtein($norm, $nomeNormalizado);
+                if ($dist <= $melhorDist) {
+                    $melhor = $p;
+                    $melhorDist = $dist;
+                }
+            }
+        }
+
+        return $melhor;
+    }
+
+    /**
      * Lista todos os vínculos de um BOE, agrupados por tipo.
      */
     public function listarVinculos($boe)
@@ -268,8 +339,16 @@ class BoeVincularController extends Controller
             $user = Auth::user();
             $nome = mb_strtoupper(trim($request->nome), 'UTF-8');
 
-            // 1. Tentar encontrar a pessoa pelo nome exato
-            $pessoa = DB::table('cadpessoa')->where('Nome', $nome)->first();
+            // 🚫 Nomes-placeholder não viram pessoa/vínculo
+            if (in_array(self::normalizarNome($nome), self::NOMES_PLACEHOLDER, true)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Nome-placeholder (ex: DESCONHECIDO) não pode virar vínculo.',
+                ], 422);
+            }
+
+            // 1. Tentar encontrar a pessoa pelo nome (exato ou normalizado p/ evitar duplicata)
+            $pessoa = self::buscarPessoaPorNomeNormalizado($nome);
             $pessoaId = $pessoa ? $pessoa->IdCad : null;
 
             // 2. Se não existir, criar um registro stub no cadpessoa para pegar um ID
@@ -715,8 +794,16 @@ class BoeVincularController extends Controller
                         continue;
                     }
 
-                    // 1. Busca ou cria a pessoa na cadpessoa (padrão existente do sistema)
-                    $pessoa = DB::table('cadpessoa')->where('Nome', $nome)->first();
+                    // 🚫 Nomes-placeholder não viram pessoa/vínculo (evita 'DESCONHECIDO' recriado)
+                    $nomeNormalizado = self::normalizarNome($nome);
+                    if (in_array($nomeNormalizado, self::NOMES_PLACEHOLDER, true)) {
+                        $ignorados[] = ['nome' => $nomeBruto, 'motivo' => 'Nome-placeholder (ex: DESCONHECIDO)'];
+                        continue;
+                    }
+
+                    // 1. Busca ou cria a pessoa na cadpessoa, usando nome NORMALIZADO (ignora acentos/caixa)
+                    //    para não duplicar pessoas com grafia levemente diferente (ex: LEUGIN vs LEUGIM)
+                    $pessoa = self::buscarPessoaPorNomeNormalizado($nome);
                     if ($pessoa) {
                         $pessoaId = $pessoa->IdCad;
                     } else {

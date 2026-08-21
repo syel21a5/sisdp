@@ -587,17 +587,20 @@ window.OcorrenciasApp = {
             arr.forEach((nome, index) => {
                 const vinc = (this.vinculos[tipo] && this.vinculos[tipo][index]) ? this.vinculos[tipo][index] : null;
                 const pessoa_id = vinc ? (vinc.pessoa_id || null) : null;
+                const vinculo_id = vinc ? (vinc.vinculo_id || null) : null;
                 const detalhes = vinc ? (vinc.detalhes || null) : null;
 
                 const existente = window.envolvidosChips[tipo].find(c => c.nome === nome);
                 if (!existente) {
                     window.envolvidosChips[tipo].push({
                         id: pessoa_id || Date.now() + Math.random(),
+                        vinculo_id: vinculo_id,
                         nome: nome,
                         dados: { id: pessoa_id, Nome: nome, ...detalhes }
                     });
                 } else if (pessoa_id && !existente.id) {
                     existente.id = pessoa_id;
+                    existente.vinculo_id = vinculo_id;
                     if (!existente.dados) existente.dados = {};
                     existente.dados.id = pessoa_id;
                 }
@@ -2378,37 +2381,63 @@ window.OcorrenciasApp = {
                 const array = arrays[tipo];
                 const idx = array.findIndex(item => item.id == id);
                 let nomeRemovido = null;
+                let vinculoIdRemovido = null;
 
                 if (idx > -1) {
                     nomeRemovido = array[idx].nome;
-                    array.splice(idx, 1);
+                    vinculoIdRemovido = array[idx].vinculo_id || null;
                 }
 
-                // Sincroniza remoção no OcorrenciasApp
-                const tipoPluralMap = {
-                    'vitima': 'vitimas',
-                    'autor': 'autores',
-                    'testemunha': 'testemunhas',
-                    'condutor': 'condutores',
-                    'outro': 'outros'
-                };
-                const tipoPlural = tipoPluralMap[tipo];
-
-                if (nomeRemovido && this.envolvidos[tipoPlural]) {
-                    const idxOA = this.envolvidos[tipoPlural].indexOf(nomeRemovido);
-                    if (idxOA > -1) {
-                        this.envolvidos[tipoPlural].splice(idxOA, 1);
-                        if (this.vinculos[tipoPlural]) this.vinculos[tipoPlural].splice(idxOA, 1);
+                // ✅ FIX 21/08: remoção local só deve acontecer DEPOIS do backend confirmar
+                // (ou se o chip nunca foi salvo no banco - sem vinculo_id)
+                const removerLocal = () => {
+                    if (idx > -1) {
+                        array.splice(idx, 1);
                     }
-                    this.atualizarChips(tipoPlural);
-                } else {
-                    $(`[data-tipo="${tipo}"][data-id="${id}"]`).remove();
-                }
 
-                if (typeof mostrarMensagemSucesso === 'function') {
-                    mostrarMensagemSucesso('Envolvido removido com sucesso!');
-                } else if (typeof mostrarSucesso === 'function') {
-                    mostrarSucesso('Envolvido removido com sucesso!');
+                    // Sincroniza remoção no OcorrenciasApp
+                    const tipoPluralMap = {
+                        'vitima': 'vitimas',
+                        'autor': 'autores',
+                        'testemunha': 'testemunhas',
+                        'condutor': 'condutores',
+                        'outro': 'outros'
+                    };
+                    const tipoPlural = tipoPluralMap[tipo];
+
+                    if (nomeRemovido && this.envolvidos[tipoPlural]) {
+                        const idxOA = this.envolvidos[tipoPlural].indexOf(nomeRemovido);
+                        if (idxOA > -1) {
+                            this.envolvidos[tipoPlural].splice(idxOA, 1);
+                            if (this.vinculos[tipoPlural]) this.vinculos[tipoPlural].splice(idxOA, 1);
+                        }
+                        this.atualizarChips(tipoPlural);
+                    } else {
+                        $(`[data-tipo="${tipo}"][data-id="${id}"]`).remove();
+                    }
+
+                    if (typeof mostrarMensagemSucesso === 'function') {
+                        mostrarMensagemSucesso('Envolvido removido com sucesso!');
+                    } else if (typeof mostrarSucesso === 'function') {
+                        mostrarSucesso('Envolvido removido com sucesso!');
+                    }
+                };
+
+                // Chip salvo no banco? Remove de verdade via backend (senão volta ao recarregar)
+                if (vinculoIdRemovido) {
+                    $.ajax({
+                        url: `/boe/vinculos/remover/${vinculoIdRemovido}`,
+                        method: 'DELETE',
+                        data: { _token: $('meta[name="csrf-token"]').attr('content') },
+                        success: (response) => {
+                            removerLocal();
+                        },
+                        error: (xhr) => {
+                            this.mostrarErro('Erro ao remover vínculo: ' + (xhr.responseJSON?.message || 'Erro desconhecido'));
+                        }
+                    });
+                } else {
+                    removerLocal();
                 }
                 return;
             }
