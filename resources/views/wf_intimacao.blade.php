@@ -149,6 +149,22 @@
                 .chip-selecao {
                    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
                 }
+
+                /* Chips de Horário Rápido */
+                .time-chip {
+                    cursor: pointer;
+                    transition: all 0.2s ease-in-out;
+                    background-color: transparent;
+                }
+                .time-chip:hover {
+                    background-color: rgba(13, 110, 253, 0.1);
+                    transform: translateY(-1px);
+                }
+                .time-chip.active {
+                    background-color: #0d6efd !important;
+                    color: white !important;
+                    box-shadow: 0 2px 4px rgba(13, 110, 253, 0.3);
+                }
             </style>
 
             <div class="tab-content mt-2">
@@ -196,11 +212,17 @@
                                     </div>
                                     <div class="col-md-3">
                                         <label for="inputDataOitivaIntimacao" class="form-label text-primary fw-bold">Data da Oitiva</label>
-                                        <input type="text" class="form-control flatpickr-date border-primary shadow-sm" placeholder="DD/MM/AAAA" name="dataoitiva" id="inputDataOitivaIntimacao">
+                                        <div class="input-group shadow-sm">
+                                            <span class="input-group-text bg-primary text-white border-primary"><i class="bi bi-calendar-event"></i></span>
+                                            <input type="text" class="form-control flatpickr-date border-primary" placeholder="DD/MM/AAAA" name="dataoitiva" id="inputDataOitivaIntimacao">
+                                        </div>
                                     </div>
                                     <div class="col-md-3">
-                                        <label for="inputHorarioIntimacao" class="form-label">Horário</label>
-                                        <input type="text" class="form-control flatpickr-time" placeholder="HH:MM" name="hora" id="inputHorarioIntimacao">
+                                        <label for="inputHorarioIntimacao" class="form-label text-primary fw-bold">Horário</label>
+                                        <div class="input-group shadow-sm">
+                                            <span class="input-group-text bg-primary text-white border-primary"><i class="bi bi-clock"></i></span>
+                                            <input type="text" class="form-control flatpickr-time border-primary" style="border-top-left-radius: 0 !important; border-bottom-left-radius: 0 !important;" placeholder="HH:MM" name="hora" id="inputHorarioIntimacao">
+                                        </div>
                                     </div>
                                 </div>
 
@@ -427,11 +449,12 @@
     
     <!-- JS Central do Sistema -->
     <script src="{{ asset('js/core.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/config_pessoais.js') }}?v={{ time() }}"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            flatpickr(".flatpickr-date", { dateFormat: "d/m/Y", allowInput: true, locale: "pt" });
-            flatpickr(".flatpickr-time", { enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true, allowInput: true, locale: "pt" });
+            flatpickr(".flatpickr-date", { dateFormat: "d/m/Y", allowInput: true, locale: "pt", disableMobile: "true" });
+            flatpickr(".flatpickr-time", { enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true, allowInput: true, locale: "pt", disableMobile: "true" });
         });
 
         var rotasIntimacao = {

@@ -24,13 +24,11 @@
                             <i class="bi bi-file-earmark-pdf-fill me-2"></i> Enviar Arquivo PDF
                         </button>
                     </li>
-                    @if(strtolower($suffix ?? '') === 'intimacao')
                     <li class="nav-item" role="presentation">
                         <button class="nav-link rounded-3 fw-bold" id="tab-buscar{{ $suffix ?? '' }}" data-bs-toggle="tab" data-bs-target="#content-buscar{{ $suffix ?? '' }}" type="button" role="tab">
                             <i class="bi bi-search me-2"></i> Buscar BOE Já Extraído
                         </button>
                     </li>
-                    @endif
                 </ul>
                 
                 <div class="tab-content" id="boeImportTabsContent{{ $suffix ?? '' }}">
@@ -54,7 +52,6 @@
                         </div>
                     </div>
 
-                    @if(strtolower($suffix ?? '') === 'intimacao')
                     <!-- Aba Buscar BOE Já Extraído -->
                     <div class="tab-pane fade" id="content-buscar{{ $suffix ?? '' }}" role="tabpanel">
                         <div class="card bg-light border-0 shadow-sm p-4 text-center" style="border-radius: 0.75rem;">
@@ -70,7 +67,6 @@
                             <div id="buscarBoeFeedback{{ $suffix ?? '' }}" class="mt-3 small"></div>
                         </div>
                     </div>
-                    @endif
                 </div>
             </div>
 

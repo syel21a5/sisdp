@@ -1,4 +1,4 @@
-﻿// celular.js - VERSÃO COMPLETA CORRIGIDA
+// celular.js - VERSÃO COMPLETA CORRIGIDA
 $(document).ready(function () {
     // === VERIFICA SE O FORMULÁRIO EXISTE NA PÁGINA ===
     if (!$('#formCelular').length) return;
@@ -280,7 +280,7 @@ $(document).ready(function () {
             case 'APREENDIDO': return 'danger';
             case 'DEVOLVIDO': return 'success';
             case 'ANALISE': return 'warning';
-            case 'EM PERÍCIA': return 'warning';
+            case 'PERICIADO': return 'warning';
             case 'ARQUIVADO': return 'secondary';
             default: return 'info';
         }
@@ -615,7 +615,7 @@ $(document).ready(function () {
         const celularesPorStatus = {
             'APREENDIDO': [],
             'DEVOLVIDO': [],
-            'EM PERÍCIA': [],
+            'PERICIADO': [],
             'ARQUIVADO': [],
             'OUTROS': []
         };
@@ -644,9 +644,9 @@ $(document).ready(function () {
                     celularesPorStatus.DEVOLVIDO.push(celularData);
                     break;
                 case 'ANALISE':
-                case 'EM PERÍCIA':
+                case 'PERICIADO':
                     contadorAnalise++;
-                    celularesPorStatus['EM PERÍCIA'].push(celularData);
+                    celularesPorStatus['PERICIADO'].push(celularData);
                     break;
                 case 'ARQUIVADO':
                     contadorArquivado++;
@@ -680,7 +680,7 @@ $(document).ready(function () {
                     window.graficoCelularInstance = new Chart(ctxCelular, {
                         type: 'doughnut',
                         data: {
-                            labels: ['Apreendidos', 'Devolvidos', 'Em Perícia', 'Arquivados', 'Outros'],
+                            labels: ['Apreendidos', 'Devolvidos', 'Periciado', 'Arquivados', 'Outros'],
                             datasets: [{
                                 data: [contadorApreendido, contadorDevolvido, contadorAnalise, contadorArquivado, contadorOutros],
                                 backgroundColor: ['#ef4444', '#22c55e', '#eab308', '#3b82f6', '#6b7280'],
@@ -709,7 +709,7 @@ $(document).ready(function () {
 
         // ── Resumo narrativo ──
         if (contadorTotal > 0) {
-            const texto = `No período: ${contadorApreendido} apreendido(s), ${contadorDevolvido} devolvido(s), ${contadorAnalise} em perícia, ${contadorArquivado} arquivado(s). Total: ${contadorTotal} celular(es).`;
+            const texto = `No período: ${contadorApreendido} apreendido(s), ${contadorDevolvido} devolvido(s), ${contadorAnalise} periciado, ${contadorArquivado} arquivado(s). Total: ${contadorTotal} celular(es).`;
             $('#textoResumoNarrativoCelular').text(texto);
             $('#resumoNarrativoCelular').show();
         } else {
@@ -720,7 +720,7 @@ $(document).ready(function () {
         const $corpoTabela = $('#corpoTabelaControleCelular').empty();
 
         // Adicionar linhas para cada status que tenha celulares
-        const statusOrdem = ['APREENDIDO', 'DEVOLVIDO', 'EM PERÍCIA', 'ARQUIVADO', 'OUTROS'];
+        const statusOrdem = ['APREENDIDO', 'DEVOLVIDO', 'PERICIADO', 'ARQUIVADO', 'OUTROS'];
 
         statusOrdem.forEach(function (status) {
             const celularesStatus = celularesPorStatus[status] || [];
@@ -780,7 +780,7 @@ $(document).ready(function () {
         const celularesDoStatus = status ? celulares.filter(celular => {
             const s = celular.status || 'OUTROS';
             if (status === 'OUTROS') {
-                return !['APREENDIDO', 'DEVOLVIDO', 'EM PERÍCIA', 'ANALISE', 'ARQUIVADO'].includes(s.toUpperCase());
+                return !['APREENDIDO', 'DEVOLVIDO', 'PERICIADO', 'ANALISE', 'ARQUIVADO'].includes(s.toUpperCase());
             }
             return s.toUpperCase() === status.toUpperCase();
         }) : celulares;
@@ -1350,6 +1350,75 @@ $(document).ready(function () {
                 }
             });
         };
+
+        // =========================================================================
+        // REUTILIZAR BOE JÁ PROCESSADO
+        // =========================================================================
+        $('#btnBuscarBoeExtraidoCelular').off('click').on('click', function () {
+            const boe = $('#inputBoeBuscarCelular').val().trim();
+            const $btn = $(this);
+            const $fb = $('#buscarBoeFeedbackCelular');
+
+            if (!boe) {
+                $fb.html('<span class="text-warning"><i class="bi bi-exclamation-triangle me-1"></i>Digite o número do BOE.</span>');
+                return;
+            }
+
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>Buscando...');
+            $fb.html('<span class="text-muted"><i class="bi bi-hourglass-split me-1"></i>Consultando dados já extraídos...</span>');
+
+            $.ajax({
+                url: '/boe/dados-extraidos/' + encodeURIComponent(boe),
+                method: 'GET',
+                success: function (resp) {
+                    if (resp && resp.success && resp.dados && resp.dados.celulares && resp.dados.celulares.length > 0) {
+                        $fb.html('<span class="text-success"><i class="bi bi-check-circle me-1"></i>Dados encontrados! Carregando...</span>');
+                        
+                        setTimeout(() => {
+                            $('#modalImportarCelular').modal('hide');
+                            $btn.prop('disabled', false).html('<i class="bi bi-search me-1"></i> Buscar');
+                            $fb.empty();
+                            
+                            const celularesList = resp.dados.celulares;
+                            
+                            // Adicionar metadados gerais do BOE aos objetos
+                            celularesList.forEach(v => {
+                                v.boe = resp.dados.boe;
+                                v.ip = resp.dados.ip;
+                                v.data = resp.dados.data;
+                            });
+
+                            if (celularesList.length > 1) {
+                                // Multiplos celulares - usar Batch Import
+                                $.ajax({
+                                    url: rotasCelular.pesquisar,
+                                    method: "GET",
+                                    data: { filtro: "boe", termo: resp.dados.boe },
+                                    success: function(pesqResp) {
+                                        abrirModalRevisaoMultiplosCelulares(celularesList, (pesqResp.success && pesqResp.data) ? pesqResp.data : []);
+                                    },
+                                    error: function() {
+                                        abrirModalRevisaoMultiplosCelulares(celularesList, []);
+                                    }
+                                });
+                            } else {
+                                // Apenas 1 celular - preencher direto
+                                preencherComObjetoIA(celularesList[0]);
+                                window.mostrarSucesso(`Extração carregada! 1 celular detectado.`);
+                            }
+                        }, 500);
+                    } else {
+                        $fb.html('<span class="text-danger"><i class="bi bi-x-circle me-1"></i>Nenhum celular encontrado neste BOE.</span>');
+                        $btn.prop('disabled', false).html('<i class="bi bi-search me-1"></i> Buscar');
+                    }
+                },
+                error: function (xhr) {
+                    const msg = (xhr.responseJSON && xhr.responseJSON.message) || 'Este BOE ainda não foi extraído.';
+                    $fb.html('<span class="text-danger"><i class="bi bi-x-circle me-1"></i>' + msg + '</span>');
+                    $btn.prop('disabled', false).html('<i class="bi bi-search me-1"></i> Buscar');
+                }
+            });
+        });
 
         function preencherComObjetoIA(obj) {
             console.log('📝 Preenchendo formulário com dados da IA:', obj);

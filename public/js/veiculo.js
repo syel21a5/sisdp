@@ -1,4 +1,4 @@
-﻿// veiculo.js - VERSÃO COMPLETA CORRIGIDA
+// veiculo.js - VERSÃO COMPLETA CORRIGIDA
 $(document).ready(function () {
     // === VERIFICA SE O FORMULÁRIO EXISTE NA PÁGINA ===
     if (!$('#formVeiculo').length) return;
@@ -286,7 +286,7 @@ $(document).ready(function () {
             case 'APREENDIDO': return 'danger';
             case 'DEVOLVIDO': return 'success';
             case 'ANALISE': return 'warning';
-            case 'EM PERÍCIA': return 'warning';
+            case 'PERICIADO': return 'warning';
             case 'ARQUIVADO': return 'secondary';
             default: return 'info';
         }
@@ -617,7 +617,7 @@ $(document).ready(function () {
         const veiculosPorStatus = {
             'APREENDIDO': [],
             'DEVOLVIDO': [],
-            'EM PERÍCIA': [],
+            'PERICIADO': [],
             'ARQUIVADO': [],
             'OUTROS': []
         };
@@ -648,9 +648,9 @@ $(document).ready(function () {
                     veiculosPorStatus.DEVOLVIDO.push(veiculoData);
                     break;
                 case 'ANALISE':
-                case 'EM PERÍCIA':
+                case 'PERICIADO':
                     contadorAnalise++;
-                    veiculosPorStatus['EM PERÍCIA'].push(veiculoData);
+                    veiculosPorStatus['PERICIADO'].push(veiculoData);
                     break;
                 case 'ARQUIVADO':
                     contadorArquivado++;
@@ -684,7 +684,7 @@ $(document).ready(function () {
                     window.graficoVeiculoInstance = new Chart(ctxVeiculo, {
                         type: 'doughnut',
                         data: {
-                            labels: ['Apreendidos', 'Devolvidos', 'Em Perícia', 'Arquivados', 'Outros'],
+                            labels: ['Apreendidos', 'Devolvidos', 'Periciado', 'Arquivados', 'Outros'],
                             datasets: [{
                                 data: [contadorApreendido, contadorDevolvido, contadorAnalise, contadorArquivado, contadorOutros],
                                 backgroundColor: ['#ef4444', '#22c55e', '#eab308', '#3b82f6', '#6b7280'],
@@ -713,7 +713,7 @@ $(document).ready(function () {
 
         // ── Resumo narrativo ──
         if (contadorTotal > 0) {
-            const texto = `No período: ${contadorApreendido} apreendido(s), ${contadorDevolvido} devolvido(s), ${contadorAnalise} em perícia, ${contadorArquivado} arquivado(s). Total: ${contadorTotal} veículo(s).`;
+            const texto = `No período: ${contadorApreendido} apreendido(s), ${contadorDevolvido} devolvido(s), ${contadorAnalise} periciado, ${contadorArquivado} arquivado(s). Total: ${contadorTotal} veículo(s).`;
             $('#textoResumoNarrativoVeiculo').text(texto);
             $('#resumoNarrativoVeiculo').show();
         } else {
@@ -724,7 +724,7 @@ $(document).ready(function () {
         const $corpoTabela = $('#corpoTabelaControleVeiculo').empty();
 
         // Adicionar linhas para cada status que tenha veículos
-        const statusOrdem = ['APREENDIDO', 'DEVOLVIDO', 'EM PERÍCIA', 'ARQUIVADO', 'OUTROS'];
+        const statusOrdem = ['APREENDIDO', 'DEVOLVIDO', 'PERICIADO', 'ARQUIVADO', 'OUTROS'];
 
         statusOrdem.forEach(function(status) {
             const veiculosStatus = veiculosPorStatus[status] || [];
@@ -783,7 +783,7 @@ $(document).ready(function () {
         const veiculosDoStatus = status ? veiculos.filter(v => {
             const s = v.status || 'OUTROS';
             if (status === 'OUTROS') {
-                return !['APREENDIDO', 'DEVOLVIDO', 'EM PERÍCIA', 'ANALISE', 'ARQUIVADO'].includes(s.toUpperCase());
+                return !['APREENDIDO', 'DEVOLVIDO', 'PERICIADO', 'ANALISE', 'ARQUIVADO'].includes(s.toUpperCase());
             }
             return s.toUpperCase() === status.toUpperCase();
         }) : veiculos;
@@ -1361,6 +1361,75 @@ $(document).ready(function () {
                 }
             });
         };
+
+        // =========================================================================
+        // REUTILIZAR BOE JÁ PROCESSADO
+        // =========================================================================
+        $('#btnBuscarBoeExtraidoVeiculo').off('click').on('click', function () {
+            const boe = $('#inputBoeBuscarVeiculo').val().trim();
+            const $btn = $(this);
+            const $fb = $('#buscarBoeFeedbackVeiculo');
+
+            if (!boe) {
+                $fb.html('<span class="text-warning"><i class="bi bi-exclamation-triangle me-1"></i>Digite o número do BOE.</span>');
+                return;
+            }
+
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>Buscando...');
+            $fb.html('<span class="text-muted"><i class="bi bi-hourglass-split me-1"></i>Consultando dados já extraídos...</span>');
+
+            $.ajax({
+                url: '/boe/dados-extraidos/' + encodeURIComponent(boe),
+                method: 'GET',
+                success: function (resp) {
+                    if (resp && resp.success && resp.dados && resp.dados.veiculos && resp.dados.veiculos.length > 0) {
+                        $fb.html('<span class="text-success"><i class="bi bi-check-circle me-1"></i>Dados encontrados! Carregando...</span>');
+                        
+                        setTimeout(() => {
+                            $('#modalImportarVeiculo').modal('hide');
+                            $btn.prop('disabled', false).html('<i class="bi bi-search me-1"></i> Buscar');
+                            $fb.empty();
+                            
+                            const veiculosList = resp.dados.veiculos;
+                            
+                            // Adicionar metadados gerais do BOE aos objetos
+                            veiculosList.forEach(v => {
+                                v.boe = resp.dados.boe;
+                                v.ip = resp.dados.ip;
+                                v.data = resp.dados.data;
+                            });
+
+                            if (veiculosList.length > 1) {
+                                // Multiplos veiculos - usar Batch Import
+                                $.ajax({
+                                    url: rotasVeiculo.pesquisar,
+                                    method: "GET",
+                                    data: { filtro: "boe", termo: resp.dados.boe },
+                                    success: function(pesqResp) {
+                                        abrirModalRevisaoMultiplosVeiculos(veiculosList, (pesqResp.success && pesqResp.data) ? pesqResp.data : []);
+                                    },
+                                    error: function() {
+                                        abrirModalRevisaoMultiplosVeiculos(veiculosList, []);
+                                    }
+                                });
+                            } else {
+                                // Apenas 1 veiculo - preencher direto
+                                preencherComObjetoIAVeiculo(veiculosList[0]);
+                                window.mostrarSucesso(`Extração carregada! 1 veículo detectado.`);
+                            }
+                        }, 500);
+                    } else {
+                        $fb.html('<span class="text-danger"><i class="bi bi-x-circle me-1"></i>Nenhum veículo encontrado neste BOE.</span>');
+                        $btn.prop('disabled', false).html('<i class="bi bi-search me-1"></i> Buscar');
+                    }
+                },
+                error: function (xhr) {
+                    const msg = (xhr.responseJSON && xhr.responseJSON.message) || 'Este BOE ainda não foi extraído.';
+                    $fb.html('<span class="text-danger"><i class="bi bi-x-circle me-1"></i>' + msg + '</span>');
+                    $btn.prop('disabled', false).html('<i class="bi bi-search me-1"></i> Buscar');
+                }
+            });
+        });
 
         // Mantém apenas a função antiga para preencher form simples (1 veículo)
         function preencherComObjetoIAVeiculo(obj) {

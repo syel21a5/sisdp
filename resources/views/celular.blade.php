@@ -73,7 +73,7 @@
                                 <option value="">STATUS</option>
                                 <option value="APREENDIDO">APREENDIDO</option>
                                 <option value="DEVOLVIDO">DEVOLVIDO</option>
-                                <option value="EM PERÍCIA">EM PERÍCIA</option>
+                                <option value="PERICIADO">PERICIADO</option>
                                 <option value="OUTROS">OUTROS</option>
                             </select>
                         </div>
@@ -202,10 +202,10 @@
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
-                        <div class="card bg-warning text-dark h-100 shadow-sm card-status-clicavel" data-status="EM PERÍCIA" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" title="Clique para ver detalhes">
+                        <div class="card bg-warning text-dark h-100 shadow-sm card-status-clicavel" data-status="PERICIADO" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" title="Clique para ver detalhes">
                             <div class="card-body text-center py-3">
                                 <h2 class="card-title mb-1 fw-bold" id="contador-analise">0</h2>
-                                <p class="card-text mb-0 small">Em Perícia</p>
+                                <p class="card-text mb-0 small">Periciado</p>
                             </div>
                         </div>
                     </div>
@@ -235,7 +235,7 @@
                             <option value="">Todos</option>
                             <option value="APREENDIDO">Apreendido</option>
                             <option value="DEVOLVIDO">Devolvido</option>
-                            <option value="EM PERÍCIA">Em Perícia</option>
+                            <option value="PERICIADO">Periciado</option>
                             <option value="ARQUIVADO">Arquivado</option>
                             <option value="OUTROS">Outros</option>
                         </select>

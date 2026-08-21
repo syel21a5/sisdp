@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Configurações Pessoais Automáticas (Sincronizado na Nuvem)
  * Salva e carrega dados de preenchimento padrão do usuário logado via banco de dados.
  */
@@ -35,7 +35,7 @@ $(document).ready(function() {
         });
     }
 
-    // 2. Preencher formulário principal do APFD (se a página atual for o APFD)
+    // 2. Preencher formulário principal do APFD (se a página atual for o APFD) ou Intimação
     function autoPreencherFormularioAPFD() {
         if (!configuracoesGlobais) return;
 
@@ -54,6 +54,14 @@ $(document).ready(function() {
             if ($('#inputPolicial2').length > 0 && !$('#inputPolicial2').val()) {
                 $('#inputPolicial2').val(configuracoesGlobais.default_policial2 || '');
             }
+        }
+
+        // Verifica se os inputs de Intimação existem nesta página
+        if ($('#inputDelegadoIntimacao').length > 0) {
+            if (!$('#inputDelegadoIntimacao').val()) $('#inputDelegadoIntimacao').val(configuracoesGlobais.default_delegado || '');
+            if (!$('#inputEscrivaoIntimacao').val()) $('#inputEscrivaoIntimacao').val(configuracoesGlobais.default_escrivao || '');
+            if (!$('#inputDelegaciaIntimacao').val()) $('#inputDelegaciaIntimacao').val(configuracoesGlobais.default_delegacia || '');
+            if (!$('#inputCidadeIntimacao').val()) $('#inputCidadeIntimacao').val(configuracoesGlobais.default_cidade || '');
         }
     }
 

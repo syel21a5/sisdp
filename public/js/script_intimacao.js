@@ -1,4 +1,4 @@
-﻿// script_intimacao.js - VERSÃO COMPLETA COM PREENCHIMENTO AUTOMÁTICO E PADRONIZAÇÃO
+// script_intimacao.js - VERSÃO COMPLETA COM PREENCHIMENTO AUTOMÁTICO E PADRONIZAÇÃO
 
 window.initIntimacaoIfPresent = function () {
     // === VERIFICA SE O FORMULÁRIO EXISTE NA PÁGINA ===
@@ -1051,6 +1051,11 @@ window.initIntimacaoIfPresent = function () {
         // Desabilitar botões de edição/exclusão e reativar salvar
         $('#btnEditarIntimacao, #btnExcluirIntimacao').prop('disabled', true);
         $('#btnSalvarIntimacao').prop('disabled', false);
+
+        // Re-aplicar configurações pessoais (Delegado, etc) se a função estiver disponível
+        if (typeof window.aplicarConfigPessoais === 'function') {
+            window.aplicarConfigPessoais();
+        }
 
         console.log('✅ Formulário intimação limpo (incluindo chips) e data atual preenchida');
     }

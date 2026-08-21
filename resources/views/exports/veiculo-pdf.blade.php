@@ -116,8 +116,8 @@
                 <div class="label">Devolvidos</div>
             </td>
             <td class="card-warning">
-                <div class="number">{{ $registros->where('status', 'EM PERÍCIA')->count() }}</div>
-                <div class="label">Em Perícia</div>
+                <div class="number">{{ $registros->where('status', 'PERICIADO')->count() }}</div>
+                <div class="label">Periciado</div>
             </td>
             <td class="card-gray">
                 <div class="number">{{ $registros->count() }}</div>

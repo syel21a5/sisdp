@@ -208,7 +208,7 @@
                                             <option value="">STATUS</option>
                                             <option value="APREENDIDO">APREENDIDO</option>
                                             <option value="DEVOLVIDO">DEVOLVIDO</option>
-                                            <option value="EM PERÍCIA">EM PERÍCIA</option>
+                                            <option value="PERICIADO">PERICIADO</option>
                                             <option value="OUTROS">OUTROS</option>
                                         </select>
                                     </div>
@@ -322,7 +322,7 @@
                                     <x-status-card color="success" status="DEVOLVIDO" id="contador-devolvido" label="Devolvidos" />
                                 </div>
                                 <div class="col-6 col-md-3">
-                                    <x-status-card color="warning" status="EM PERÍCIA" id="contador-analise" label="Em Perícia" />
+                                    <x-status-card color="warning" status="PERICIADO" id="contador-analise" label="Periciado" />
                                 </div>
                                 <div class="col-6 col-md-3">
                                     <x-status-card color="secondary" status="TODOS" id="contador-total" label="Total" title="Clique para limpar os filtros e listar todos" />
@@ -345,7 +345,7 @@
                                         <option value="">Todos</option>
                                         <option value="APREENDIDO">Apreendido</option>
                                         <option value="DEVOLVIDO">Devolvido</option>
-                                        <option value="EM PERÍCIA">Em Perícia</option>
+                                        <option value="PERICIADO">Periciado</option>
                                         <option value="ARQUIVADO">Arquivado</option>
                                         <option value="OUTROS">Outros</option>
                                     </select>

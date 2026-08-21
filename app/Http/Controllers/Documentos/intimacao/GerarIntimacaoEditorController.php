@@ -32,12 +32,12 @@ class GerarIntimacaoEditorController extends Controller
         // CRIAR O SEGUNDO CABEÇALHO COMO HTML (MESMO TAMANHO DO PRIMEIRO)
         $segundoCabecalho = '
         <div style="text-align: center; margin: 5px 0 3px 0; padding: 2px 0;">
-            <table style="width: 100%; border-collapse: collapse; margin: 0 auto;">
+            <table style="margin: 0 auto; width: auto; border-collapse: collapse;">
                 <tr>
-                    <td style="width: 50px; vertical-align: middle; text-align: center;">
+                    <td style="width: 50px; vertical-align: middle; text-align: center; padding: 0;">
                         ' . ($image1Base64 ? '<img src="' . $image1Base64 . '" alt="Brasão PE" style="width: 50px; height: 50px; object-fit: contain;">' : '') . '
                     </td>
-                    <td style="vertical-align: middle; text-align: center;">
+                    <td style="vertical-align: middle; text-align: center; padding: 0 15px;">
                         <div style="font-weight: bold; font-size: 9pt; margin-bottom: 0px; line-height: 1.0;">
                             POLÍCIA CIVIL DE PERNAMBUCO - PCPE
                         </div>
@@ -54,7 +54,7 @@ class GerarIntimacaoEditorController extends Controller
                             ' . ($dados['delegacia'] ?? 'NÃO INFORMADO') . ' – ' . ($dados['cidade'] ?? 'NÃO INFORMADO') . '
                         </div>
                     </td>
-                    <td style="width: 50px; vertical-align: middle; text-align: center;">
+                    <td style="width: 50px; vertical-align: middle; text-align: center; padding: 0;">
                         ' . ($image2Base64 ? '<img src="' . $image2Base64 . '" alt="Brasão PCPE" style="width: 50px; height: 50px; object-fit: contain;">' : '') . '
                     </td>
                 </tr>
@@ -70,19 +70,19 @@ $html = '
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <style>
-        /* MARGEM MAIS COMPACTADA PARA UMA PÁGINA */
-        @page { margin: 120px 30px 80px 30px; }
+        /* MARGEM BEM COMPACTADA PARA GARANTIR UMA PÁGINA E CABER AS DUAS VIAS */
+        @page { margin: 45px 25px 30px 25px; }
         body {
             font-family: Arial, sans-serif;
-            font-size: 9.5pt !important;
-            line-height: 1.15;
+            font-size: 8.5pt !important;
+            line-height: 1.1;
             margin: 0;
             padding: 0;
             color: #000;
         }
-        .header { position: fixed !important; top: 5px !important; left: 30px !important; right: 30px !important; text-align: center !important; margin: 0 !important; padding: 0 0 15px 0 !important; height: auto !important; }
+        .header { text-align: center !important; margin: 0 0 10px 0 !important; padding: 0 !important; height: auto !important; }
 
-        .content { margin-top: 0 !important; padding: 0 20px !important; position: relative; z-index: 1; }
+        .content { margin-top: 0 !important; padding: 0 10px !important; position: relative; z-index: 1; }
 
         .page-break { page-break-before: always !important; margin: 0 !important; padding: 0 !important; border: none !important; }
 
@@ -99,18 +99,18 @@ $html = '
         .orgao-principal {
             font-weight: bold;
             font-size: 9pt;
-            margin-bottom: 0px;
+            margin-bottom: 2px;
             line-height: 1.0;
         }
 
         .orgao-secundario {
             font-size: 7pt;
-            margin-bottom: 0px;
+            margin-bottom: 1px;
             line-height: 1.0;
         }
 
         .delegacia-info {
-            margin-top: 1px;
+            margin-top: 2px;
             font-weight: bold;
             font-size: 8pt;
             line-height: 1.0;
@@ -122,50 +122,39 @@ $html = '
             border-collapse: collapse;
         }
 
-        .header td {
-            padding: 0 1px !important;
-        }
-
-        .header img {
-            width: 50px !important;
-            height: 50px !important;
-            margin-top: -2px !important;
-            object-fit: contain;
-        }
-
         /* COMPACTAR MAIS O CONTEÚDO */
         .ql-editor p {
-            margin: 0.03em 0 !important;
+            margin: 0.02em 0 !important;
             padding: 0 !important;
-            line-height: 1.1 !important;
+            line-height: 1.05 !important;
         }
 
         /* ESTILOS COMPACTADOS PARA FONTES PERSONALIZADAS */
         .ql-font-arial, .ql-font-arial p, .ql-font-arial span, .ql-font-arial div, .ql-font-arial strong {
             font-family: Arial, sans-serif !important;
-            font-size: 9.5pt !important;
+            font-size: 8.5pt !important;
         }
 
         .ql-size-10pt, .ql-size-10pt p, .ql-size-10pt span, .ql-size-10pt div, .ql-size-10pt strong {
             font-size: 7.5pt !important;
         }
         .ql-size-11pt, .ql-size-11pt p, .ql-size-11pt span, .ql-size-11pt div, .ql-size-11pt strong {
-            font-size: 8.5pt !important;
+            font-size: 8pt !important;
         }
         .ql-size-12pt, .ql-size-12pt p, .ql-size-12pt span, .ql-size-12pt div, .ql-size-12pt strong {
-            font-size: 9.5pt !important;
+            font-size: 8.5pt !important;
         }
         .ql-size-14pt, .ql-size-14pt p, .ql-size-14pt span, .ql-size-14pt div, .ql-size-14pt strong {
-            font-size: 11pt !important;
+            font-size: 10pt !important;
         }
         .ql-size-16pt, .ql-size-16pt p, .ql-size-16pt span, .ql-size-16pt div, .ql-size-16pt strong {
-            font-size: 13pt !important;
+            font-size: 12pt !important;
         }
         .ql-size-18pt, .ql-size-18pt p, .ql-size-18pt span, .ql-size-18pt div, .ql-size-18pt strong {
-            font-size: 15pt !important;
+            font-size: 14pt !important;
         }
         .ql-size-20pt, .ql-size-20pt p, .ql-size-20pt span, .ql-size-20pt div, .ql-size-20pt strong {
-            font-size: 17pt !important;
+            font-size: 16pt !important;
         }
 
         /* ESTILO ESPECÍFICO PARA SEÇÃO DE CRIME - FONTE 7.5pt */
@@ -249,12 +238,12 @@ $html = '
 </head>
 <body>
     <div class="header">
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+        <table style="margin: 0 auto; width: auto; border-collapse: collapse; margin-bottom: 0;">
             <tr>
-                <td style="width: 50px; vertical-align: middle; text-align: center; padding: 0 1px;">
+                <td style="width: 50px; vertical-align: middle; text-align: center; padding: 0;">
                     ' . ($image1Base64 ? '<img src="' . $image1Base64 . '" alt="Brasão PE" style="width: 50px; height: 50px; object-fit: contain; margin-top: -2px !important;">' : '') . '
                 </td>
-                <td style="vertical-align: middle; text-align: center; padding: 0 1px;">
+                <td style="vertical-align: middle; text-align: center; padding: 0 15px;">
                     <div class="orgao-principal">
                         POLÍCIA CIVIL DE PERNAMBUCO - PCPE
                     </div>
@@ -271,7 +260,7 @@ $html = '
                         ' . ($dados['delegacia'] ?? 'NÃO INFORMADO') . ' – ' . ($dados['cidade'] ?? 'NÃO INFORMADO') . '
                     </div>
                 </td>
-                <td style="width: 50px; vertical-align: middle; text-align: center; padding: 0 1px;">
+                <td style="width: 50px; vertical-align: middle; text-align: center; padding: 0;">
                     ' . ($image2Base64 ? '<img src="' . $image2Base64 . '" alt="Brasão PCPE" style="width: 50px; height: 50px; object-fit: contain; margin-top: -2px !important;">' : '') . '
                 </td>
             </tr>
