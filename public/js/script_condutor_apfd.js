@@ -1,4 +1,4 @@
-﻿// script_condutor_apfd.js - VERSÃO OTIMIZADA COM BUSCA AUTOMÁTICA
+// script_condutor_apfd.js - VERSÃO OTIMIZADA COM BUSCA AUTOMÁTICA
 $(document).ready(function () {
     // === ✅✅✅ OBJETO DE ROTAS DE IMPRESSÃO (CORRIGIDO) ===
     const rotasImpressaoCondutor = window.RotasImpressao?.condutor || {
@@ -645,7 +645,9 @@ $(document).ready(function () {
             "CERTIDAO DE ASSINATURA INDIVIDUAL",
             "CERTIDAO DE ASSINATURA APFD",
             "AAFAI CONDUTOR",
-            "APFD CONDUTOR"
+            "APFD CONDUTOR",
+            "EXAME PRELIMINAR DE ENTORPECENTES",
+            "PERICIA DEFINITIVA EM ENTORPECENTES"
         ];
 
         let selectedIndex = -1;

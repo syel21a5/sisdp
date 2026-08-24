@@ -630,6 +630,1516 @@
 
             <!-- Modais Estáticos Removidos (Usando core.js dinâmico) -->
 
+            <!-- ✅ MODAL DE SELEÇÃO DE VÍTIMAS PARA PERÍCIA -->
+            <div class="modal fade" id="modalSelecaoVitimas" tabindex="-1" aria-labelledby="modalSelecaoVitimasLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title fw-bold" id="modalSelecaoVitimasLabel">
+                                <i class="bi bi-list-check me-2"></i>
+                                Selecione as Vítimas
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <p class="mb-3 text-muted">Selecione quais vítimas devem constar no ofício de <strong>Perícia</strong>:</p>
+                            <form id="formSelecaoVitimas">
+                                <div id="listaVitimasCheckboxes" class="d-flex flex-column gap-2">
+                                    <!-- Checkboxes preenchidos via JS -->
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary fw-bold px-4" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-primary fw-bold px-4" id="btnConfirmarSelecaoVitimas">Confirmar e Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ MODAL DE SELEÇÃO PARA CONFRONTAÇÃO PAPILOSCÓPICA -->
+            <div class="modal fade" id="modalSelecaoConfrontacao" tabindex="-1" aria-labelledby="modalSelecaoConfrontacaoLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title fw-bold" id="modalSelecaoConfrontacaoLabel">
+                                <i class="bi bi-person-lines-fill me-2"></i>
+                                Autores e Vítimas
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <p class="mb-3 text-muted">Selecione quais <strong>Autores</strong> e <strong>Vítimas</strong> constarão no ofício:</p>
+                            <form id="formSelecaoConfrontacao">
+                                <h6 class="fw-bold mt-2 mb-2 text-primary border-bottom pb-1">Autores/Suspeitos</h6>
+                                <div id="listaAutoresConfrontacao" class="d-flex flex-column gap-2 mb-4">
+                                    <!-- Checkboxes preenchidos via JS -->
+                                </div>
+                                <h6 class="fw-bold mb-2 text-danger border-bottom pb-1">Vítimas</h6>
+                                <div id="listaVitimasConfrontacao" class="d-flex flex-column gap-2">
+                                    <!-- Checkboxes preenchidos via JS -->
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary fw-bold px-4" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-primary fw-bold px-4" id="btnConfirmarSelecaoConfrontacao">Confirmar e Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ MODAL DE SELEÇÃO PARA ENTORPECENTES -->
+            <div class="modal fade" id="modalSelecaoEntorpecentes" tabindex="-1" aria-labelledby="modalSelecaoEntorpecentesLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header bg-success text-white">
+                            <h5 class="modal-title fw-bold" id="modalSelecaoEntorpecentesLabel">
+                                <i class="bi bi-capsule-pill me-2"></i>
+                                Seleção de Entorpecentes
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <p class="mb-3 text-muted">Selecione quais <strong>substâncias análogas</strong> foram apreendidas e insira as respectivas quantidades:</p>
+                            <form id="formSelecaoEntorpecentes">
+                                <div class="d-flex flex-column gap-3 mb-4">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="form-check mb-0" style="min-width: 130px;">
+                                            <input class="form-check-input entorpecente-checkbox" type="checkbox" value="MACONHA" id="chkMaconha" style="transform: scale(1.3); margin-right: 8px;">
+                                            <label class="form-check-label fs-6 fw-bold" for="chkMaconha">MACONHA</label>
+                                        </div>
+                                        <input type="text" class="form-control form-control-sm qtd-input w-100" id="qtdMaconha" placeholder="Qtd. (ex: 15, 2.5)" disabled>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="form-check mb-0" style="min-width: 130px;">
+                                            <input class="form-check-input entorpecente-checkbox" type="checkbox" value="COCAÍNA" id="chkCocaina" style="transform: scale(1.3); margin-right: 8px;">
+                                            <label class="form-check-label fs-6 fw-bold" for="chkCocaina">COCAÍNA</label>
+                                        </div>
+                                        <input type="text" class="form-control form-control-sm qtd-input w-100" id="qtdCocaina" placeholder="Qtd. (ex: 15, 2.5)" disabled>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="form-check mb-0" style="min-width: 130px;">
+                                            <input class="form-check-input entorpecente-checkbox" type="checkbox" value="CRACK" id="chkCrack" style="transform: scale(1.3); margin-right: 8px;">
+                                            <label class="form-check-label fs-6 fw-bold" for="chkCrack">CRACK</label>
+                                        </div>
+                                        <input type="text" class="form-control form-control-sm qtd-input w-50" id="qtdCrackPedras" placeholder="Qtd. pedras (ex: 12)" disabled>
+                                        <input type="text" class="form-control form-control-sm qtd-input w-50" id="qtdCrackPeso" placeholder="Peso (ex: 5g)" disabled>
+                                    </div>
+                                    
+                                    <hr class="mt-2 mb-2">
+                                    
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="chkOutrasDrogas" style="transform: scale(1.3); margin-right: 8px;">
+                                        <label class="form-check-label fs-6 fw-bold" for="chkOutrasDrogas">OUTRAS (Especificar):</label>
+                                    </div>
+                                    <div class="d-flex gap-2 mt-1">
+                                        <input type="text" class="form-control flex-grow-1" id="inputOutrasDrogas" placeholder="Ex: HAXIXE, LSD, MDMA, SKUNK..." disabled>
+                                        <input type="text" class="form-control w-25" id="qtdOutras" placeholder="Qtd..." disabled>
+                                    </div>
+                                    
+                                    <hr class="mt-3 mb-2" id="hrAutuadosEntorpecentes">
+                                    
+                                    <div class="form-group mt-2" id="grupoAutuadosEntorpecentes">
+                                        <label class="fw-bold mb-2 text-primary"><i class="bi bi-people-fill me-1"></i> Autuado(s) / Envolvido(s) para a Perícia Definitiva:</label>
+                                        
+                                        <!-- Container para checkboxes dinâmicos -->
+                                        <div id="containerCheckboxesAutoresEntorpecentes" class="mb-3 d-flex flex-column gap-2 ms-1">
+                                            <!-- Checkboxes injetados pelo JS -->
+                                        </div>
+
+                                        <input type="text" class="form-control border-primary" id="inputAutuadosManuais" placeholder="Adicionar manualmente (Ex: João da Silva)">
+                                        <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Selecione os envolvidos ou digite manualmente (opcional).</small>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary fw-bold px-4" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success fw-bold px-4" id="btnConfirmarSelecaoEntorpecentes">Confirmar e Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ MODAL PARA PERÍCIA DE ARROMBAMENTO -->
+            <div class="modal fade" id="modalArrombamento" tabindex="-1" aria-labelledby="modalArrombamentoLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header bg-dark text-white">
+                            <h5 class="modal-title fw-bold" id="modalArrombamentoLabel">
+                                <i class="bi bi-door-open-fill me-2"></i>
+                                Perícia de Arrombamento
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <p class="mb-3 text-muted">Confirme o local exato onde ocorreu o arrombamento para gerar o laudo e a portaria:</p>
+                            <form id="formArrombamento">
+                                <div class="mb-3">
+                                    <label for="inputLocalArrombamento" class="form-label fw-bold text-primary">Local do Fato / Arrombamento:</label>
+                                    <input type="text" class="form-control border-primary" id="inputLocalArrombamento" placeholder="Ex: Rua das Flores, 123, Centro">
+                                    <small class="text-muted"><i class="bi bi-info-circle me-1"></i>O endereço puxado do BOE pode ser ajustado se necessário.</small>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary fw-bold px-4" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success fw-bold px-4" id="btnConfirmarArrombamento">Confirmar e Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ MODAL PARA OFÍCIO DE PRONTUÁRIO HOSPITALAR -->
+            <div class="modal fade" id="modalProntuarioHospitalar" tabindex="-1" aria-labelledby="modalProntuarioHospitalarLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header bg-danger text-white">
+                            <h5 class="modal-title fw-bold" id="modalProntuarioHospitalarLabel">
+                                <i class="bi bi-hospital me-2"></i>
+                                Ofício de Prontuário Hospitalar
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <p class="mb-3 text-muted">Preencha os dados necessários para gerar o ofício de requisição médica:</p>
+                            <form id="formProntuarioHospitalar">
+                                <div class="mb-3">
+                                    <label for="inputHospitalNome" class="form-label fw-bold text-primary">Nome do Hospital/Maternidade:</label>
+                                    <input type="text" class="form-control border-primary" id="inputHospitalNome" placeholder="Ex: Hospital Regional...">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-primary">Vítima Atendida:</label>
+                                    <div id="containerRadiosVitimasProntuario" class="d-flex flex-column gap-2 mb-2 px-2">
+                                        <!-- Radios gerados via JS -->
+                                    </div>
+                                    <input type="text" class="form-control border-secondary" id="inputVitimaManualProntuario" placeholder="Ou digite o nome manualmente se não estiver na lista">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="inputMotivoInternamento" class="form-label fw-bold text-primary">Motivo do Atendimento (Fato):</label>
+                                    <input type="text" class="form-control border-primary" id="inputMotivoInternamento" placeholder="Ex: disparos de arma de fogo, acidente de trânsito...">
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary fw-bold px-4" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success fw-bold px-4" id="btnConfirmarProntuarioHospitalar">Confirmar e Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ MODAL PARA PERÍCIA DOCUMENTOSCÓPICA -->
+            <div class="modal fade" id="modalDocumentoscopica" tabindex="-1" aria-labelledby="modalDocumentoscopicaLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header bg-info text-white">
+                            <h5 class="modal-title fw-bold" id="modalDocumentoscopicaLabel">
+                                <i class="bi bi-search me-2"></i>
+                                Perícia Documentoscópica
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <p class="mb-3 text-muted">Informe os detalhes para encaminhamento ao Instituto de Criminalística:</p>
+                            <form id="formDocumentoscopica">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-primary">Autor / Investigado:</label>
+                                    <div id="containerRadiosAutoresDoc" class="d-flex flex-column gap-2 mb-2 px-2">
+                                        <!-- Radios gerados via JS -->
+                                    </div>
+                                    <input type="text" class="form-control border-secondary" id="inputAutorManualDoc" placeholder="Ou digite o nome manualmente se não estiver na lista">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="inputDocumentosPericiados" class="form-label fw-bold text-primary">Documentos a serem periciados:</label>
+                                    <textarea class="form-control border-primary" id="inputDocumentosPericiados" rows="3" placeholder="Ex: 01 (um) atestado médico em nome de Fulano e o livro de registro do Hospital X"></textarea>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary fw-bold px-4" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success fw-bold px-4" id="btnConfirmarDocumentoscopica">Confirmar e Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ MODAL PARA PERÍCIA EM IMÓVEL/LOCAL (LUMINOL) -->
+            <div class="modal fade" id="modalPericiaLocal" tabindex="-1" aria-labelledby="modalPericiaLocalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header bg-dark text-white">
+                            <h5 class="modal-title fw-bold" id="modalPericiaLocalLabel">
+                                <i class="bi bi-house-door-fill me-2"></i>
+                                Perícia em Imóvel/Local (Luminol)
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <p class="mb-3 text-muted">Informe os detalhes para solicitar a perícia de local:</p>
+                            <form id="formPericiaLocal">
+                                <div class="mb-3">
+                                    <label for="inputEnderecoImovel" class="form-label fw-bold text-primary">Endereço do Imóvel / Local:</label>
+                                    <input type="text" class="form-control border-primary" id="inputEnderecoImovel" placeholder="Ex: Rua das Flores, 123, Centro">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="inputRelatoFatoLocal" class="form-label fw-bold text-primary">Relato do Fato a Investigar:</label>
+                                    <textarea class="form-control border-primary" id="inputRelatoFatoLocal" rows="3" placeholder="Ex: a pessoa de João da Silva encontra-se desaparecida desde o dia 10..."></textarea>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary fw-bold px-4" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success fw-bold px-4" id="btnConfirmarPericiaLocal">Confirmar e Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ MODAL PARA PERÍCIA DE INFORMÁTICA -->
+            <div class="modal fade" id="modalPericiaInformatica" tabindex="-1" aria-labelledby="modalPericiaInformaticaLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header bg-secondary text-white">
+                            <h5 class="modal-title fw-bold" id="modalPericiaInformaticaLabel">
+                                <i class="bi bi-laptop me-2"></i>
+                                Perícia de Informática (Extração)
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <p class="mb-3 text-muted">Informe os detalhes para solicitar a perícia e extração de dados:</p>
+                            <form id="formPericiaInformatica">
+                                <div class="mb-3">
+                                    <label for="inputAparelhosApreendidos" class="form-label fw-bold text-primary">Aparelhos/Objetos Apreendidos:</label>
+                                    <input type="text" class="form-control border-primary" id="inputAparelhosApreendidos" placeholder="Ex: 01 aparelho celular marca Motorola, cor preta...">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="inputObjetivoExtracao" class="form-label fw-bold text-primary">O que deve ser extraído/periciado?</label>
+                                    <textarea class="form-control border-primary" id="inputObjetivoExtracao" rows="3" placeholder="Ex: conversas de WhatsApp entre A e B, fotos da galeria, etc."></textarea>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary fw-bold px-4" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success fw-bold px-4" id="btnConfirmarPericiaInformatica">Confirmar e Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ MODAL PARA TERMO DE AUTORIZAÇÃO DE EXTRAÇÃO DE DADOS -->
+            <div class="modal fade" id="modalTermoAutorizacao" tabindex="-1" aria-labelledby="modalTermoAutorizacaoLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header bg-warning text-dark">
+                            <h5 class="modal-title fw-bold" id="modalTermoAutorizacaoLabel">
+                                <i class="bi bi-file-earmark-lock2-fill me-2"></i>
+                                Termo de Autorização (Extração de Dados)
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <p class="mb-3 text-muted">Selecione quem está autorizando e informe o dispositivo:</p>
+                            <form id="formTermoAutorizacao">
+                                <div class="mb-3">
+                                    <label for="selectPessoaAutorizadora" class="form-label fw-bold text-dark">Pessoa que Autoriza (Envolvidos no B.O):</label>
+                                    <select class="form-select border-warning" id="selectPessoaAutorizadora">
+                                        <option value="" selected disabled>Selecione um envolvido...</option>
+                                        <!-- Preenchido dinamicamente pelo JS com base nas vítimas, testemunhas, autores, condutor -->
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="inputDispositivoEletronico" class="form-label fw-bold text-dark">Dispositivo Eletrônico / Conta:</label>
+                                    <textarea class="form-control border-warning" id="inputDispositivoEletronico" rows="2" placeholder="Ex: Aparelho celular Motorola, cor preta, nº (81) 99999-9999"></textarea>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary fw-bold px-4" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success fw-bold px-4" id="btnConfirmarTermoAutorizacao">Confirmar e Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ MODAL PARA OFÍCIO DE COMUNICAÇÃO A ADVOGADO -->
+            <div class="modal fade" id="modalComunicaAdvogado" tabindex="-1" aria-labelledby="modalComunicaAdvogadoLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header bg-dark text-white">
+                            <h5 class="modal-title fw-bold" id="modalComunicaAdvogadoLabel">
+                                <i class="bi bi-briefcase-fill me-2"></i>
+                                Ofício de Comunicação a Advogado
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <form id="formComunicaAdvogado">
+                                <div class="mb-3">
+                                    <label for="inputNomeAdvogado" class="form-label fw-bold text-dark">Nome do Advogado(a) / OAB:</label>
+                                    <input type="text" class="form-control" id="inputNomeAdvogado" placeholder="Ex: Dr. Fulano de Tal - OAB/PE 12345">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="inputCidadeAdvogado" class="form-label fw-bold text-dark">Cidade/UF do Escritório:</label>
+                                    <input type="text" class="form-control" id="inputCidadeAdvogado" placeholder="Ex: Recife - PE">
+                                </div>
+                                <hr>
+                                <div class="mb-3">
+                                    <label for="selectAtoProcessual" class="form-label fw-bold text-dark">Ato a ser acompanhado:</label>
+                                    <select class="form-select" id="selectAtoProcessual">
+                                        <option value="" selected disabled>Selecione o Ato...</option>
+                                        <option value="INQUIRIÇÃO">Inquirição</option>
+                                        <option value="REINQUIRIÇÃO">Reinquirição</option>
+                                        <option value="REPRODUÇÃO SIMULADA DOS FATOS">Reprodução Simulada dos Fatos</option>
+                                        <option value="OITIVA">Oitiva</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="selectClienteAdvogado" class="form-label fw-bold text-dark">Nome do Cliente (Envolvido):</label>
+                                    <select class="form-select" id="selectClienteAdvogado">
+                                        <option value="" selected disabled>Selecione o Cliente...</option>
+                                        <!-- Preenchido dinamicamente pelo JS -->
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="inputDataHoraAto" class="form-label fw-bold text-dark">Data e Hora do Ato:</label>
+                                    <input type="text" class="form-control" id="inputDataHoraAto" placeholder="Ex: 17 de maio de 2024 às 10:00h">
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary fw-bold px-4" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success fw-bold px-4" id="btnConfirmarComunicaAdvogado">Confirmar e Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ MODAL PARA OFÍCIO DE ENCAMINHAR VEÍCULO CIRETRAN -->
+            <div class="modal fade" id="modalEncaminharVeiculo" tabindex="-1" aria-labelledby="modalEncaminharVeiculoLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title fw-bold" id="modalEncaminharVeiculoLabel">
+                                <i class="bi bi-car-front-fill me-2"></i>
+                                Ofício de Encaminhamento de Veículo (CIRETRAN)
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <form id="formEncaminharVeiculo">
+                                <div class="mb-3">
+                                    <label for="inputCiretranDestino" class="form-label fw-bold text-primary">CIRETRAN de Destino:</label>
+                                    <input type="text" class="form-control border-primary" id="inputCiretranDestino" placeholder="Ex: 24ª CIRETRAN - PE">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="inputDadosVeiculoCiretran" class="form-label fw-bold text-primary">Dados do Veículo:</label>
+                                    <textarea class="form-control border-primary" id="inputDadosVeiculoCiretran" rows="3" placeholder="Ex: UMA (01) MOTOCICLETA, HONDA CG 150 FAN, NA COR CINZA, CHASSI: PINADO, PLACA AFIXADA KHU-1643..."></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="inputJustificativaCiretran" class="form-label fw-bold text-primary">Justificativa / Contexto (opcional):</label>
+                                    <textarea class="form-control border-primary" id="inputJustificativaCiretran" rows="3" placeholder="Ex: fora encontrada por policiais militares, onde na ocasião estava sendo pilotada pela pessoa de JOSÉ..."></textarea>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary fw-bold px-4" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success fw-bold px-4" id="btnConfirmarEncaminharVeiculo">Confirmar e Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ MODAL PARA CERTIDAO DE MIDIAS EM NUVEM -->
+            <div class="modal fade" id="modalCertidaoMidiasDrive" tabindex="-1" aria-labelledby="modalCertidaoMidiasDriveLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header bg-info text-dark">
+                            <h5 class="modal-title fw-bold" id="modalCertidaoMidiasDriveLabel">
+                                <i class="bi bi-cloud-arrow-down-fill me-2"></i>
+                                Certidão de Mídias em Nuvem (Drive)
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <form id="formCertidaoMidiasDrive">
+                                <div class="mb-3">
+                                    <label for="inputDescricaoMidias" class="form-label fw-bold text-dark">Descrição das Mídias/Vídeos:</label>
+                                    <textarea class="form-control border-info" id="inputDescricaoMidias" rows="3" placeholder="Ex: as mídias/vídeos captados pelo sistema de videomonitoramento, os quais registram os fatos relacionados à presente investigação..."></textarea>
+                                    
+                                    <!-- Sugestões Rápidas (Dropdowns) -->
+                                    <div class="mt-2 d-flex flex-wrap gap-2">
+                                        <!-- Botão Locais Comuns -->
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-info text-dark dropdown-toggle fw-bold border-info" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="bi bi-building"></i> Locais Comuns
+                                            </button>
+                                            <ul class="dropdown-menu shadow-sm border-info">
+                                                <li><a class="dropdown-item" href="#" onclick="document.getElementById('inputDescricaoMidias').value='as mídias/vídeos captados pelo sistema de videomonitoramento do estabelecimento comercial, os quais registram os fatos'">🏢 Comércio</a></li>
+                                                <li><a class="dropdown-item" href="#" onclick="document.getElementById('inputDescricaoMidias').value='as imagens captadas pelo sistema de segurança da residência particular, as quais flagram a ação criminosa'">🏠 Residência</a></li>
+                                                <li><a class="dropdown-item" href="#" onclick="document.getElementById('inputDescricaoMidias').value='as gravações do circuito interno de câmeras da agência bancária'">🏦 Banco</a></li>
+                                                <li><a class="dropdown-item" href="#" onclick="document.getElementById('inputDescricaoMidias').value='os arquivos de vídeo registrados pelas câmeras de segurança do hospital/unidade de saúde'">🏥 Hospital</a></li>
+                                                <li><a class="dropdown-item" href="#" onclick="document.getElementById('inputDescricaoMidias').value='os vídeos capturados pelo sistema de monitoramento da instituição de ensino / escola'">🏫 Escola</a></li>
+                                            </ul>
+                                        </div>
+
+                                        <!-- Botão Vítimas (Oculto por padrão, ativado pelo JS) -->
+                                        <div class="dropdown" id="dropdownVitimasContainer" style="display:none;">
+                                            <button class="btn btn-sm btn-outline-success dropdown-toggle fw-bold" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="bi bi-person-heart"></i> Fornecido por Vítima
+                                            </button>
+                                            <ul class="dropdown-menu shadow-sm border-success" id="listaDropdownVitimas">
+                                            </ul>
+                                        </div>
+
+                                        <!-- Botão Testemunhas (Oculto por padrão, ativado pelo JS) -->
+                                        <div class="dropdown" id="dropdownTestemunhasContainer" style="display:none;">
+                                            <button class="btn btn-sm btn-outline-warning text-dark dropdown-toggle fw-bold border-warning" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="bi bi-people-fill"></i> Fornecido por Testemunha
+                                            </button>
+                                            <ul class="dropdown-menu shadow-sm border-warning" id="listaDropdownTestemunhas">
+                                            </ul>
+                                        </div>
+
+                                        <!-- Botão Solto WhatsApp -->
+                                        <button class="btn btn-sm btn-outline-secondary fw-bold" type="button" onclick="document.getElementById('inputDescricaoMidias').value='os arquivos de mídia (vídeos/fotos) recebidos via aplicativo de mensagens e extraídos de dispositivo móvel'">
+                                            <i class="bi bi-whatsapp text-success"></i> WhatsApp
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="inputLinkDrive" class="form-label fw-bold text-dark">Link de Acesso (Drive / Expresso):</label>
+                                    <input type="url" class="form-control border-info" id="inputLinkDrive" placeholder="Ex: https://drive.expresso.pe.gov.br/s/abcd123">
+                                    <div class="form-text">O sistema irá gerar um QR Code automaticamente a partir deste link.</div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary fw-bold px-4" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success fw-bold px-4" id="btnConfirmarCertidaoMidiasDrive">Confirmar e Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ MODAL PARA CI DE REMESSA DE PROCEDIMENTOS -->
+            <div class="modal fade" id="modalCIRemessaProcedimentos" tabindex="-1" aria-labelledby="modalCIRemessaProcedimentosLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header bg-dark text-white">
+                            <h5 class="modal-title fw-bold" id="modalCIRemessaProcedimentosLabel">
+                                <i class="bi bi-folder-symlink-fill me-2"></i>
+                                C.I. de Remessa de Procedimentos
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <form id="formCIRemessaProcedimentos">
+                                <div class="mb-3">
+                                    <label for="inputCIDestinatario" class="form-label fw-bold text-dark">Destinatário da C.I.:</label>
+                                    <input type="text" class="form-control" id="inputCIDestinatario" placeholder="Ex: GESTOR(A) DA 20ª DESEC – AFOGADOS DA INGAZEIRA" value="GESTOR(A) DA 20ª DESEC – AFOGADOS DA INGAZEIRA">
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12 mb-3">
+                                        <label for="selectCITipoProc" class="form-label fw-bold text-dark">Tipo de Procedimento:</label>
+                                        <select class="form-select" id="selectCITipoProc">
+                                            <option value="AUTO DE PRISÃO EM FLAGRANTE DELITO (APFD)" selected>APFD</option>
+                                            <option value="TERMO CIRCUNSTANCIADO DE OCORRÊNCIA (TCO)">TCO</option>
+                                            <option value="BOLETIM DE OCORRÊNCIA CIRCUNSTANCIADO (BOC)">BOC</option>
+                                            <option value="PORTARIA (INQUÉRITO POLICIAL)">Inquérito (Portaria)</option>
+                                            <option value="PROCEDIMENTO POLICIAL">Outro</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="checkCIFianca" role="switch">
+                                    <label class="form-check-label fw-bold text-dark" for="checkCIFianca">Houve pagamento de Fiança?</label>
+                                </div>
+                                <div id="containerCIFianca" style="display: none;">
+                                    <div class="row">
+                                        <div class="col-md-4 mb-3">
+                                            <label for="inputCIFiancaValor" class="form-label fw-bold text-dark">Valor (R$):</label>
+                                            <input type="text" class="form-control" id="inputCIFiancaValor" placeholder="Ex: 1.412,00">
+                                        </div>
+                                        <div class="col-md-8 mb-3">
+                                            <label for="inputCIFiancaExtenso" class="form-label fw-bold text-dark">Valor por Extenso:</label>
+                                            <input type="text" class="form-control" id="inputCIFiancaExtenso" placeholder="Ex: mil, quatrocentos e doze reais">
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary fw-bold px-4" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success fw-bold px-4" id="btnConfirmarCIRemessaProcedimentos">Confirmar e Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ MODAL PARA CI DE REMESSA DE OBJETOS E DOCUMENTOS -->
+            <div class="modal fade" id="modalCIRemessaObjetosDocumentos" tabindex="-1" aria-labelledby="modalCIRemessaObjetosDocumentosLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header bg-dark text-white">
+                            <h5 class="modal-title fw-bold" id="modalCIRemessaObjetosDocumentosLabel">
+                                <i class="bi bi-box-seam-fill me-2"></i>
+                                C.I. de Remessa de Objetos / Documentos
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <form id="formCIRemessaObjetosDocumentos">
+                                <div class="row">
+                                    <div class="col-md-8 mb-3">
+                                        <label for="inputCIDestinatarioRemessa" class="form-label fw-bold text-dark">Destinatário da C.I.:</label>
+                                        <input type="text" class="form-control" id="inputCIDestinatarioRemessa" placeholder="Ex: GESTOR(A) DA 20ª DESEC – AFOGADOS DA INGAZEIRA" value="GESTOR(A) DA 20ª DESEC – AFOGADOS DA INGAZEIRA">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="selectCITipoRemessa" class="form-label fw-bold text-dark">O que será enviado?</label>
+                                        <select class="form-select" id="selectCITipoRemessa">
+                                            <option value="OBJETOS" selected>Objetos / Apreensões</option>
+                                            <option value="DOCUMENTOS">Documentos</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div id="containerRemessaObjetos">
+                                    <div class="mb-3">
+                                        <label for="selectCITipoProcRemessa" class="form-label fw-bold text-dark">Procedimento Referente aos Objetos:</label>
+                                        <select class="form-select" id="selectCITipoProcRemessa">
+                                            <option value="AUTO DE PRISÃO EM FLAGRANTE DELITO (APFD)" selected>APFD</option>
+                                            <option value="TERMO CIRCUNSTANCIADO DE OCORRÊNCIA (TCO)">TCO</option>
+                                            <option value="BOLETIM DE OCORRÊNCIA CIRCUNSTANCIADO (BOC)">BOC</option>
+                                            <option value="PORTARIA (INQUÉRITO POLICIAL)">Inquérito (Portaria)</option>
+                                            <option value="PROCEDIMENTO POLICIAL">Outro</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div id="containerRemessaDocumentos" style="display: none;">
+                                    <div class="mb-3">
+                                        <label for="inputCIOrigemDocs" class="form-label fw-bold text-dark">Documentos foram enviados a esta delegacia por quem?</label>
+                                        <input type="text" class="form-control" id="inputCIOrigemDocs" placeholder="Ex: Polícia Militar, Justiça Eleitoral, etc...">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="inputCIListaItens" class="form-label fw-bold text-dark">Lista de Itens (Objetos ou Documentos):</label>
+                                    <textarea class="form-control" id="inputCIListaItens" rows="4" placeholder="Ex:&#10;- 01 (um) Aparelho Celular marca Samsung...&#10;- 01 (um) Revólver calibre 38..."></textarea>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary fw-bold px-4" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success fw-bold px-4" id="btnConfirmarCIRemessaObjetosDocumentos">Confirmar e Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ MODAL PARA CI ADMINISTRATIVA / GENÉRICA -->
+            <div class="modal fade" id="modalCIGenerica" tabindex="-1" aria-labelledby="modalCIGenericaLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header text-white" style="background-color: #2c3e50;">
+                            <h5 class="modal-title" id="modalCIGenericaLabel">
+                                <i class="fas fa-file-alt me-2"></i> C.I. Administrativa / Genérica
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body bg-light">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body p-4">
+                                    <div class="row">
+                                        <div class="col-md-12 mb-3">
+                                            <label for="inputCIGenericaDestinatario" class="form-label fw-bold text-dark">Destinatário da C.I.:</label>
+                                            <input type="text" class="form-control" id="inputCIGenericaDestinatario" placeholder="Ex: GESTOR(A) DA 20ª DESEC – AFOGADOS DA INGAZEIRA" value="GESTOR(A) DA 20ª DESEC – AFOGADOS DA INGAZEIRA">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12 mb-3">
+                                            <label for="inputCIGenericaAssunto" class="form-label fw-bold text-dark">Assunto (Opcional):</label>
+                                            <input type="text" class="form-control" id="inputCIGenericaAssunto" placeholder="Ex: Comunicação de Fato, Solicitação de Férias, etc.">
+                                            <div class="mt-2">
+                                                <span class="badge bg-secondary cursor-pointer me-1" onclick="$('#inputCIGenericaAssunto').val('COMUNICAÇÃO DE LOCAL DE CRIME')">Comunicação de Local de Crime</span>
+                                                <span class="badge bg-secondary cursor-pointer me-1" onclick="$('#inputCIGenericaAssunto').val('ENTREGA DE OBJETO APREENDIDO')">Entrega de Objeto</span>
+                                                <span class="badge bg-secondary cursor-pointer me-1" onclick="$('#inputCIGenericaAssunto').val('SOLICITAÇÃO DE MANUTENÇÃO')">Manutenção</span>
+                                                <span class="badge bg-secondary cursor-pointer me-1" onclick="$('#inputCIGenericaAssunto').val('COMUNICAÇÃO DE AFASTAMENTO')">Afastamento</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12 mb-3">
+                                            <label for="inputCIGenericaCorpo" class="form-label fw-bold text-dark">Texto Base (Início do documento):</label>
+                                            <textarea class="form-control" id="inputCIGenericaCorpo" rows="4">Cumprimentando-o(a) cordialmente, sirvo-me do presente para informar/solicitar que...</textarea>
+                                            <small class="text-muted">Você poderá formatar todo o texto no editor profissional logo em seguida.</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light border-top-0">
+                            <button type="button" class="btn btn-secondary px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success px-4 fw-bold" id="btnConfirmarCIGenerica">Confirmar e Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ MODAL PARA CI DE ENCAMINHAMENTO AO IITB -->
+            <div class="modal fade" id="modalCIEncaminhamentoIITB" tabindex="-1" aria-labelledby="modalCIEncaminhamentoIITBLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header text-white" style="background-color: #2c3e50;">
+                            <h5 class="modal-title" id="modalCIEncaminhamentoIITBLabel">
+                                <i class="fas fa-fingerprint me-2"></i> C.I. de Encaminhamento ao IITB
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body bg-light">
+                            <div class="card border-0 shadow-sm mb-3">
+                                <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+                                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-user-check me-2 text-primary"></i>Selecione a pessoa a ser encaminhada:</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="containerRadiosPessoasIITB" class="row">
+                                        <!-- Radios preenchidos dinamicamente pelo JS -->
+                                    </div>
+                                    <hr>
+                                    <div class="mt-3">
+                                        <label for="inputPessoaManualIITB" class="form-label fw-bold text-dark">Ou digite o nome manualmente (se não estiver listado):</label>
+                                        <input type="text" class="form-control" id="inputPessoaManualIITB" placeholder="Nome completo da pessoa...">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <label for="inputQualificacaoIITB" class="form-label fw-bold text-dark">Qualificação (Opcional):</label>
+                                    <input type="text" class="form-control" id="inputQualificacaoIITB" placeholder="Ex: brasileiro, solteiro, RG nº..., nascido aos...">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light border-top-0">
+                            <button type="button" class="btn btn-secondary px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success px-4 fw-bold" id="btnConfirmarCIEncaminhamentoIITB">Confirmar e Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ MODAL PARA OFÍCIO BANCO / INSTITUIÇÃO FINANCEIRA -->
+            <div class="modal fade" id="modalOficioBanco" tabindex="-1" aria-labelledby="modalOficioBancoLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header text-white" style="background-color: #2c3e50;">
+                            <h5 class="modal-title" id="modalOficioBancoLabel">
+                                <i class="fas fa-university me-2"></i> Ofício para Instituição Financeira / Banco
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body bg-light">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body p-4">
+                                    <div class="row">
+                                        <div class="col-md-8 mb-3">
+                                            <label for="selectBancoNome" class="form-label fw-bold text-dark">Banco / Instituição Financeira:</label>
+                                            <select class="form-select" id="selectBancoNome">
+                                                <option value="BANCO DO BRASIL" selected>Banco do Brasil</option>
+                                                <option value="CAIXA ECONÔMICA FEDERAL">Caixa Econômica Federal</option>
+                                                <option value="BRADESCO">Bradesco</option>
+                                                <option value="ITAÚ">Itaú</option>
+                                                <option value="SANTANDER">Santander</option>
+                                                <option value="SICREDI">Sicredi</option>
+                                                <option value="SICOOB">Sicoob</option>
+                                                <option value="BANCO DO NORDESTE (BNB)">Banco do Nordeste (BNB)</option>
+                                                <option value="OUTRO">Outro (Digitar manualmente no editor)</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label for="inputBancoAgencia" class="form-label fw-bold text-dark">Agência:</label>
+                                            <input type="text" class="form-control" id="inputBancoAgencia" placeholder="Ex: Afogados da Ingazeira">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12 mb-3">
+                                            <label class="form-label fw-bold text-dark d-block">Tipo de Solicitação:</label>
+                                            
+                                            <div class="form-check form-check-inline mt-2">
+                                                <input class="form-check-input" type="radio" name="radioBancoTipoSolicitacao" id="radioBancoImagens" value="IMAGENS" checked>
+                                                <label class="form-check-label fw-bold" for="radioBancoImagens">Imagens de Câmeras (CFTV)</label>
+                                            </div>
+                                            <div class="form-check form-check-inline mt-2">
+                                                <input class="form-check-input" type="radio" name="radioBancoTipoSolicitacao" id="radioBancoDocumentos" value="DOCUMENTOS">
+                                                <label class="form-check-label fw-bold" for="radioBancoDocumentos">Documentos (Extratos, Contratos, etc.)</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row" id="containerBancoDetalhes" style="display: none;">
+                                        <div class="col-md-12 mb-3">
+                                            <label for="inputBancoDetalhes" class="form-label fw-bold text-dark">Detalhes da Solicitação:</label>
+                                            <textarea class="form-control" id="inputBancoDetalhes" rows="3" placeholder="Ex: Extrato bancário referente ao período de XX/XX a XX/XX da conta número..."></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light border-top-0">
+                            <button type="button" class="btn btn-secondary px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success px-4 fw-bold" id="btnConfirmarOficioBanco">Confirmar e Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ MODAL PARA OFÍCIO SOLICITANDO CERTIDÃO DE ÓBITO -->
+            <div class="modal fade" id="modalOficioCertidaoObito" tabindex="-1" aria-labelledby="modalOficioCertidaoObitoLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header text-white" style="background-color: #2c3e50;">
+                            <h5 class="modal-title" id="modalOficioCertidaoObitoLabel">
+                                <i class="fas fa-file-contract me-2"></i> Ofício - Certidão de Óbito
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body bg-light">
+                            <div class="card border-0 shadow-sm mb-3">
+                                <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+                                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-user-injured me-2 text-primary"></i>Selecione a Vítima Falecida:</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="containerRadiosVitimasObito" class="row">
+                                        <!-- Radios preenchidos dinamicamente pelo JS -->
+                                    </div>
+                                    <hr>
+                                    <div class="mt-3">
+                                        <label for="inputVitimaManualObito" class="form-label fw-bold text-dark">Ou digite o nome manualmente (se não estiver listada):</label>
+                                        <input type="text" class="form-control" id="inputVitimaManualObito" placeholder="Nome completo da vítima...">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <label for="inputCartorioNome" class="form-label fw-bold text-dark">Nome do Cartório do Registro Civil:</label>
+                                    <input type="text" class="form-control" id="inputCartorioNome" placeholder="Ex: Cartório do Registro Civil das Pessoas Naturais">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light border-top-0">
+                            <button type="button" class="btn btn-secondary px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success px-4 fw-bold" id="btnConfirmarOficioCertidaoObito">Confirmar e Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ MODAL PARA OFÍCIO DE ENCAMINHAMENTO DE CADÁVER AO IML -->
+            <div class="modal fade" id="modalOficioIML" tabindex="-1" aria-labelledby="modalOficioIMLLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header text-white" style="background-color: #2c3e50;">
+                            <h5 class="modal-title" id="modalOficioIMLLabel">
+                                <i class="fas fa-ambulance me-2"></i> Ofício - Encaminhamento ao IML
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body bg-light">
+                            <div class="card border-0 shadow-sm mb-3">
+                                <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+                                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-user-injured me-2 text-primary"></i>Selecione o Cadáver (Vítima):</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="containerRadiosVitimasIML" class="row">
+                                        <!-- Radios preenchidos dinamicamente pelo JS -->
+                                    </div>
+                                    <hr>
+                                    <div class="mt-3">
+                                        <label for="inputVitimaManualIML" class="form-label fw-bold text-dark">Ou digite o nome manualmente (se não estiver listada):</label>
+                                        <input type="text" class="form-control" id="inputVitimaManualIML" placeholder="Nome do cadáver / Não identificado...">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card border-0 shadow-sm mb-3">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="selectCidadeIML" class="form-label fw-bold text-dark">Cidade do IML:</label>
+                                            <select class="form-select" id="selectCidadeIML">
+                                                <option value="CARUARU-PE" selected>Caruaru-PE</option>
+                                                <option value="PETROLINA-PE">Petrolina-PE</option>
+                                                <option value="RECIFE-PE">Recife-PE</option>
+                                                <option value="SALGUEIRO-PE">Salgueiro-PE</option>
+                                                <option value="OUTRO">Outra Cidade (Digitar no editor)</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="inputIMLCondutor" class="form-label fw-bold text-dark">Cadáver encaminhado por: (Opcional)</label>
+                                            <input type="text" class="form-control" id="inputIMLCondutor" placeholder="Ex: Funerária XYZ, GATI, Policiais Militares...">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12 mb-2">
+                                            <label for="inputIMLLocalFato" class="form-label fw-bold text-dark">Local do Óbito / Encontro do Cadáver:</label>
+                                            <input type="text" class="form-control" id="inputIMLLocalFato" placeholder="Será preenchido automaticamente com o Endereço do Fato">
+                                        </div>
+                                    </div>
+                                    
+                                    <hr class="my-3">
+                                    
+                                    <div class="row">
+                                        <div class="col-12 mb-2">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="checkIMLAutorizarFamiliar">
+                                                <label class="form-check-label fw-bold text-primary" for="checkIMLAutorizarFamiliar">
+                                                    Adicionar autorização para familiar/pessoa liberar o corpo
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row bg-light rounded p-3 mt-2 border" id="containerIMLAutorizacao" style="display: none;">
+                                        <div class="col-md-5 mb-2">
+                                            <label for="inputIMLFamiliarNome" class="form-label fw-bold text-dark">Nome do Familiar/Pessoa:</label>
+                                            <input type="text" class="form-control" id="inputIMLFamiliarNome" placeholder="Ex: João da Silva">
+                                        </div>
+                                        <div class="col-md-4 mb-2">
+                                            <label for="inputIMLFamiliarParentesco" class="form-label fw-bold text-dark">Grau de Parentesco:</label>
+                                            <input type="text" class="form-control" id="inputIMLFamiliarParentesco" placeholder="Ex: Pai, Tio, Esposa...">
+                                        </div>
+                                        <div class="col-md-3 mb-2">
+                                            <label for="inputIMLFamiliarRG" class="form-label fw-bold text-dark">RG / CPF:</label>
+                                            <input type="text" class="form-control" id="inputIMLFamiliarRG" placeholder="Ex: 1234567 SDS/PE">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light border-top-0">
+                            <button type="button" class="btn btn-secondary px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success px-4 fw-bold" id="btnConfirmarOficioIML">Confirmar e Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ MODAL PARA OFÍCIO REQUISITANDO PM -->
+            <div class="modal fade" id="modalOficioPM" tabindex="-1" aria-labelledby="modalOficioPMLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header text-white" style="background-color: #2c3e50;">
+                            <h5 class="modal-title" id="modalOficioPMLabel">
+                                <i class="fas fa-shield-alt me-2"></i> Ofício - Requisição de PM
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body bg-light">
+                            <div class="card border-0 shadow-sm mb-3">
+                                <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+                                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-users me-2 text-primary"></i>Selecione os Policiais a serem requisitados:</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="containerCheckboxesPM" class="row">
+                                        <!-- Checkboxes preenchidos dinamicamente pelo JS -->
+                                    </div>
+                                    <hr>
+                                    <div class="mt-3">
+                                        <label for="inputPMManual" class="form-label fw-bold text-dark">Adicionar outro Policial manualmente:</label>
+                                        <textarea class="form-control" id="inputPMManual" rows="2" placeholder="Ex: SD PM Fulano de Tal, Matrícula 12345-6..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card border-0 shadow-sm mb-3">
+                                <div class="card-body p-4">
+                                    <div class="row">
+                                        <div class="col-md-12 mb-3">
+                                            <label for="selectBatalhaoPM" class="form-label fw-bold text-dark">Batalhão / Companhia / OPM:</label>
+                                            <select class="form-select" id="selectBatalhaoPM">
+                                                <option value="23º BATALHÃO DE POLÍCIA MILITAR" selected>23º BPM - Afogados da Ingazeira</option>
+                                                <option value="3º BATALHÃO DE POLÍCIA MILITAR">3º BPM - Arcoverde</option>
+                                                <option value="15º BATALHÃO DE POLÍCIA MILITAR">15º BPM - Belo Jardim</option>
+                                                <option value="BEPI / CIOSAC">BEPI / CIOSAC</option>
+                                                <option value="BPRV - BATALHÃO DE POLÍCIA RODOVIÁRIA">BPRv</option>
+                                                <option value="OUTRO">Outro (Digitar no editor)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <label for="inputPMData" class="form-label fw-bold text-dark">Data da Apresentação:</label>
+                                            <input type="text" class="form-control" id="inputPMData" placeholder="Ex: 15/10/2024">
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <label for="inputPMHora" class="form-label fw-bold text-dark">Hora da Apresentação:</label>
+                                            <input type="text" class="form-control" id="inputPMHora" placeholder="Ex: 09h00">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light border-top-0">
+                            <button type="button" class="btn btn-secondary px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success px-4 fw-bold" id="btnConfirmarOficioPM">Confirmar e Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ MODAL PARA CERTIDÃO DE COMPARECIMENTO -->
+            <div class="modal fade" id="modalCertidaoComparecimento" tabindex="-1" aria-labelledby="modalCertidaoComparecimentoLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header text-white" style="background-color: #2c3e50;">
+                            <h5 class="modal-title" id="modalCertidaoComparecimentoLabel">
+                                <i class="fas fa-stamp me-2"></i> Certidão de Comparecimento
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body bg-light">
+                            <div class="card border-0 shadow-sm mb-3">
+                                <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+                                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-user-check me-2 text-primary"></i>Selecione quem compareceu:</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="containerRadiosComparecimento" class="row">
+                                        <!-- Radios preenchidos dinamicamente pelo JS -->
+                                    </div>
+                                    <hr>
+                                    <div class="mt-3">
+                                        <label for="inputComparecimentoManual" class="form-label fw-bold text-dark">Ou digite o nome manualmente:</label>
+                                        <input type="text" class="form-control" id="inputComparecimentoManual" placeholder="Nome completo da pessoa...">
+                                    </div>
+                                    <div class="mt-2">
+                                        <label for="inputComparecimentoDoc" class="form-label fw-bold text-dark">Documento de Identificação (RG, CPF, OAB, etc.): (Opcional)</label>
+                                        <input type="text" class="form-control" id="inputComparecimentoDoc" placeholder="Ex: RG 123456 SDS/PE">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4 mb-3">
+                                            <label for="inputComparecimentoData" class="form-label fw-bold text-dark">Data do Comparecimento:</label>
+                                            <input type="text" class="form-control" id="inputComparecimentoData" placeholder="Ex: 15/10/2024">
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label for="inputComparecimentoHoraChegada" class="form-label fw-bold text-dark">Hora de Chegada:</label>
+                                            <input type="text" class="form-control" id="inputComparecimentoHoraChegada" placeholder="Ex: 09h00">
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label for="inputComparecimentoHoraSaida" class="form-label fw-bold text-dark">Hora de Saída:</label>
+                                            <input type="text" class="form-control" id="inputComparecimentoHoraSaida" placeholder="Ex: 11h30">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light border-top-0">
+                            <button type="button" class="btn btn-secondary px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success px-4 fw-bold" id="btnConfirmarCertidaoComparecimento">Confirmar e Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ MODAL PARA CERTIDÃO DE COMUNICAÇÃO À FAMÍLIA -->
+            <div class="modal fade" id="modalCertidaoComunicaFamilia" tabindex="-1" aria-labelledby="modalCertidaoComunicaFamiliaLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header text-white" style="background-color: #2c3e50;">
+                            <h5 class="modal-title" id="modalCertidaoComunicaFamiliaLabel">
+                                <i class="fas fa-phone-volume me-2"></i> Certidão de Comunicação à Família
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body bg-light">
+                            <div class="card border-0 shadow-sm mb-3">
+                                <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+                                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-user-lock me-2 text-primary"></i>Selecione o Autuado/Preso:</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="containerRadiosAutuadosComunica" class="row">
+                                        <!-- Radios preenchidos dinamicamente pelo JS -->
+                                    </div>
+                                    <hr>
+                                    <div class="mt-3">
+                                        <label for="inputComunicaAutuadoManual" class="form-label fw-bold text-dark">Ou digite o nome do preso manualmente:</label>
+                                        <input type="text" class="form-control" id="inputComunicaAutuadoManual" placeholder="Nome completo do autuado...">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+                                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-users me-2 text-primary"></i>Dados do Familiar Comunicado:</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-7 mb-3">
+                                            <label for="inputComunicaFamiliarNome" class="form-label fw-bold text-dark">Nome do Familiar/Amigo:</label>
+                                            <input type="text" class="form-control" id="inputComunicaFamiliarNome" placeholder="Ex: Maria da Silva">
+                                        </div>
+                                        <div class="col-md-5 mb-3">
+                                            <label for="inputComunicaParentesco" class="form-label fw-bold text-dark">Grau de Parentesco:</label>
+                                            <input type="text" class="form-control" id="inputComunicaParentesco" placeholder="Ex: Mãe, Pai, Tio, Esposa...">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12 mb-2">
+                                            <label class="form-label fw-bold text-dark d-block">Forma de Comunicação:</label>
+                                            <div class="form-check form-check-inline mt-2">
+                                                <input class="form-check-input" type="radio" name="radioComunicaMeio" id="radioComunicaTelefone" value="TELEFONE" checked>
+                                                <label class="form-check-label" for="radioComunicaTelefone">Por Telefone</label>
+                                            </div>
+                                            <div class="form-check form-check-inline mt-2">
+                                                <input class="form-check-input" type="radio" name="radioComunicaMeio" id="radioComunicaPessoal" value="PESSOAL">
+                                                <label class="form-check-label" for="radioComunicaPessoal">Pessoalmente na Delegacia</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-2" id="containerComunicaTelefone">
+                                        <div class="col-md-6 mb-2">
+                                            <label for="inputComunicaTelefone" class="form-label fw-bold text-dark">Número do Telefone:</label>
+                                            <input type="text" class="form-control" id="inputComunicaTelefone" placeholder="Ex: (81) 99999-9999">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light border-top-0">
+                            <button type="button" class="btn btn-secondary px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success px-4 fw-bold" id="btnConfirmarCertidaoComunicaFamilia">Confirmar e Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ MODAL PARA RECIBO DE ENTREGA DE PRESO -->
+            <div class="modal fade" id="modalReciboPreso" tabindex="-1" aria-labelledby="modalReciboPresoLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header text-white" style="background-color: #2c3e50;">
+                            <h5 class="modal-title" id="modalReciboPresoLabel">
+                                <i class="fas fa-handshake me-2"></i> Recibo de Entrega de Preso
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body bg-light">
+                            <div class="card border-0 shadow-sm mb-3">
+                                <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+                                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-user-shield me-2 text-primary"></i>Selecione o Condutor (PM/Policial):</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="containerRadiosCondutoresRecibo" class="row">
+                                        <!-- Radios preenchidos dinamicamente pelo JS -->
+                                    </div>
+                                    <hr>
+                                    <div class="mt-3">
+                                        <label for="inputReciboCondutorManual" class="form-label fw-bold text-dark">Ou digite o nome do condutor manualmente:</label>
+                                        <input type="text" class="form-control" id="inputReciboCondutorManual" placeholder="Ex: SD PM Fulano de Tal, Matrícula...">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+                                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-user-lock me-2 text-primary"></i>Selecione o Preso Entregue:</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="containerRadiosAutuadosRecibo" class="row">
+                                        <!-- Radios preenchidos dinamicamente pelo JS -->
+                                    </div>
+                                    <hr>
+                                    <div class="mt-3">
+                                        <label for="inputReciboAutuadoManual" class="form-label fw-bold text-dark">Ou digite o nome do preso manualmente:</label>
+                                        <input type="text" class="form-control" id="inputReciboAutuadoManual" placeholder="Nome completo do preso...">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light border-top-0">
+                            <button type="button" class="btn btn-secondary px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success px-4 fw-bold" id="btnConfirmarReciboPreso">Confirmar e Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ MODAL PARA RECIBO DE PROCEDIMENTO -->
+            <div class="modal fade" id="modalReciboProcedimento" tabindex="-1" aria-labelledby="modalReciboProcedimentoLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header text-white" style="background-color: #2c3e50;">
+                            <h5 class="modal-title" id="modalReciboProcedimentoLabel">
+                                <i class="fas fa-folder-open me-2"></i> Recibo de Procedimento
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body bg-light">
+                            <div class="card border-0 shadow-sm mb-3">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-12 mb-3">
+                                            <label for="selectDestinoProcedimento" class="form-label fw-bold text-dark">Destino do Procedimento:</label>
+                                            <select class="form-select" id="selectDestinoProcedimento">
+                                                <option value="AUDIÊNCIA DE CUSTÓDIA" selected>Audiência de Custódia</option>
+                                                <option value="20ª DESEC">20ª DESEC</option>
+                                                <option value="FÓRUM / PODER JUDICIÁRIO">Fórum / Poder Judiciário</option>
+                                                <option value="MINISTÉRIO PÚBLICO">Ministério Público</option>
+                                                <option value="OUTRO">Outro (Digitar no editor)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12 mb-2">
+                                            <label for="inputObsProcedimento" class="form-label fw-bold text-dark">Observações Adicionais (Opcional):</label>
+                                            <textarea class="form-control" id="inputObsProcedimento" rows="3" placeholder="Ex: juntamente com 01 (um) aparelho celular e 01 (uma) faca apreendidos..."></textarea>
+                                            <small class="text-muted">Isso será inserido na frase: "...referente ao Boletim de Ocorrência em epígrafe, [SUA OBSERVAÇÃO], para fins de encaminhamento ao..."</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light border-top-0">
+                            <button type="button" class="btn btn-secondary px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success px-4 fw-bold" id="btnConfirmarReciboProcedimento">Confirmar e Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ MODAL PARA AUTO DE DEPÓSITO FIEL -->
+            <div class="modal fade" id="modalAutoDepositoFiel" tabindex="-1" aria-labelledby="modalAutoDepositoFielLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header text-white" style="background-color: #2c3e50;">
+                            <h5 class="modal-title" id="modalAutoDepositoFielLabel">
+                                <i class="fas fa-box-open me-2"></i> Auto de Depósito Fiel
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body bg-light">
+                            <div class="card border-0 shadow-sm mb-3">
+                                <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+                                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-user-check me-2 text-primary"></i>Selecione o Fiel Depositário:</h6>
+                                    <small class="text-muted">A pessoa que ficará responsável pela guarda dos bens apreendidos.</small>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-3">
+                                        <div class="col-md-12">
+                                            <select class="form-select" id="selectPessoaDepositoFiel">
+                                                <option value="" selected disabled>Escolha uma pessoa envolvida...</option>
+                                                <!-- Opções preenchidas pelo JS -->
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <p class="fw-bold text-dark mb-2">Ou digite os dados do depositário manualmente:</p>
+                                    <div class="row">
+                                        <div class="col-md-12 mb-2">
+                                            <input type="text" class="form-control" id="inputDepositoNome" placeholder="Nome completo...">
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <input type="text" class="form-control" id="inputDepositoRG" placeholder="RG...">
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <input type="text" class="form-control cpf-mask" id="inputDepositoCPF" placeholder="CPF...">
+                                        </div>
+                                        <div class="col-md-12 mb-2">
+                                            <input type="text" class="form-control" id="inputDepositoEndereco" placeholder="Endereço completo...">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+                                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-list me-2 text-primary"></i>Bens e Objetos Deixados em Depósito:</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-12 mb-2">
+                                            <textarea class="form-control" id="inputDepositoObjetos" rows="4" placeholder="Descreva de forma minuciosa os bens, equipamentos, veículos ou objetos que ficarão sob a guarda do fiel depositário..."></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light border-top-0">
+                            <button type="button" class="btn btn-secondary px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success px-4 fw-bold" id="btnConfirmarAutoDepositoFiel">Confirmar e Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ MODAL PARA TERMO DE GUARDA E ENTREGA DE VEÍCULO -->
+            <div class="modal fade" id="modalTermoGuardaVeiculo" tabindex="-1" aria-labelledby="modalTermoGuardaVeiculoLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header text-white" style="background-color: #2c3e50;">
+                            <h5 class="modal-title" id="modalTermoGuardaVeiculoLabel">
+                                <i class="fas fa-car me-2"></i> Termo de Guarda e Entrega de Veículo
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body bg-light">
+                            <div class="card border-0 shadow-sm mb-3">
+                                <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+                                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-user-check me-2 text-primary"></i>Selecione o Recebedor / Fiel Depositário:</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-3">
+                                        <div class="col-md-12">
+                                            <select class="form-select" id="selectPessoaGuardaVeiculo">
+                                                <option value="" selected disabled>Escolha uma pessoa envolvida...</option>
+                                                <!-- Opções preenchidas pelo JS -->
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <p class="fw-bold text-dark mb-2">Ou digite os dados manualmente:</p>
+                                    <div class="row">
+                                        <div class="col-md-12 mb-2">
+                                            <input type="text" class="form-control" id="inputGuardaNome" placeholder="Nome completo...">
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <input type="text" class="form-control" id="inputGuardaRG" placeholder="RG...">
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <input type="text" class="form-control cpf-mask" id="inputGuardaCPF" placeholder="CPF...">
+                                        </div>
+                                        <div class="col-md-12 mb-2">
+                                            <input type="text" class="form-control" id="inputGuardaEndereco" placeholder="Endereço completo...">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+                                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-car-side me-2 text-primary"></i>Dados do Veículo:</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4 mb-2">
+                                            <input type="text" class="form-control" id="inputGuardaVeiculoTipo" placeholder="Tipo (ex: Automóvel, Moto)">
+                                        </div>
+                                        <div class="col-md-4 mb-2">
+                                            <input type="text" class="form-control" id="inputGuardaVeiculoMarca" placeholder="Marca (ex: Fiat)">
+                                        </div>
+                                        <div class="col-md-4 mb-2">
+                                            <input type="text" class="form-control" id="inputGuardaVeiculoModelo" placeholder="Modelo (ex: Uno Mille)">
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <input type="text" class="form-control" id="inputGuardaVeiculoCor" placeholder="Cor (ex: Prata)">
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <input type="text" class="form-control placa-mask" id="inputGuardaVeiculoPlaca" placeholder="Placa (ex: ABC-1234)">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light border-top-0">
+                            <button type="button" class="btn btn-secondary px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success px-4 fw-bold" id="btnConfirmarTermoGuardaVeiculo">Confirmar e Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ MODAL PARA TERMO DE APREENSÃO -->
+            <div class="modal fade" id="modalTermoApreensao" tabindex="-1" aria-labelledby="modalTermoApreensaoLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header text-white" style="background-color: #2c3e50;">
+                            <h5 class="modal-title" id="modalTermoApreensaoLabel">
+                                <i class="fas fa-hand-holding-box me-2"></i> Termo de Apreensão
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body bg-light">
+                            <div class="card border-0 shadow-sm mb-3">
+                                <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+                                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-user-check me-2 text-primary"></i>Apresentador dos Objetos:</h6>
+                                    <small class="text-muted">A pessoa que entregou ou apresentou os objetos na delegacia.</small>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-3">
+                                        <div class="col-md-12">
+                                            <select class="form-select" id="selectPessoaApreensao">
+                                                <option value="" selected disabled>Escolha uma pessoa envolvida...</option>
+                                                <!-- Opções preenchidas pelo JS -->
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <p class="fw-bold text-dark mb-2 mt-3">Ou digite o nome manualmente:</p>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <input type="text" class="form-control" id="inputApreensaoApresentador" placeholder="Nome do Condutor, Testemunha, etc...">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+                                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-list me-2 text-primary"></i>Bens, Objetos e Local:</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-12 mb-3">
+                                            <label class="form-label fw-bold">Local onde foram arrecadados:</label>
+                                            <input type="text" class="form-control" id="inputApreensaoLocal" placeholder="Ex: Local do crime, residência do suspeito, etc...">
+                                        </div>
+                                        <div class="col-md-12 mb-2">
+                                            <label class="form-label fw-bold">Descrição dos objetos apreendidos:</label>
+                                            <textarea class="form-control" id="inputApreensaoObjetos" rows="4" placeholder="Descreva os objetos apreendidos..."></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light border-top-0">
+                            <button type="button" class="btn btn-secondary px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success px-4 fw-bold" id="btnConfirmarTermoApreensao">Confirmar e Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ MODAL PARA CAPA DE PROCEDIMENTO (BOC / TCO) -->
+            <div class="modal fade" id="modalCapaProcedimento" tabindex="-1" aria-labelledby="modalCapaProcedimentoLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header text-white" style="background-color: #2c3e50;">
+                            <h5 class="modal-title" id="modalCapaProcedimentoLabel">
+                                <i class="fas fa-file-alt me-2"></i> Configurar Capa
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body bg-light">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+                                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-cog me-2 text-primary"></i>Tipo de Procedimento:</h6>
+                                    <small class="text-muted">Escolha a modalidade do procedimento que constará no cabeçalho.</small>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <select class="form-select form-select-lg" id="selectTipoProcedimentoCapa">
+                                                <option value="Flagrante">Flagrante (Auto de Prisão / Apreensão em Flagrante)</option>
+                                                <option value="Portaria">Portaria (Instauração por Portaria)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" id="inputDocumentoBaseCapa">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light border-top-0">
+                            <button type="button" class="btn btn-secondary px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success px-4 fw-bold" id="btnConfirmarCapaProcedimento">Confirmar e Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ MODAL PARA ORDEM DE SERVIÇO DE INTIMAÇÃO -->
+            <div class="modal fade" id="modalOrdemServicoIntimacao" tabindex="-1" aria-labelledby="modalOrdemServicoIntimacaoLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header text-white" style="background-color: #2c3e50;">
+                            <h5 class="modal-title" id="modalOrdemServicoIntimacaoLabel">
+                                <i class="fas fa-clipboard-list me-2"></i> Ordem de Serviço - Intimação
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body bg-light">
+                            <div class="card border-0 shadow-sm mb-3">
+                                <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+                                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-users me-2 text-primary"></i>Pessoas a serem Intimadas:</h6>
+                                    <small class="text-muted">Selecione quem deverá ser intimado na diligência (pode selecionar mais de uma pessoa).</small>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row" id="containerCheckboxesIntimacao">
+                                        <!-- Checkboxes preenchidos dinamicamente pelo JS -->
+                                    </div>
+                                    <hr>
+                                    <p class="fw-bold text-dark mb-2">Ou adicione alguém manualmente:</p>
+                                    <div class="row">
+                                        <div class="col-md-12 mb-2">
+                                            <input type="text" class="form-control" id="inputIntimacaoPessoaManual" placeholder="Nome completo, Endereço, RG/CPF...">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light border-top-0">
+                            <button type="button" class="btn btn-secondary px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success px-4 fw-bold" id="btnConfirmarOrdemServicoIntimacao">Confirmar e Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ MODAL PARA OFÍCIO DE REMESSA -->
+            <div class="modal fade" id="modalOficioRemessa" tabindex="-1" aria-labelledby="modalOficioRemessaLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header text-white" style="background-color: #2c3e50;">
+                            <h5 class="modal-title" id="modalOficioRemessaLabel">
+                                <i class="fas fa-envelope-open-text me-2"></i> Ofício de Remessa de Procedimento
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body bg-light">
+                            <div class="card border-0 shadow-sm mb-3">
+                                <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+                                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-paper-plane me-2 text-primary"></i>Destinatário do Ofício:</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <label class="form-label fw-bold">Tratamento:</label>
+                                            <select class="form-select" id="selectRemessaTratamento">
+                                                <option value="Promotor(a)">Senhor(a) Promotor(a)</option>
+                                                <option value="Juiz(a)">Senhor(a) Juiz(a)</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <label class="form-label fw-bold">Cargo Extenso (Destinatário):</label>
+                                            <input type="text" class="form-control" id="inputRemessaDestinatario" value="PROMOTOR(A) DE JUSTIÇA DO ESTADO DE PERNAMBUCO">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+                                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-folder-open me-2 text-primary"></i>Dados do Procedimento Remetido:</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <label class="form-label fw-bold">Tipo de Procedimento:</label>
+                                            <select class="form-select" id="selectRemessaTipoProc">
+                                                <option value="IP">IP (Inquérito Policial)</option>
+                                                <option value="APFD">APFD (Auto de Prisão em Flagrante)</option>
+                                                <option value="BOC">BOC (Boletim de Ocorrência Circunstanciado)</option>
+                                                <option value="TCO">TCO (Termo Circunstanciado)</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <label class="form-label fw-bold">Nº do Tombo (Procedimento):</label>
+                                            <input type="text" class="form-control" id="inputRemessaTombo" placeholder="Ex: 01234/2026">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light border-top-0">
+                            <button type="button" class="btn btn-secondary px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success px-4 fw-bold" id="btnConfirmarOficioRemessa">Confirmar e Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- ✅ MODAL DE SUGESTÕES PENDENTES DE COLABORADORES -->
             <div class="modal fade" id="modalSugestoesPendentes" tabindex="-1" aria-labelledby="modalSugestoesLabel" aria-hidden="true">
                 <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width: 950px;">

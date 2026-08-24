@@ -1,4 +1,4 @@
-﻿// script_condutor.js - VERSÃO COMPLETA COM PREENCHIMENTO AUTOMÁTICO PARA INTIMAÇÃO
+// script_condutor.js - VERSÃO COMPLETA COM PREENCHIMENTO AUTOMÁTICO PARA INTIMAÇÃO
 document.addEventListener('DOMContentLoaded', function () {
     if (!window.jQuery) { return; }
     var $ = window.jQuery;
@@ -604,7 +604,10 @@ document.addEventListener('DOMContentLoaded', function () {
             "TERMO DE RENUNCIA E DESISTENCIA DE REPRESENTACAO",
             "TERMO DE REPRESENTACAO",
             "TERMO DE COMPROMISSO",
+            "LAUDO TRAUMATOLOGICO",
             "LAUDO TRAUMATOLOGICO IML",
+            "EXAME PRELIMINAR DE ENTORPECENTES",
+            "PERICIA DEFINITIVA EM ENTORPECENTES",
             "OFICIOS MANDADO DE PRISAO"
         ];
 

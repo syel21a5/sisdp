@@ -392,31 +392,37 @@ $textoDesfecho = "Após as formalidades legais, " . implode("</p><p style=\"text
 
                 <p class="preservar-espacamento"><br></p>
 
-                <p style="text-align: justify; line-height: 1.6; margin: 0.2em 0; padding: 0;">
-                    &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;Levo ao conhecimento de V.Ex.ªs que
+                <p style="text-align: justify; line-height: 1.6; text-indent: 40px;">
+                    Levo ao conhecimento de V.Ex.ªs que
                     {{ $isPlural ? 'foram presos' : 'foi preso' }} em flagrante delito
                     {{ $isPlural ? 'as pessoas de' : 'a pessoa de' }}
-                    <strong>{{ $listaNomes }}</strong>, {{ $isPlural ? 'por infrigirem' : 'por infrigir' }} as penas
+                    <strong>{{ $listaNomes }}</strong>, {{ $isPlural ? 'por infringirem' : 'por infringir' }} as penas
                     do(a)
                     <strong>{{ $listaTiposPenais }}</strong>,
                     fato ocorrido no dia {{ $dataComp }}, na(o) cidade de
-                    <strong>{{ !empty($dadosArray['cidade']) ? $dadosArray['cidade'] : 'NÃO INFORMADO' }}/PE</strong>,
+                    <strong>{{ !empty($dadosArray['cidade']) ? mb_strtoupper($dadosArray['cidade']) : 'NÃO INFORMADO' }}/PE</strong>,
                     de acordo com o Boletim de Ocorrência de nº
                     <strong>{{ !empty($dadosArray['boe']) ? $dadosArray['boe'] : 'NÃO INFORMADO' }}</strong>, <?php echo $textoVitimas; ?>.
                 </p>
 
-                <p style="text-align: justify; line-height: 1.6; margin: 0.2em 0; padding: 0;">
-                    &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;<?php echo $textoDesfecho; ?>
+                <p style="text-align: justify; line-height: 1.6; text-indent: 40px;">
+                    <?php echo $textoDesfecho; ?>
                 </p>
 
-                <p style="text-align: justify; line-height: 1.6; margin: 0.2em 0; padding: 0;">
-                    &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;Em anexo, seguem cópias do
-                    procedimento lavrado.
+                <p style="text-align: justify; line-height: 1.6; text-indent: 40px;">
+                    Em anexo, seguem cópias do procedimento lavrado.
                 </p>
 
-                <p style="text-align: center; line-height: 1.6; margin: 0.2em 0; padding: 0;">
-                    &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;Atenciosamente,
-                    <br><br><br>
+                <p>&nbsp;</p>
+
+                <p style="text-align: center; margin: 0;">
+                    Atenciosamente,
+                </p>
+
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+
+                <p style="text-align: center; margin: 0;">
                     <strong>{{ !empty($dadosArray['delegado']) ? $dadosArray['delegado'] : 'NÃO INFORMADO' }}</strong><br>
                     Delegado(a) de Polícia
                 </p>

@@ -84,8 +84,19 @@
                         Fato ocorrido n(o)a <strong>{{ $dadosArray['local_fato'] ?? '[DESCREVER LOCAL DO FATO]' }}</strong>, no dia de <strong>{{ $dadosArray['data_fato'] ?? '[DATA_FATO]' }}</strong>.
                     </p>
                 @else
+                    @php
+                        $singleVitima = !empty($dadosArray['lista_vitimas'][0]) ? $dadosArray['lista_vitimas'][0] : (!empty($dadosArray['vitimas'][0]) ? $dadosArray['vitimas'][0] : null);
+                        $nomeVitima = $singleVitima['nome'] ?? 'NÃO INFORMADO';
+                        $nascVitima = $singleVitima['nascimento'] ?? 'NÃO INFORMADO';
+                        $idadeVitima = $singleVitima['idade'] ?? 'NÃO INFORMADO';
+                        $rgVitima = $singleVitima['rg'] ?? 'NÃO INFORMADO';
+                        $cpfVitima = $singleVitima['cpf'] ?? 'NÃO INFORMADO';
+                        $maeVitima = $singleVitima['mae'] ?? 'NÃO INFORMADO';
+                        $paiVitima = $singleVitima['pai'] ?? 'NÃO INFORMADO';
+                        $endVitima = $singleVitima['endereco'] ?? 'NÃO INFORMADO';
+                    @endphp
                     <p style="text-align: justify; text-indent: 50px;">
-                        Sirvo-me do presente para solicitar os bons préstimos de V.S.ª no sentido de proceder a <strong>PERÍCIA EM LOCAL DE CRIME</strong>, figurando como vítima(s) a(s) pessoa(s) de <strong>{{ $dadosArray['nome'] ?? '[NOME]' }}</strong>, NASCIMENTO: <strong>{{ $dadosArray['nascimento'] ?? '[NASCIMENTO]' }}</strong>, IDADE: <strong>{{ $dadosArray['idade'] ?? '[IDADE]' }}</strong> ANOS, RG: <strong>{{ $dadosArray['rg'] ?? '[RG]' }}</strong>, CPF: <strong>{{ $dadosArray['cpf'] ?? '[CPF]' }}</strong>, MÃE: <strong>{{ $dadosArray['mae'] ?? '[FILIAÇÃO]' }}</strong>, PAI: <strong>{{ $dadosArray['pai'] ?? '[FILIAÇÃO]' }}</strong>, END. RESIDENCIAL: <strong>{{ $dadosArray['endereco'] ?? '[ENDEREÇO]' }}</strong>; fato ocorrido n(o)a <strong>{{ $dadosArray['local_fato'] ?? '[DESCREVER LOCAL DO FATO]' }}</strong>, no dia de <strong>{{ $dadosArray['data_fato'] ?? '[DATA_FATO]' }}</strong>.
+                        Sirvo-me do presente para solicitar os bons préstimos de V.S.ª no sentido de proceder a <strong>PERÍCIA EM LOCAL DE CRIME</strong>, figurando como vítima(s) a(s) pessoa(s) de <strong>{{ $nomeVitima }}</strong>, NASCIMENTO: <strong>{{ $nascVitima }}</strong>, IDADE: <strong>{{ $idadeVitima }}</strong> ANOS, RG: <strong>{{ $rgVitima }}</strong>, CPF: <strong>{{ $cpfVitima }}</strong>, MÃE: <strong>{{ $maeVitima }}</strong>, PAI: <strong>{{ $paiVitima }}</strong>, END. RESIDENCIAL: <strong>{{ $endVitima }}</strong>; fato ocorrido n(o)a <strong>{{ $dadosArray['local_fato'] ?? '[DESCREVER LOCAL DO FATO]' }}</strong>, no dia de <strong>{{ $dadosArray['data_fato'] ?? '[DATA_FATO]' }}</strong>.
                     </p>
                 @endif
 

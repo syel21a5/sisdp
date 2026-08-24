@@ -1,4 +1,4 @@
-﻿// script_outros.js - VERSÃO ADAPTADA PARA OUTROS
+// script_outros.js - VERSÃO ADAPTADA PARA OUTROS
 $(document).ready(function () {
     // === Configuração global de CSRF ===
     $.ajaxSetup({
@@ -530,6 +530,7 @@ $(document).ready(function () {
             "TERMO DE REPRESENTACAO",
             "TERMO DE COMPROMISSO",
             "TERMO DE LIBERACAO DE MENOR - INFRATOR",
+            "LAUDO TRAUMATOLOGICO",
             "LAUDO TRAUMATOLOGICO IML",
             "CERTIDAO DE ASSINATURA INDIVIDUAL"
         ];

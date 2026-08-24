@@ -1,4 +1,4 @@
-﻿// script_ip.js - Código reorganizado COM FALLBACK PARA VÍNCULOS E AUTOCOMPLETE DE DOCUMENTOS
+// script_ip.js - Código reorganizado COM FALLBACK PARA VÍNCULOS E AUTOCOMPLETE DE DOCUMENTOS
 // Objeto principal para encapsular toda a funcionalidade
 window.ocTabs = window.ocTabs || {};
 window.ocTabs.ensureTab = function (id, label, linkId) {
@@ -2076,8 +2076,46 @@ window.OcorrenciasApp = {
             'EXAME DE CONSTATACAO DE DANOS E AVALIACAO',
             'EXAME DE CONSTATACAO DE DANOS INDIRETA',
             'EXAME DE EFICIENCIA DE ARMA DE FOGO',
+            'EXAME DE EFICIENCIA DE ARMA DE FOGO (COM DISPARO)',
             'PERICIA EM VEICULO',
+            'PERICIA PAPILOSCOPICA EM VEICULO',
             'PERICIA EM LOCAL DE CRIME',
+            'PERICIA PAPILOSCOPICA EM LOCAL DE CRIME',
+            'PERICIA DE CONFRONTACAO PAPILOSCOPICA',
+            'PERICIA PAPILOSCOPICA EM PESSOA',
+            'PERICIA PAPILOSCOPICA EM OBJETO',
+            'EXAME PRELIMINAR DE ENTORPECENTES',
+            'PERICIA DEFINITIVA EM ENTORPECENTES',
+            'PERICIA DE ARROMBAMENTO',
+            'OFICIO DE PRONTUARIO HOSPITALAR',
+            'PERICIA DOCUMENTOSCOPICA',
+            'PERICIA DE LOCAL - LUMINOL',
+            'PERICIA DE INFORMATICA',
+            'TERMO DE AUTORIZACAO PARA EXTRACAO DE DADOS',
+            'OFICIO COMUNICACAO A ADVOGADO',
+            'OFICIO ENCAMINHAR VEICULO CIRETRAN',
+            'CERTIDAO DE MIDIAS EM NUVEM DRIVE',
+            'COMUNICACAO INTERNA (C.I.) - REMESSA DE PROCEDIMENTOS',
+            'COMUNICACAO INTERNA (C.I.) - REMESSA DE OBJETOS E DOCUMENTOS',
+            'COMUNICACAO INTERNA (C.I.) - ADMINISTRATIVA / GENÉRICA',
+            'COMUNICACAO INTERNA (C.I.) - ENCAMINHAMENTO AO IITB',
+            'OFICIO PARA INSTITUICAO FINANCEIRA / BANCO',
+            'OFICIO SOLICITANDO CERTIDAO DE OBITO',
+            'OFICIO DE ENCAMINHAMENTO DE CADAVER AO IML',
+            'OFICIO REQUISITANDO APRESENTACAO DE POLICIAL MILITAR',
+            'CERTIDAO DE COMPARECIMENTO',
+            'CERTIDAO DE COMUNICACAO A FAMILIA DO PRESO',
+            'RECIBO DE ENTREGA DE PRESO (CONDUTOR)',
+            'RECIBO DE PROCEDIMENTO (CUSTODIA/DESEC)',
+            'AUTO DE DEPOSITO FIEL',
+            'TERMO DE GUARDA E ENTREGA DE VEICULO',
+            'TERMO DE APREENSAO',
+            'CAPA DE BOC (FLAGRANTE / PORTARIA)',
+            'CAPA DE TCO (FLAGRANTE / PORTARIA)',
+            'ORDEM DE SERVICO - INTIMACAO',
+            'OFICIO DE REMESSA DE PROCEDIMENTO',
+            'ROL DE TESTEMUNHAS',
+            'DESPACHO DE CONCLUSAO'
         ];
 
         let selectedIndex = -1;
@@ -2230,6 +2268,2094 @@ window.OcorrenciasApp = {
             return;
         } 
         
+        // ✅ NOVA LÓGICA: Interceptar PERÍCIA EM LOCAL DE CRIME se houver > 1 vítima
+        if ((documentoSelecionado === 'PERICIA EM LOCAL DE CRIME' || documentoSelecionado === 'PERICIA PAPILOSCOPICA EM LOCAL DE CRIME') && dados.vitimas && dados.vitimas.length > 1) {
+            this._abrirModalSelecaoVitimas(dados, documentoSelecionado);
+            return;
+        }
+
+        // ✅ NOVA LÓGICA: Interceptar CONFRONTAÇÃO PAPILOSCÓPICA ou PERÍCIA EM PESSOA para selecionar alvo
+        if ((documentoSelecionado === 'PERICIA DE CONFRONTACAO PAPILOSCOPICA' || documentoSelecionado === 'PERICIA PAPILOSCOPICA EM PESSOA') && 
+           ((dados.vitimas && dados.vitimas.length > 0) || (dados.autores && dados.autores.length > 0))) {
+            this._abrirModalSelecaoConfrontacao(dados, documentoSelecionado);
+            return;
+        }
+
+        // ✅ NOVA LÓGICA: Interceptar ENTORPECENTES
+        if (documentoSelecionado === 'EXAME PRELIMINAR DE ENTORPECENTES' || documentoSelecionado === 'PERICIA DEFINITIVA EM ENTORPECENTES') {
+            this._abrirModalSelecaoEntorpecentes(dados, documentoSelecionado);
+            return;
+        }
+
+        // ✅ NOVA LÓGICA: Interceptar ARROMBAMENTO
+        if (documentoSelecionado === 'PERICIA DE ARROMBAMENTO') {
+            this._abrirModalArrombamento(dados, documentoSelecionado);
+            return;
+        }
+
+        // ✅ NOVA LÓGICA: Interceptar OFICIO PRONTUARIO HOSPITALAR
+        if (documentoSelecionado === 'OFICIO DE PRONTUARIO HOSPITALAR') {
+            this._abrirModalProntuarioHospitalar(dados, documentoSelecionado);
+            return;
+        }
+
+        // ✅ NOVA LÓGICA: Interceptar PERICIA DOCUMENTOSCOPICA
+        if (documentoSelecionado === 'PERICIA DOCUMENTOSCOPICA') {
+            this._abrirModalDocumentoscopica(dados, documentoSelecionado);
+            return;
+        }
+
+        // ✅ NOVA LÓGICA: Interceptar PERICIA DE LOCAL - LUMINOL
+        if (documentoSelecionado === 'PERICIA DE LOCAL - LUMINOL') {
+            this._abrirModalPericiaLocal(dados, documentoSelecionado);
+            return;
+        }
+
+        // ✅ NOVA LÓGICA: Interceptar PERICIA DE INFORMATICA
+        if (documentoSelecionado === 'PERICIA DE INFORMATICA') {
+            this._abrirModalPericiaInformatica(dados, documentoSelecionado);
+            return;
+        }
+
+        // ✅ NOVA LÓGICA: Interceptar TERMO DE AUTORIZACAO PARA EXTRACAO DE DADOS
+        if (documentoSelecionado === 'TERMO DE AUTORIZACAO PARA EXTRACAO DE DADOS') {
+            this._abrirModalTermoAutorizacao(dados, documentoSelecionado);
+            return;
+        }
+
+        // ✅ NOVA LÓGICA: Interceptar OFICIO COMUNICACAO A ADVOGADO
+        if (documentoSelecionado === 'OFICIO COMUNICACAO A ADVOGADO') {
+            this._abrirModalComunicaAdvogado(dados, documentoSelecionado);
+            return;
+        }
+
+        // ✅ NOVA LÓGICA: Interceptar OFICIO ENCAMINHAR VEICULO CIRETRAN
+        if (documentoSelecionado === 'OFICIO ENCAMINHAR VEICULO CIRETRAN') {
+            this._abrirModalEncaminharVeiculo(dados, documentoSelecionado);
+            return;
+        }
+
+        // ✅ NOVA LÓGICA: Interceptar CERTIDAO DE MIDIAS EM NUVEM DRIVE
+        if (documentoSelecionado === 'CERTIDAO DE MIDIAS EM NUVEM DRIVE') {
+            this._abrirModalCertidaoMidiasDrive(dados, documentoSelecionado);
+            return;
+        }
+
+        // ✅ NOVA LÓGICA: Interceptar CI DE REMESSA DE PROCEDIMENTOS
+        if (documentoSelecionado === 'COMUNICACAO INTERNA (C.I.) - REMESSA DE PROCEDIMENTOS') {
+            this._abrirModalCIRemessaProcedimentos(dados, documentoSelecionado);
+            return;
+        }
+
+        // ✅ NOVA LÓGICA: Interceptar CI DE REMESSA DE OBJETOS/DOCUMENTOS
+        if (documentoSelecionado === 'COMUNICACAO INTERNA (C.I.) - REMESSA DE OBJETOS E DOCUMENTOS') {
+            this._abrirModalCIRemessaObjetosDocumentos(dados, documentoSelecionado);
+            return;
+        }
+
+        // ✅ NOVA LÓGICA: Interceptar CI ADMINISTRATIVA / GENÉRICA
+        if (documentoSelecionado === 'COMUNICACAO INTERNA (C.I.) - ADMINISTRATIVA / GENÉRICA') {
+            this._abrirModalCIGenerica(dados, documentoSelecionado);
+            return;
+        }
+
+        // ✅ NOVA LÓGICA: Interceptar CI DE ENCAMINHAMENTO AO IITB
+        if (documentoSelecionado === 'COMUNICACAO INTERNA (C.I.) - ENCAMINHAMENTO AO IITB') {
+            this._abrirModalCIEncaminhamentoIITB(dados, documentoSelecionado);
+            return;
+        }
+
+        // ✅ NOVA LÓGICA: Interceptar OFÍCIO PARA INSTITUIÇÃO FINANCEIRA / BANCO
+        if (documentoSelecionado === 'OFICIO PARA INSTITUICAO FINANCEIRA / BANCO') {
+            this._abrirModalOficioBanco(dados, documentoSelecionado);
+            return;
+        }
+
+        // ✅ NOVA LÓGICA: Interceptar OFÍCIO DE CERTIDÃO DE ÓBITO
+        if (documentoSelecionado === 'OFICIO SOLICITANDO CERTIDAO DE OBITO') {
+            this._abrirModalOficioCertidaoObito(dados, documentoSelecionado);
+            return;
+        }
+
+        // ✅ NOVA LÓGICA: Interceptar OFÍCIO DE ENCAMINHAMENTO DE CADÁVER AO IML
+        if (documentoSelecionado === 'OFICIO DE ENCAMINHAMENTO DE CADAVER AO IML') {
+            this._abrirModalOficioIML(dados, documentoSelecionado);
+            return;
+        }
+
+        // ✅ NOVA LÓGICA: Interceptar OFÍCIO REQUISITANDO PM
+        if (documentoSelecionado === 'OFICIO REQUISITANDO APRESENTACAO DE POLICIAL MILITAR') {
+            this._abrirModalOficioPM(dados, documentoSelecionado);
+            return;
+        }
+
+        // ✅ NOVA LÓGICA: Interceptar CERTIDÃO DE COMPARECIMENTO
+        if (documentoSelecionado === 'CERTIDAO DE COMPARECIMENTO') {
+            this._abrirModalCertidaoComparecimento(dados, documentoSelecionado);
+            return;
+        }
+
+        // ✅ NOVA LÓGICA: Interceptar CERTIDÃO DE COMUNICAÇÃO À FAMÍLIA
+        if (documentoSelecionado === 'CERTIDAO DE COMUNICACAO A FAMILIA DO PRESO') {
+            this._abrirModalCertidaoComunicaFamilia(dados, documentoSelecionado);
+            return;
+        }
+
+        // ✅ NOVA LÓGICA: Interceptar RECIBO DE ENTREGA DE PRESO
+        if (documentoSelecionado === 'RECIBO DE ENTREGA DE PRESO (CONDUTOR)') {
+            this._abrirModalReciboPreso(dados, documentoSelecionado);
+            return;
+        }
+
+        // ✅ NOVA LÓGICA: Interceptar RECIBO DE PROCEDIMENTO
+        if (documentoSelecionado === 'RECIBO DE PROCEDIMENTO (CUSTODIA/DESEC)') {
+            this._abrirModalReciboProcedimento(dados, documentoSelecionado);
+            return;
+        }
+
+        // ✅ NOVA LÓGICA: Interceptar AUTO DE DEPÓSITO FIEL
+        if (documentoSelecionado === 'AUTO DE DEPOSITO FIEL') {
+            this._abrirModalAutoDepositoFiel(dados, documentoSelecionado);
+            return;
+        }
+
+        // ✅ NOVA LÓGICA: Interceptar TERMO DE GUARDA E ENTREGA DE VEÍCULO
+        if (documentoSelecionado === 'TERMO DE GUARDA E ENTREGA DE VEICULO') {
+            this._abrirModalTermoGuardaVeiculo(dados, documentoSelecionado);
+            return;
+        }
+
+        // ✅ NOVA LÓGICA: Interceptar TERMO DE APREENSÃO
+        if (documentoSelecionado === 'TERMO DE APREENSAO') {
+            this._abrirModalTermoApreensao(dados, documentoSelecionado);
+            return;
+        }
+
+        // ✅ NOVA LÓGICA: Interceptar CAPA DE BOC e CAPA DE TCO
+        if (documentoSelecionado === 'CAPA DE BOC (FLAGRANTE / PORTARIA)' || documentoSelecionado === 'CAPA DE TCO (FLAGRANTE / PORTARIA)') {
+            this._abrirModalCapaProcedimento(dados, documentoSelecionado);
+            return;
+        }
+
+        // ✅ NOVA LÓGICA: Interceptar ORDEM DE SERVIÇO DE INTIMAÇÃO
+        if (documentoSelecionado === 'ORDEM DE SERVICO - INTIMACAO') {
+            this._abrirModalOrdemServicoIntimacao(dados, documentoSelecionado);
+            return;
+        }
+
+        // ✅ NOVA LÓGICA: Interceptar OFÍCIO DE REMESSA DE PROCEDIMENTO
+        if (documentoSelecionado === 'OFICIO DE REMESSA DE PROCEDIMENTO') {
+            this._abrirModalOficioRemessa(dados, documentoSelecionado);
+            return;
+        }
+
+        this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+    },
+
+    _abrirModalSelecaoConfrontacao: function(dados, documentoSelecionado) {
+        const containerAutores = $('#listaAutoresConfrontacao');
+        const containerVitimas = $('#listaVitimasConfrontacao');
+        
+        containerAutores.empty();
+        containerVitimas.empty();
+        
+        // Popula Autores
+        if (dados.autores && dados.autores.length > 0) {
+            dados.autores.forEach((autor, index) => {
+                const checkbox = `
+                    <div class="form-check">
+                        <input class="form-check-input autor-checkbox" type="checkbox" value="${index}" id="autorConfCheck${index}" checked style="transform: scale(1.3); margin-right: 8px;">
+                        <label class="form-check-label fs-6" for="autorConfCheck${index}">
+                            ${autor.nome || 'Não informado'}
+                        </label>
+                    </div>
+                `;
+                containerAutores.append(checkbox);
+            });
+        } else {
+            containerAutores.html('<span class="text-muted small">Nenhum autor cadastrado</span>');
+        }
+
+        // Popula Vítimas
+        if (dados.vitimas && dados.vitimas.length > 0) {
+            dados.vitimas.forEach((vitima, index) => {
+                const checkbox = `
+                    <div class="form-check">
+                        <input class="form-check-input vitima-conf-checkbox" type="checkbox" value="${index}" id="vitimaConfCheck${index}" checked style="transform: scale(1.3); margin-right: 8px;">
+                        <label class="form-check-label fs-6" for="vitimaConfCheck${index}">
+                            ${vitima.nome || 'Não informada'}
+                        </label>
+                    </div>
+                `;
+                containerVitimas.append(checkbox);
+            });
+        } else {
+            containerVitimas.html('<span class="text-muted small">Nenhuma vítima cadastrada</span>');
+        }
+
+        $('#btnConfirmarSelecaoConfrontacao').off('click').on('click', () => {
+            const autoresSelecionados = [];
+            $('.autor-checkbox:checked').each(function() {
+                const idx = parseInt($(this).val());
+                autoresSelecionados.push(dados.autores[idx]);
+            });
+
+            const vitimasSelecionadas = [];
+            $('.vitima-conf-checkbox:checked').each(function() {
+                const idx = parseInt($(this).val());
+                vitimasSelecionadas.push(dados.vitimas[idx]);
+            });
+
+            // Permite gerar mesmo sem nenhum marcado (caso queira preencher manual), 
+            // ou podemos forçar que tenha pelo menos um
+            if (autoresSelecionados.length === 0 && dados.autores && dados.autores.length > 0) {
+                this.mostrarErro('Selecione pelo menos um autor/suspeito.');
+                return;
+            }
+
+            dados.autores = autoresSelecionados;
+            dados.lista_autores = autoresSelecionados;
+            
+            dados.vitimas = vitimasSelecionadas;
+            dados.lista_vitimas = vitimasSelecionadas;
+
+            $('#modalSelecaoConfrontacao').modal('hide');
+            this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+        });
+
+        $('#modalSelecaoConfrontacao').modal('show');
+    },
+
+    _abrirModalSelecaoVitimas: function(dados, documentoSelecionado) {
+        const container = $('#listaVitimasCheckboxes');
+        container.empty();
+        
+        dados.vitimas.forEach((vitima, index) => {
+            const checkbox = `
+                <div class="form-check">
+                    <input class="form-check-input vitima-checkbox" type="checkbox" value="${index}" id="vitimaCheck${index}" checked style="transform: scale(1.3); margin-right: 8px;">
+                    <label class="form-check-label fs-6" for="vitimaCheck${index}">
+                        ${vitima.nome}
+                    </label>
+                </div>
+            `;
+            container.append(checkbox);
+        });
+
+        $('#btnConfirmarSelecaoVitimas').off('click').on('click', () => {
+            const vitimasSelecionadas = [];
+            $('.vitima-checkbox:checked').each(function() {
+                const idx = parseInt($(this).val());
+                vitimasSelecionadas.push(dados.vitimas[idx]);
+            });
+
+            if (vitimasSelecionadas.length === 0) {
+                this.mostrarErro('Selecione pelo menos uma vítima para gerar o documento.');
+                return;
+            }
+
+            dados.vitimas = vitimasSelecionadas;
+            dados.lista_vitimas = vitimasSelecionadas;
+
+            $('#modalSelecaoVitimas').modal('hide');
+            this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+        });
+
+        $('#modalSelecaoVitimas').modal('show');
+    },
+
+    _abrirModalSelecaoEntorpecentes: function(dados, documentoSelecionado) {
+        const isDefinitiva = (documentoSelecionado === 'PERICIA DEFINITIVA EM ENTORPECENTES');
+        
+        if (isDefinitiva) {
+            $('#hrAutuadosEntorpecentes, #grupoAutuadosEntorpecentes').show();
+        } else {
+            $('#hrAutuadosEntorpecentes, #grupoAutuadosEntorpecentes').hide();
+        }
+
+        // Limpar e preencher checkboxes de Autuados/Envolvidos se houver
+        const containerAutores = $('#containerCheckboxesAutoresEntorpecentes');
+        containerAutores.empty();
+        $('#inputAutuadosManuais').val(''); // Reseta o input manual
+        
+        if (dados.autores && dados.autores.length > 0) {
+            dados.autores.forEach((autor, index) => {
+                const autorNome = autor.nome || autor; // Lida com objeto ou string
+                const checkboxHtml = `
+                    <div class="form-check d-flex align-items-center">
+                        <input class="form-check-input autor-checkbox-entorpecentes" type="checkbox" value="${autorNome}" id="chkAutorEnt_${index}" checked style="transform: scale(1.3); margin-right: 10px;">
+                        <label class="form-check-label fs-6" style="cursor: pointer;" for="chkAutorEnt_${index}">${autorNome}</label>
+                    </div>
+                `;
+                containerAutores.append(checkboxHtml);
+            });
+        } else {
+            containerAutores.append('<span class="text-muted small">Nenhum autor vinculado na ocorrência.</span>');
+        }
+
+        // Habilita ou desabilita os campos de quantidade para os pre-definidos
+        $('.entorpecente-checkbox').off('change').on('change', function() {
+            const inputQtd = $(this).closest('.d-flex').find('.qtd-input');
+            if ($(this).is(':checked')) {
+                inputQtd.prop('disabled', false).focus();
+            } else {
+                inputQtd.prop('disabled', true).val('');
+            }
+        });
+
+        // Habilita ou desabilita o campo 'Outras Drogas'
+        $('#chkOutrasDrogas').off('change').on('change', function() {
+            if ($(this).is(':checked')) {
+                $('#inputOutrasDrogas').prop('disabled', false).focus();
+                $('#qtdOutras').prop('disabled', false);
+            } else {
+                $('#inputOutrasDrogas').prop('disabled', true).val('');
+                $('#qtdOutras').prop('disabled', true).val('');
+            }
+        });
+
+        // Limpa estado inicial
+        $('.entorpecente-checkbox').prop('checked', false).trigger('change');
+        $('#chkOutrasDrogas').prop('checked', false).trigger('change');
+
+        function numeroPorExtenso(numStr) {
+            const num = parseInt(numStr, 10);
+            if (isNaN(num) || num < 0 || num > 999) return numStr;
+            if (num === 0) return "zero";
+            if (num === 100) return "cem";
+
+            const unidades = ["", "um", "dois", "três", "quatro", "cinco", "seis", "sete", "oito", "nove"];
+            const dezenas_especiais = ["dez", "onze", "doze", "treze", "quatorze", "quinze", "dezesseis", "dezessete", "dezoito", "dezenove"];
+            const dezenas = ["", "", "vinte", "trinta", "quarenta", "cinquenta", "sessenta", "setenta", "oitenta", "noventa"];
+            const centenas = ["", "cento", "duzentos", "trezentos", "quatrocentos", "quinhentos", "seiscentos", "setecentos", "oitocentos", "novecentos"];
+
+            let extenso = "";
+            let c = Math.floor(num / 100);
+            let d = Math.floor((num % 100) / 10);
+            let u = num % 10;
+            
+            if (c > 0) {
+                extenso += centenas[c];
+                if (d > 0 || u > 0) extenso += " e ";
+            }
+            
+            if (d === 1) {
+                extenso += dezenas_especiais[u];
+            } else {
+                if (d > 1) {
+                    extenso += dezenas[d];
+                    if (u > 0) extenso += " e ";
+                }
+                if (u > 0 && d !== 1) {
+                    extenso += unidades[u];
+                }
+            }
+            return extenso;
+        }
+
+        function formatarNumeroExtenso(val) {
+            if (!/^[\d.,]+$/.test(val)) return val;
+            
+            if (/^\d+$/.test(val)) {
+                let ext = numeroPorExtenso(val);
+                return ext !== val ? val + " (" + ext + ")" : val;
+            }
+            
+            const parts = val.replace(',', '.').split('.');
+            if (parts.length === 2 && parts[0] !== "" && parts[1] !== "") {
+                let ext1 = numeroPorExtenso(parts[0]);
+                let ext2 = numeroPorExtenso(parts[1]);
+                if (ext1 !== parts[0] && ext2 !== parts[1]) {
+                    return val + " (" + ext1 + " vírgula " + ext2 + ")";
+                }
+            }
+            return val;
+        }
+
+        $('#btnConfirmarSelecaoEntorpecentes').off('click').on('click', () => {
+            const drogasSelecionadas = [];
+            
+            $('.entorpecente-checkbox:checked').each(function() {
+                const nome = $(this).val();
+                let qtd;
+                
+                if (nome === 'CRACK') {
+                    let pedras = $('#qtdCrackPedras').val().trim();
+                    let peso = $('#qtdCrackPeso').val().trim();
+                    
+                    if (pedras) pedras = formatarNumeroExtenso(pedras);
+                    
+                    if (peso && /^[\d.,]+$/.test(peso)) {
+                        peso = formatarNumeroExtenso(peso) + ' gramas';
+                    }
+                    
+                    if (pedras && peso) {
+                        qtd = '<strong>' + pedras + '</strong> pedras pesando <strong>aproximadamente ' + peso + '</strong>';
+                    } else if (pedras) {
+                        qtd = '<strong>' + pedras + '</strong> pedras';
+                    } else if (peso) {
+                        qtd = '<strong>aproximadamente ' + peso + '</strong>';
+                    } else {
+                        qtd = '<strong>___</strong>';
+                    }
+                } else {
+                    let val = $(this).closest('.d-flex').find('.qtd-input').val().trim();
+                    if (val && /^[\d.,]+$/.test(val)) {
+                        val = formatarNumeroExtenso(val) + ' gramas';
+                    }
+                    qtd = val || '___';
+                }
+                
+                drogasSelecionadas.push({ nome: nome, qtd: qtd });
+            });
+
+            if ($('#chkOutrasDrogas').is(':checked')) {
+                const outras = $('#inputOutrasDrogas').val().trim().toUpperCase();
+                const qtdOutras = $('#qtdOutras').val().trim() || '___';
+                if (outras) {
+                    drogasSelecionadas.push({ nome: outras, qtd: qtdOutras });
+                }
+            }
+
+            if (drogasSelecionadas.length === 0) {
+                this.mostrarErro('Selecione pelo menos uma substância para gerar o ofício.');
+                return;
+            }
+
+            // Injeta a lista formatada no objeto de dados
+            dados.lista_drogas = drogasSelecionadas;
+            
+            // Pega os autores selecionados nos checkboxes
+            const autoresSelecionados = [];
+            $('.autor-checkbox-entorpecentes:checked').each(function() {
+                autoresSelecionados.push($(this).val());
+            });
+            
+            const autuadosManuais = $('#inputAutuadosManuais').val().trim();
+            if (autuadosManuais) {
+                autoresSelecionados.push(autuadosManuais);
+            }
+            
+            if (autoresSelecionados.length > 0) {
+                dados.autuados_manuais = autoresSelecionados.join(' e ');
+            } else {
+                dados.autuados_manuais = '';
+            }
+
+            $('#modalSelecaoEntorpecentes').modal('hide');
+            this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+        });
+
+        $('#modalSelecaoEntorpecentes').modal('show');
+    },
+
+    _abrirModalArrombamento: function(dados, documentoSelecionado) {
+        // Preenche automaticamente com o Endereço do Fato caso exista no BOE
+        const endFatoOriginal = dados.end_fato || $('#inputEndFato').val() || '';
+        $('#inputLocalArrombamento').val(endFatoOriginal);
+
+        $('#btnConfirmarArrombamento').off('click').on('click', () => {
+            const localFato = $('#inputLocalArrombamento').val().trim();
+            if (!localFato) {
+                this.mostrarErro('Por favor, informe o local do arrombamento.');
+                return;
+            }
+
+            dados.local_fato = localFato;
+            
+            $('#modalArrombamento').modal('hide');
+            this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+        });
+
+        $('#modalArrombamento').modal('show');
+    },
+
+    _abrirModalProntuarioHospitalar: function(dados, documentoSelecionado) {
+        // Preencher naturezas/motivos
+        const motivoOriginal = dados.incidencia_penal || $('#inputIncidenciaPenal').val() || '';
+        $('#inputMotivoInternamento').val(motivoOriginal);
+
+        // Limpar hospital
+        $('#inputHospitalNome').val('');
+
+        // Gerar radios das vítimas
+        const containerRadios = $('#containerRadiosVitimasProntuario');
+        containerRadios.empty();
+        $('#inputVitimaManualProntuario').val('');
+
+        if (dados.vitimas && dados.vitimas.length > 0) {
+            dados.vitimas.forEach((vitima, index) => {
+                const radio = `
+                    <div class="form-check">
+                        <input class="form-check-input vitima-prontuario-radio" type="radio" name="vitimaProntuario" value="${vitima.nome}" id="vitimaProntRadio${index}">
+                        <label class="form-check-label fs-6" for="vitimaProntRadio${index}">
+                            ${vitima.nome}
+                        </label>
+                    </div>
+                `;
+                containerRadios.append(radio);
+            });
+            // Marcar o primeiro por padrão
+            containerRadios.find('input[type="radio"]').first().prop('checked', true);
+        } else {
+            containerRadios.html('<span class="text-muted small mb-2 d-block">Nenhuma vítima listada no BOE. Digite manualmente abaixo.</span>');
+        }
+
+        $('#btnConfirmarProntuarioHospitalar').off('click').on('click', () => {
+            const hospitalNome = $('#inputHospitalNome').val().trim();
+            const motivoInternamento = $('#inputMotivoInternamento').val().trim();
+            
+            // Determinar vítima selecionada
+            let vitimaNome = '';
+            const vitimaManual = $('#inputVitimaManualProntuario').val().trim();
+            if (vitimaManual) {
+                vitimaNome = vitimaManual;
+            } else {
+                vitimaNome = $('input[name="vitimaProntuario"]:checked').val() || '';
+            }
+
+            if (!hospitalNome) {
+                this.mostrarErro('Por favor, informe o nome do Hospital.');
+                return;
+            }
+            if (!vitimaNome) {
+                this.mostrarErro('Por favor, informe ou selecione o nome da vítima.');
+                return;
+            }
+            if (!motivoInternamento) {
+                this.mostrarErro('Por favor, informe o motivo do atendimento.');
+                return;
+            }
+
+            dados.hospital_nome = hospitalNome;
+            dados.vitima_nome = vitimaNome;
+            dados.motivo_internamento = motivoInternamento;
+            
+            $('#modalProntuarioHospitalar').modal('hide');
+            this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+        });
+
+        $('#modalProntuarioHospitalar').modal('show');
+    },
+
+    _abrirModalDocumentoscopica: function(dados, documentoSelecionado) {
+        $('#inputDocumentosPericiados').val('');
+        $('#inputAutorManualDoc').val('');
+        
+        const containerRadios = $('#containerRadiosAutoresDoc');
+        containerRadios.empty();
+
+        if (dados.autores && dados.autores.length > 0) {
+            dados.autores.forEach((autor, index) => {
+                const radio = `
+                    <div class="form-check">
+                        <input class="form-check-input autor-doc-radio" type="radio" name="autorDoc" value="${autor.nome}" id="autorDocRadio${index}">
+                        <label class="form-check-label fs-6" for="autorDocRadio${index}">
+                            ${autor.nome}
+                        </label>
+                    </div>
+                `;
+                containerRadios.append(radio);
+            });
+            // Marcar o primeiro por padrão
+            containerRadios.find('input[type="radio"]').first().prop('checked', true);
+        } else {
+            containerRadios.html('<span class="text-muted small mb-2 d-block">Nenhum autor listado no BOE. Digite manualmente abaixo.</span>');
+        }
+
+        $('#btnConfirmarDocumentoscopica').off('click').on('click', () => {
+            const documentosPericiados = $('#inputDocumentosPericiados').val().trim();
+            
+            // Determinar autor selecionado
+            let autorNome = '';
+            const autorManual = $('#inputAutorManualDoc').val().trim();
+            if (autorManual) {
+                autorNome = autorManual;
+            } else {
+                autorNome = $('input[name="autorDoc"]:checked').val() || '';
+            }
+
+            if (!documentosPericiados) {
+                this.mostrarErro('Por favor, informe os documentos a serem periciados.');
+                return;
+            }
+            if (!autorNome) {
+                this.mostrarErro('Por favor, informe ou selecione o nome do autor/investigado.');
+                return;
+            }
+
+            dados.documentos_periciados = documentosPericiados;
+            dados.autor_nome = autorNome;
+            
+            $('#modalDocumentoscopica').modal('hide');
+            this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+        });
+
+        $('#modalDocumentoscopica').modal('show');
+    },
+
+    _abrirModalPericiaLocal: function(dados, documentoSelecionado) {
+        // Preencher endereço original se existir
+        const enderecoOriginal = dados.endereco || $('#inputEnderecoLocalFato').val() || '';
+        $('#inputEnderecoImovel').val(enderecoOriginal);
+        $('#inputRelatoFatoLocal').val('');
+
+        $('#btnConfirmarPericiaLocal').off('click').on('click', () => {
+            const enderecoImovel = $('#inputEnderecoImovel').val().trim();
+            const relatoFato = $('#inputRelatoFatoLocal').val().trim();
+
+            if (!enderecoImovel) {
+                this.mostrarErro('Por favor, informe o endereço do imóvel/local a ser periciado.');
+                return;
+            }
+
+            dados.endereco_imovel = enderecoImovel;
+            dados.relato_fato = relatoFato;
+            
+            $('#modalPericiaLocal').modal('hide');
+            this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+        });
+
+        $('#modalPericiaLocal').modal('show');
+    },
+
+    _abrirModalPericiaInformatica: function(dados, documentoSelecionado) {
+        $('#inputAparelhosApreendidos').val('');
+        $('#inputObjetivoExtracao').val('');
+
+        $('#btnConfirmarPericiaInformatica').off('click').on('click', () => {
+            const aparelhosApreendidos = $('#inputAparelhosApreendidos').val().trim();
+            const objetivoExtracao = $('#inputObjetivoExtracao').val().trim();
+
+            if (!aparelhosApreendidos) {
+                this.mostrarErro('Por favor, informe os aparelhos/objetos apreendidos.');
+                return;
+            }
+            if (!objetivoExtracao) {
+                this.mostrarErro('Por favor, informe o objetivo da extração.');
+                return;
+            }
+
+            dados.aparelhos_apreendidos = aparelhosApreendidos;
+            dados.objetivo_extracao = objetivoExtracao;
+            
+            $('#modalPericiaInformatica').modal('hide');
+            this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+        });
+
+        $('#modalPericiaInformatica').modal('show');
+    },
+
+    _abrirModalTermoAutorizacao: function(dados, documentoSelecionado) {
+        const selectPessoa = $('#selectPessoaAutorizadora');
+        selectPessoa.empty().append('<option value="" selected disabled>Selecione um envolvido...</option>');
+
+        // Criar array unificado de envolvidos
+        const envolvidos = [];
+        if (dados.condutor) envolvidos.push({...dados.condutor, tipo: 'CONDUTOR'});
+        if (dados.vitimas) dados.vitimas.forEach(v => envolvidos.push({...v, tipo: 'VÍTIMA'}));
+        if (dados.autores) dados.autores.forEach(a => envolvidos.push({...a, tipo: 'AUTOR'}));
+        if (dados.testemunhas) dados.testemunhas.forEach(t => envolvidos.push({...t, tipo: 'TESTEMUNHA'}));
+
+        if (envolvidos.length > 0) {
+            envolvidos.forEach((env, index) => {
+                selectPessoa.append(`<option value="${index}">${env.nome} (${env.tipo})</option>`);
+            });
+        } else {
+            selectPessoa.append('<option value="" disabled>Nenhum envolvido encontrado no B.O.</option>');
+        }
+
+        $('#inputDispositivoEletronico').val('');
+
+        $('#btnConfirmarTermoAutorizacao').off('click').on('click', () => {
+            const indexPessoa = selectPessoa.val();
+            const dispositivo = $('#inputDispositivoEletronico').val().trim();
+
+            if (indexPessoa === null || indexPessoa === "") {
+                this.mostrarErro('Por favor, selecione quem está autorizando a extração.');
+                return;
+            }
+            if (!dispositivo) {
+                this.mostrarErro('Por favor, informe o dispositivo eletrônico ou conta.');
+                return;
+            }
+
+            dados.pessoa_autorizadora = envolvidos[indexPessoa];
+            dados.dispositivo_eletronico = dispositivo;
+            
+            $('#modalTermoAutorizacao').modal('hide');
+            this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+        });
+
+        $('#modalTermoAutorizacao').modal('show');
+    },
+
+    _abrirModalComunicaAdvogado: function(dados, documentoSelecionado) {
+        const selectCliente = $('#selectClienteAdvogado');
+        selectCliente.empty().append('<option value="" selected disabled>Selecione o Cliente...</option>');
+
+        // Criar array unificado de envolvidos
+        const envolvidos = [];
+        if (dados.condutor) envolvidos.push({...dados.condutor, tipo: 'CONDUTOR'});
+        if (dados.vitimas) dados.vitimas.forEach(v => envolvidos.push({...v, tipo: 'VÍTIMA'}));
+        if (dados.autores) dados.autores.forEach(a => envolvidos.push({...a, tipo: 'AUTOR'}));
+        if (dados.testemunhas) dados.testemunhas.forEach(t => envolvidos.push({...t, tipo: 'TESTEMUNHA'}));
+
+        if (envolvidos.length > 0) {
+            envolvidos.forEach((env, index) => {
+                selectCliente.append(`<option value="${index}">${env.nome} (${env.tipo})</option>`);
+            });
+        } else {
+            selectCliente.append('<option value="" disabled>Nenhum envolvido encontrado no B.O.</option>');
+        }
+
+        $('#inputNomeAdvogado').val('');
+        $('#inputCidadeAdvogado').val('');
+        $('#selectAtoProcessual').val('');
+        $('#inputDataHoraAto').val('');
+
+        $('#btnConfirmarComunicaAdvogado').off('click').on('click', () => {
+            const nomeAdv = $('#inputNomeAdvogado').val().trim();
+            const cidadeAdv = $('#inputCidadeAdvogado').val().trim();
+            const ato = $('#selectAtoProcessual').val();
+            const indexCliente = selectCliente.val();
+            const dataHora = $('#inputDataHoraAto').val().trim();
+
+            if (!nomeAdv) {
+                this.mostrarErro('Por favor, informe o nome do advogado.');
+                return;
+            }
+            if (!ato) {
+                this.mostrarErro('Por favor, selecione o ato processual.');
+                return;
+            }
+            if (indexCliente === null || indexCliente === "") {
+                this.mostrarErro('Por favor, selecione o cliente (envolvido).');
+                return;
+            }
+            if (!dataHora) {
+                this.mostrarErro('Por favor, informe a data e hora do ato.');
+                return;
+            }
+
+            dados.nome_advogado = nomeAdv;
+            dados.cidade_advogado = cidadeAdv;
+            dados.ato_processual = ato;
+            dados.cliente = envolvidos[indexCliente];
+            dados.data_hora_ato = dataHora;
+            
+            $('#modalComunicaAdvogado').modal('hide');
+            this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+        });
+
+        $('#modalComunicaAdvogado').modal('show');
+    },
+
+    _abrirModalEncaminharVeiculo: function(dados, documentoSelecionado) {
+        $('#inputCiretranDestino').val('');
+        $('#inputDadosVeiculoCiretran').val('');
+        $('#inputJustificativaCiretran').val('');
+
+        $('#btnConfirmarEncaminharVeiculo').off('click').on('click', () => {
+            const ciretran = $('#inputCiretranDestino').val().trim();
+            const veiculo = $('#inputDadosVeiculoCiretran').val().trim();
+            const justificativa = $('#inputJustificativaCiretran').val().trim();
+
+            if (!ciretran) {
+                this.mostrarErro('Por favor, informe a CIRETRAN de destino.');
+                return;
+            }
+            if (!veiculo) {
+                this.mostrarErro('Por favor, informe os dados do veículo.');
+                return;
+            }
+
+            dados.ciretran_destino = ciretran;
+            dados.dados_veiculo = veiculo;
+            dados.justificativa = justificativa;
+            
+            $('#modalEncaminharVeiculo').modal('hide');
+            this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+        });
+
+        $('#modalEncaminharVeiculo').modal('show');
+    },
+
+    _abrirModalCertidaoMidiasDrive: function(dados, documentoSelecionado) {
+        $('#inputDescricaoMidias').val('');
+        $('#inputLinkDrive').val('');
+
+        // Montar Dropdowns dinâmicos baseados nos envolvidos do B.O.
+        const listaVitimas = $('#listaDropdownVitimas');
+        const containerVitimas = $('#dropdownVitimasContainer');
+        const listaTestemunhas = $('#listaDropdownTestemunhas');
+        const containerTestemunhas = $('#dropdownTestemunhasContainer');
+
+        listaVitimas.empty();
+        listaTestemunhas.empty();
+        let temVitima = false;
+        let temTestemunha = false;
+
+        const adicionarNoDropdown = (env, tipo, lista) => {
+            const textoFornecido = `os documentos digitais, arquivos de mídia e registros apresentados pela pessoa de ${env.nome} (qualificad${env.sexo === 'F' ? 'a' : 'o'} nos autos como ${tipo})`;
+            const html = `<li><a class="dropdown-item" href="#" onclick="document.getElementById('inputDescricaoMidias').value='${textoFornecido}'"><i class="bi bi-camera-fill me-2 text-secondary"></i>${env.nome}</a></li>`;
+            lista.append(html);
+        };
+
+        if (dados.vitimas && dados.vitimas.length > 0) {
+            temVitima = true;
+            dados.vitimas.forEach(v => adicionarNoDropdown(v, 'Vítima', listaVitimas));
+        }
+
+        if (dados.testemunhas && dados.testemunhas.length > 0) {
+            temTestemunha = true;
+            dados.testemunhas.forEach(t => adicionarNoDropdown(t, 'Testemunha', listaTestemunhas));
+        }
+        
+        if (dados.condutor) {
+            temTestemunha = true; // Agrupar condutor nas testemunhas para não poluir muito
+            adicionarNoDropdown(dados.condutor, 'Condutor', listaTestemunhas);
+        }
+
+        // Mostrar ou esconder os botões pai
+        if (temVitima) containerVitimas.show(); else containerVitimas.hide();
+        if (temTestemunha) containerTestemunhas.show(); else containerTestemunhas.hide();
+
+        $('#btnConfirmarCertidaoMidiasDrive').off('click').on('click', () => {
+            const descricao = $('#inputDescricaoMidias').val().trim();
+            const link = $('#inputLinkDrive').val().trim();
+
+            if (!link) {
+                this.mostrarErro('Por favor, informe o link de acesso da nuvem (Drive).');
+                return;
+            }
+
+            dados.descricao_midias = descricao;
+            dados.link_drive = link;
+            
+            $('#modalCertidaoMidiasDrive').modal('hide');
+            this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+        });
+
+        $('#modalCertidaoMidiasDrive').modal('show');
+    },
+
+    _abrirModalCIRemessaProcedimentos: function(dados, documentoSelecionado) {
+        $('#inputCIDestinatario').val('GESTOR(A) DA 20ª DESEC – AFOGADOS DA INGAZEIRA');
+        $('#selectCITipoProc').val('AUTO DE PRISÃO EM FLAGRANTE DELITO (APFD)');
+        $('#checkCIFianca').prop('checked', false);
+        $('#containerCIFianca').hide();
+        $('#inputCIFiancaValor').val('');
+        $('#inputCIFiancaExtenso').val('');
+
+        const numeroParaExtenso = (valor) => {
+            if (!valor) return '';
+            let val = valor.replace(/[^\d.,]/g, '');
+            if(val.indexOf(',') === -1 && val.indexOf('.') > -1) { val = val.replace('.', ','); }
+            if(val.split(',').length > 2) return '';
+            let numStr = val.replace(/\./g, '').replace(',', '.');
+            let num = parseFloat(numStr);
+            if (isNaN(num) || num <= 0) return '';
+            const unidades = ['', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove'];
+            const dez = ['dez', 'onze', 'doze', 'treze', 'quatorze', 'quinze', 'dezesseis', 'dezessete', 'dezoito', 'dezenove'];
+            const dezenas = ['', '', 'vinte', 'trinta', 'quarenta', 'cinquenta', 'sessenta', 'setenta', 'oitenta', 'noventa'];
+            const centenas = ['', 'cem', 'duzentos', 'trezentos', 'quatrocentos', 'quinhentos', 'seiscentos', 'setecentos', 'oitocentos', 'novecentos'];
+            const cvt = (n) => {
+                let r = '', c = Math.floor(n / 100), d = Math.floor((n % 100) / 10), u = n % 10;
+                if (c===1 && d===0 && u===0) r = 'cem'; else if (c>0) r = c===1 ? 'cento' : centenas[c];
+                if (d===1) r += (r?' e ':'') + dez[u]; else {
+                    if (d>1) r += (r?' e ':'') + dezenas[d];
+                    if (u>0) r += (r?' e ':'') + unidades[u];
+                }
+                return r;
+            };
+            let reais = Math.floor(num), centavos = Math.round((num - reais) * 100);
+            let mi = Math.floor(reais/1000000); reais %= 1000000;
+            let mil = Math.floor(reais/1000); reais %= 1000;
+            let pt = [];
+            if (mi>0) pt.push(cvt(mi) + (mi===1 ? ' milhão' : ' milhões'));
+            if (mil>0) pt.push(cvt(mil) + ' mil');
+            if (reais>0) pt.push(cvt(reais));
+            let tr = pt.join(' e ') + (pt.length>0 ? (Math.floor(num)===1 ? ' real' : ' reais') : '');
+            let tc = centavos>0 ? cvt(centavos) + (centavos===1 ? ' centavo' : ' centavos') : '';
+            return tr && tc ? tr + ' e ' + tc : tr || tc;
+        };
+
+        $('#inputCIFiancaValor').off('keyup').on('keyup', function() {
+            $('#inputCIFiancaExtenso').val(numeroParaExtenso($(this).val()));
+        });
+
+        $('#checkCIFianca').off('change').on('change', function() {
+            if ($(this).is(':checked')) {
+                $('#containerCIFianca').slideDown();
+            } else {
+                $('#containerCIFianca').slideUp();
+            }
+        });
+
+        $('#btnConfirmarCIRemessaProcedimentos').off('click').on('click', () => {
+            const destinatario = $('#inputCIDestinatario').val().trim();
+            const tipoProc = $('#selectCITipoProc').val();
+            const temFianca = $('#checkCIFianca').is(':checked');
+            const valorFianca = $('#inputCIFiancaValor').val().trim();
+            const extensoFianca = $('#inputCIFiancaExtenso').val().trim();
+
+            if (!destinatario) {
+                this.mostrarErro('Por favor, informe o destinatário.');
+                return;
+            }
+
+            if (temFianca && (!valorFianca || !extensoFianca)) {
+                this.mostrarErro('Por favor, informe o valor da fiança numérico e por extenso.');
+                return;
+            }
+
+            dados.ci_destinatario = destinatario;
+            dados.ci_tipo_proc = tipoProc;
+            
+            if (temFianca) {
+                dados.ci_fianca = valorFianca;
+                dados.ci_fianca_extenso = extensoFianca;
+            }
+
+            // Preparar nomes dos autores e vítimas formatados
+            let autoresTexto = '';
+            if (dados.autores && dados.autores.length > 0) {
+                autoresTexto = dados.autores.map(a => a.nome).join(', ');
+            } else if (dados.condutor) {
+                // Em APFD o autor pode ser o preso
+                autoresTexto = "NOME DO PRESO NÃO IDENTIFICADO"; // Vai tentar preencher com manual
+            }
+            dados.ci_autores = autoresTexto;
+
+            let vitimasTexto = '';
+            if (dados.vitimas && dados.vitimas.length > 0) {
+                vitimasTexto = dados.vitimas.map(v => v.nome).join(', ');
+            }
+            dados.ci_vitimas = vitimasTexto;
+
+            // Formatar Local
+            let localFato = '';
+            if (dados.endereco_fato) localFato += dados.endereco_fato;
+            if (dados.numero_fato) localFato += ', ' + dados.numero_fato;
+            if (dados.bairro_fato) localFato += ', ' + dados.bairro_fato;
+            if (dados.cidade_fato) localFato += ', ' + dados.cidade_fato + '/PE';
+            dados.ci_local = localFato;
+            
+            // Itens apreendidos da aba principal
+            const apreensoesAba = $('#inputApreensao').val();
+            if (apreensoesAba) {
+                dados.ci_apreensoes = apreensoesAba;
+            }
+            
+            $('#modalCIRemessaProcedimentos').modal('hide');
+            this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+        });
+
+        $('#modalCIRemessaProcedimentos').modal('show');
+    },
+
+    _abrirModalCIRemessaObjetosDocumentos: function(dados, documentoSelecionado) {
+        $('#inputCIDestinatarioRemessa').val('GESTOR(A) DA 20ª DESEC – AFOGADOS DA INGAZEIRA');
+        $('#selectCITipoRemessa').val('OBJETOS').trigger('change');
+        $('#selectCITipoProcRemessa').val('AUTO DE PRISÃO EM FLAGRANTE DELITO (APFD)');
+        $('#inputCIOrigemDocs').val('');
+        
+        // Puxar as apreensões da aba Apreensão
+        let apreensoesPadrao = $('#inputApreensao').val() || '';
+        $('#inputCIListaItens').val(apreensoesPadrao);
+
+        $('#selectCITipoRemessa').off('change').on('change', function() {
+            if ($(this).val() === 'OBJETOS') {
+                $('#containerRemessaObjetos').slideDown();
+                $('#containerRemessaDocumentos').slideUp();
+                $('#inputCIListaItens').val(apreensoesPadrao);
+            } else {
+                $('#containerRemessaObjetos').slideUp();
+                $('#containerRemessaDocumentos').slideDown();
+                $('#inputCIListaItens').val('');
+            }
+        });
+
+        $('#btnConfirmarCIRemessaObjetosDocumentos').off('click').on('click', () => {
+            const destinatario = $('#inputCIDestinatarioRemessa').val().trim();
+            const tipoRemessa = $('#selectCITipoRemessa').val();
+            const tipoProc = $('#selectCITipoProcRemessa').val();
+            const origemDocs = $('#inputCIOrigemDocs').val().trim();
+            const listaItens = $('#inputCIListaItens').val().trim();
+
+            if (!destinatario) {
+                this.mostrarErro('Por favor, informe o destinatário.');
+                return;
+            }
+
+            if (!listaItens) {
+                this.mostrarErro('Por favor, informe a lista de itens que serão enviados.');
+                return;
+            }
+
+            dados.ci_destinatario = destinatario;
+            dados.ci_tipo_remessa = tipoRemessa;
+            dados.ci_lista_itens = listaItens;
+
+            if (tipoRemessa === 'OBJETOS') {
+                dados.ci_tipo_proc = tipoProc;
+            } else {
+                dados.ci_origem_docs = origemDocs;
+            }
+
+            let vitimasTexto = '';
+            if (dados.vitimas && dados.vitimas.length > 0) {
+                vitimasTexto = dados.vitimas.map(v => v.nome).join(', ');
+            }
+            dados.ci_vitimas = vitimasTexto;
+
+            let localFato = '';
+            if (dados.endereco_fato) localFato += dados.endereco_fato;
+            if (dados.numero_fato) localFato += ', ' + dados.numero_fato;
+            if (dados.bairro_fato) localFato += ', ' + dados.bairro_fato;
+            if (dados.cidade_fato) localFato += ', ' + dados.cidade_fato + '/PE';
+            dados.ci_local = localFato;
+            
+            $('#modalCIRemessaObjetosDocumentos').modal('hide');
+            this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+        });
+
+        $('#modalCIRemessaObjetosDocumentos').modal('show');
+    },
+
+    _abrirModalCIGenerica: function(dados, documentoSelecionado) {
+        // Reset defaults
+        $('#inputCIGenericaDestinatario').val('GESTOR(A) DA 20ª DESEC – AFOGADOS DA INGAZEIRA');
+        $('#inputCIGenericaAssunto').val('');
+        $('#inputCIGenericaCorpo').val('Cumprimentando-o(a) cordialmente, sirvo-me do presente para informar/solicitar que...');
+
+        $('#btnConfirmarCIGenerica').off('click').on('click', () => {
+            const destinatario = $('#inputCIGenericaDestinatario').val().trim();
+            const assunto = $('#inputCIGenericaAssunto').val().trim();
+            const corpo = $('#inputCIGenericaCorpo').val().trim();
+
+            if (!destinatario) {
+                this.mostrarErro('Por favor, informe o destinatário da C.I.');
+                return;
+            }
+
+            dados.ci_destinatario = destinatario;
+            dados.ci_assunto = assunto;
+            dados.ci_corpo = corpo;
+            
+            $('#modalCIGenerica').modal('hide');
+            this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+        });
+
+        $('#modalCIGenerica').modal('show');
+    },
+
+    _abrirModalCIEncaminhamentoIITB: function(dados, documentoSelecionado) {
+        // Reset defaults
+        $('#inputQualificacaoIITB').val('');
+        $('#inputPessoaManualIITB').val('');
+        
+        const containerRadios = $('#containerRadiosPessoasIITB');
+        containerRadios.empty();
+
+        // Juntar autores e vitimas para o IITB
+        const todasAsPessoas = [];
+        if (dados.autores && dados.autores.length > 0) todasAsPessoas.push(...dados.autores);
+        if (dados.vitimas && dados.vitimas.length > 0) todasAsPessoas.push(...dados.vitimas);
+
+        if (todasAsPessoas.length > 0) {
+            todasAsPessoas.forEach((pessoa, index) => {
+                const radio = `
+                    <div class="col-md-6 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input pessoa-iitb-radio" type="radio" name="pessoaIITB" value="${pessoa.nome}" id="pessoaIITBRadio${index}">
+                            <label class="form-check-label fs-6" for="pessoaIITBRadio${index}">
+                                ${pessoa.nome}
+                            </label>
+                        </div>
+                    </div>
+                `;
+                containerRadios.append(radio);
+            });
+            // Marcar o primeiro por padrão
+            containerRadios.find('input[type="radio"]').first().prop('checked', true);
+        } else {
+            containerRadios.html('<div class="col-12"><span class="text-muted small">Nenhuma pessoa listada no BOE. Digite manualmente abaixo.</span></div>');
+        }
+
+        $('#btnConfirmarCIEncaminhamentoIITB').off('click').on('click', () => {
+            // Determinar pessoa selecionada
+            let pessoaNome = '';
+            const pessoaManual = $('#inputPessoaManualIITB').val().trim();
+            if (pessoaManual) {
+                pessoaNome = pessoaManual;
+            } else {
+                pessoaNome = $('input[name="pessoaIITB"]:checked').val() || '';
+            }
+
+            const qualificacao = $('#inputQualificacaoIITB').val().trim();
+
+            if (!pessoaNome) {
+                this.mostrarErro('Por favor, informe ou selecione o nome da pessoa.');
+                return;
+            }
+
+            dados.ci_pessoa_nome = pessoaNome;
+            dados.ci_pessoa_qualificacao = qualificacao;
+            
+            $('#modalCIEncaminhamentoIITB').modal('hide');
+            this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+        });
+
+        $('#modalCIEncaminhamentoIITB').modal('show');
+    },
+
+    _abrirModalOficioBanco: function(dados, documentoSelecionado) {
+        // Reset defaults
+        $('#selectBancoNome').val('BANCO DO BRASIL');
+        $('#inputBancoAgencia').val('');
+        $('#radioBancoImagens').prop('checked', true);
+        $('#containerBancoDetalhes').hide();
+        $('#inputBancoDetalhes').val('');
+
+        $('input[name="radioBancoTipoSolicitacao"]').off('change').on('change', function() {
+            if ($('#radioBancoDocumentos').is(':checked')) {
+                $('#containerBancoDetalhes').slideDown();
+            } else {
+                $('#containerBancoDetalhes').slideUp();
+                $('#inputBancoDetalhes').val('');
+            }
+        });
+
+        $('#btnConfirmarOficioBanco').off('click').on('click', () => {
+            const bancoNome = $('#selectBancoNome').val();
+            const bancoAgencia = $('#inputBancoAgencia').val().trim();
+            const tipoSolicitacao = $('input[name="radioBancoTipoSolicitacao"]:checked').val();
+            const detalhes = $('#inputBancoDetalhes').val().trim();
+
+            if (!bancoAgencia) {
+                this.mostrarErro('Por favor, informe a agência do banco.');
+                return;
+            }
+
+            if (tipoSolicitacao === 'DOCUMENTOS' && !detalhes) {
+                this.mostrarErro('Por favor, informe os detalhes da solicitação de documentos (extratos, contas, etc.).');
+                return;
+            }
+
+            dados.banco_nome = bancoNome;
+            dados.banco_agencia = bancoAgencia;
+            dados.banco_solicitacao_tipo = tipoSolicitacao;
+            
+            if (tipoSolicitacao === 'IMAGENS') {
+                dados.banco_texto = 'Cumprimentando-o(a) cordialmente, sirvo-me do presente expediente para solicitar a Vossa Senhoria que determine o fornecimento, com a máxima brevidade possível, das imagens do circuito interno de segurança (CFTV) dessa agência bancária, referentes ao dia XX/XX/XXXX, no período compreendido entre XX:XXh e XX:XXh, que possam ter captado a movimentação suspeita relatada na ocorrência em epígrafe.\n\nAs imagens deverão ser fornecidas em mídia digital (pen drive, CD/DVD) ou através de link seguro para download, em formato compatível com os players de vídeo padrão de mercado.';
+            } else {
+                dados.banco_texto = 'Cumprimentando-o(a) cordialmente, sirvo-me do presente expediente para solicitar a Vossa Senhoria o envio da seguinte documentação, necessária à instrução da ocorrência em epígrafe:\n\n- ' + detalhes;
+            }
+            
+            $('#modalOficioBanco').modal('hide');
+            this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+        });
+
+        $('#modalOficioBanco').modal('show');
+    },
+
+    _abrirModalOficioCertidaoObito: function(dados, documentoSelecionado) {
+        // Reset defaults
+        $('#inputCartorioNome').val('CARTÓRIO DO REGISTRO CIVIL DAS PESSOAS NATURAIS');
+        $('#inputVitimaManualObito').val('');
+        
+        const containerRadios = $('#containerRadiosVitimasObito');
+        containerRadios.empty();
+
+        if (dados.vitimas && dados.vitimas.length > 0) {
+            dados.vitimas.forEach((vitima, index) => {
+                const radio = `
+                    <div class="col-md-6 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input vitima-obito-radio" type="radio" name="vitimaObito" value="${vitima.nome}" id="vitimaObitoRadio${index}">
+                            <label class="form-check-label fs-6" for="vitimaObitoRadio${index}">
+                                ${vitima.nome}
+                            </label>
+                        </div>
+                    </div>
+                `;
+                containerRadios.append(radio);
+            });
+            // Marcar o primeiro por padrão
+            containerRadios.find('input[type="radio"]').first().prop('checked', true);
+        } else {
+            containerRadios.html('<div class="col-12"><span class="text-muted small">Nenhuma vítima listada no BOE. Digite manualmente abaixo.</span></div>');
+        }
+
+        $('#btnConfirmarOficioCertidaoObito').off('click').on('click', () => {
+            // Determinar vítima selecionada
+            let vitimaNome = '';
+            const vitimaManual = $('#inputVitimaManualObito').val().trim();
+            if (vitimaManual) {
+                vitimaNome = vitimaManual;
+            } else {
+                vitimaNome = $('input[name="vitimaObito"]:checked').val() || '';
+            }
+
+            const cartorioNome = $('#inputCartorioNome').val().trim();
+
+            if (!vitimaNome) {
+                this.mostrarErro('Por favor, informe ou selecione o nome da vítima falecida.');
+                return;
+            }
+
+            if (!cartorioNome) {
+                this.mostrarErro('Por favor, informe o nome do Cartório.');
+                return;
+            }
+
+            dados.vitima_nome = vitimaNome;
+            dados.cartorio_nome = cartorioNome;
+            
+            $('#modalOficioCertidaoObito').modal('hide');
+            this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+        });
+
+        $('#modalOficioCertidaoObito').modal('show');
+    },
+
+    _abrirModalOficioIML: function(dados, documentoSelecionado) {
+        // Reset defaults
+        $('#selectCidadeIML').val('CARUARU-PE');
+        $('#inputIMLCondutor').val('');
+        $('#inputVitimaManualIML').val('');
+        $('#checkIMLAutorizarFamiliar').prop('checked', false);
+        $('#containerIMLAutorizacao').hide();
+        $('#inputIMLFamiliarNome').val('');
+        $('#inputIMLFamiliarParentesco').val('');
+        $('#inputIMLFamiliarRG').val('');
+
+        $('#checkIMLAutorizarFamiliar').off('change').on('change', function() {
+            if ($(this).is(':checked')) {
+                $('#containerIMLAutorizacao').slideDown();
+            } else {
+                $('#containerIMLAutorizacao').slideUp();
+                $('#inputIMLFamiliarNome').val('');
+                $('#inputIMLFamiliarParentesco').val('');
+                $('#inputIMLFamiliarRG').val('');
+            }
+        });
+        
+        let localFato = '';
+        if (dados.endereco_fato) localFato += dados.endereco_fato;
+        if (dados.numero_fato) localFato += ', ' + dados.numero_fato;
+        if (dados.bairro_fato) localFato += ', ' + dados.bairro_fato;
+        if (dados.cidade_fato) localFato += ', ' + dados.cidade_fato + '/PE';
+        $('#inputIMLLocalFato').val(localFato);
+        
+        const containerRadios = $('#containerRadiosVitimasIML');
+        containerRadios.empty();
+
+        if (dados.vitimas && dados.vitimas.length > 0) {
+            dados.vitimas.forEach((vitima, index) => {
+                const radio = `
+                    <div class="col-md-6 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input vitima-iml-radio" type="radio" name="vitimaIML" value="${vitima.nome}" id="vitimaIMLRadio${index}">
+                            <label class="form-check-label fs-6" for="vitimaIMLRadio${index}">
+                                ${vitima.nome}
+                            </label>
+                        </div>
+                    </div>
+                `;
+                containerRadios.append(radio);
+            });
+            // Marcar o primeiro por padrão
+            containerRadios.find('input[type="radio"]').first().prop('checked', true);
+        } else {
+            containerRadios.html('<div class="col-12"><span class="text-muted small">Nenhum cadáver/vítima listado(a) no BOE. Digite manualmente abaixo.</span></div>');
+        }
+
+        $('#btnConfirmarOficioIML').off('click').on('click', () => {
+            // Determinar vítima selecionada
+            let vitimaNome = '';
+            const vitimaManual = $('#inputVitimaManualIML').val().trim();
+            if (vitimaManual) {
+                vitimaNome = vitimaManual;
+            } else {
+                vitimaNome = $('input[name="vitimaIML"]:checked').val() || '';
+            }
+
+            const cidadeIML = $('#selectCidadeIML').val();
+            const condutor = $('#inputIMLCondutor').val().trim();
+            const localObito = $('#inputIMLLocalFato').val().trim();
+
+            if (!vitimaNome) {
+                this.mostrarErro('Por favor, informe ou selecione o nome do cadáver/vítima.');
+                return;
+            }
+
+            dados.vitima_nome = vitimaNome;
+            dados.iml_cidade = cidadeIML;
+            dados.iml_condutor = condutor;
+            dados.iml_local_fato = localObito;
+
+            if ($('#checkIMLAutorizarFamiliar').is(':checked')) {
+                const famNome = $('#inputIMLFamiliarNome').val().trim();
+                const famParentesco = $('#inputIMLFamiliarParentesco').val().trim();
+                const famRG = $('#inputIMLFamiliarRG').val().trim();
+                
+                if (!famNome) {
+                    this.mostrarErro('Por favor, informe o nome do familiar autorizado.');
+                    return;
+                }
+
+                dados.iml_familiar_nome = famNome;
+                dados.iml_familiar_parentesco = famParentesco;
+                dados.iml_familiar_rg = famRG;
+            } else {
+                dados.iml_familiar_nome = '';
+            }
+            
+            $('#modalOficioIML').modal('hide');
+            this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+        });
+
+        $('#modalOficioIML').modal('show');
+    },
+
+    _abrirModalOficioPM: function(dados, documentoSelecionado) {
+        // Reset defaults
+        $('#selectBatalhaoPM').val('23º BATALHÃO DE POLÍCIA MILITAR');
+        $('#inputPMData').val('');
+        $('#inputPMHora').val('');
+        $('#inputPMManual').val('');
+        
+        const containerCheckboxes = $('#containerCheckboxesPM');
+        containerCheckboxes.empty();
+
+        // Reunir condutores e testemunhas (que geralmente são PMs no BOE)
+        const possiveisPMs = [];
+        if (dados.condutores && dados.condutores.length > 0) possiveisPMs.push(...dados.condutores);
+        if (dados.testemunhas && dados.testemunhas.length > 0) possiveisPMs.push(...dados.testemunhas);
+
+        // Remover duplicatas pelo nome
+        const pmsUnicos = Array.from(new Map(possiveisPMs.map(pm => [pm.nome, pm])).values());
+
+        if (pmsUnicos.length > 0) {
+            pmsUnicos.forEach((pm, index) => {
+                const checkbox = `
+                    <div class="col-md-6 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input pm-checkbox" type="checkbox" value="${pm.nome}" id="pmCheck${index}" checked style="transform: scale(1.3); margin-right: 8px;">
+                            <label class="form-check-label fs-6" for="pmCheck${index}">
+                                ${pm.nome}
+                            </label>
+                        </div>
+                    </div>
+                `;
+                containerCheckboxes.append(checkbox);
+            });
+        } else {
+            containerCheckboxes.html('<div class="col-12"><span class="text-muted small">Nenhum condutor/testemunha listado no BOE. Digite manualmente abaixo.</span></div>');
+        }
+
+        $('#btnConfirmarOficioPM').off('click').on('click', () => {
+            const pmsSelecionados = [];
+            $('.pm-checkbox:checked').each(function() {
+                pmsSelecionados.push("- " + $(this).val());
+            });
+
+            const pmManual = $('#inputPMManual').val().trim();
+            if (pmManual) {
+                const linhasManuais = pmManual.split('\n').filter(l => l.trim() !== '');
+                linhasManuais.forEach(linha => {
+                    pmsSelecionados.push("- " + linha.trim());
+                });
+            }
+
+            if (pmsSelecionados.length === 0) {
+                this.mostrarErro('Por favor, selecione ou digite pelo menos um Policial Militar.');
+                return;
+            }
+
+            const batalhao = $('#selectBatalhaoPM').val();
+            const data = $('#inputPMData').val().trim();
+            const hora = $('#inputPMHora').val().trim();
+
+            if (!data || !hora) {
+                this.mostrarErro('Por favor, informe a data e hora da apresentação.');
+                return;
+            }
+
+            dados.pm_lista = pmsSelecionados.join('\n');
+            dados.pm_batalhao = batalhao;
+            dados.pm_data = data;
+            dados.pm_hora = hora;
+            
+            $('#modalOficioPM').modal('hide');
+            this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+        });
+
+        $('#modalOficioPM').modal('show');
+    },
+
+    _abrirModalCertidaoComparecimento: function(dados, documentoSelecionado) {
+        // Reset defaults
+        $('#inputComparecimentoManual').val('');
+        $('#inputComparecimentoDoc').val('');
+        
+        // Sugerir a data atual por padrão
+        const hoje = new Date();
+        const dataFormatada = hoje.toLocaleDateString('pt-BR');
+        $('#inputComparecimentoData').val(dataFormatada);
+        
+        $('#inputComparecimentoHoraChegada').val('');
+        $('#inputComparecimentoHoraSaida').val('');
+        
+        const containerRadios = $('#containerRadiosComparecimento');
+        containerRadios.empty();
+
+        // Reunir todas as pessoas possíveis do BOE (vitimas, conduzidos/autuados, testemunhas, condutores)
+        const possiveisPessoas = [];
+        if (dados.vitimas) possiveisPessoas.push(...dados.vitimas);
+        if (dados.conduzidos) possiveisPessoas.push(...dados.conduzidos);
+        if (dados.testemunhas) possiveisPessoas.push(...dados.testemunhas);
+        if (dados.condutores) possiveisPessoas.push(...dados.condutores);
+
+        // Remover duplicatas pelo nome
+        const pessoasUnicas = Array.from(new Map(possiveisPessoas.map(p => [p.nome, p])).values());
+
+        if (pessoasUnicas.length > 0) {
+            pessoasUnicas.forEach((pessoa, index) => {
+                const radio = `
+                    <div class="col-md-6 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input pessoa-comparecimento-radio" type="radio" name="pessoaComparecimento" value="${pessoa.nome}" id="pessoaCompRadio${index}">
+                            <label class="form-check-label fs-6" for="pessoaCompRadio${index}">
+                                ${pessoa.nome}
+                            </label>
+                        </div>
+                    </div>
+                `;
+                containerRadios.append(radio);
+            });
+            // Não marca nenhum por padrão para obrigar a escolha ou digitação manual
+        } else {
+            containerRadios.html('<div class="col-12"><span class="text-muted small">Nenhuma pessoa listada no BOE. Digite manualmente abaixo.</span></div>');
+        }
+
+        $('#btnConfirmarCertidaoComparecimento').off('click').on('click', () => {
+            // Determinar pessoa selecionada
+            let pessoaNome = '';
+            const pessoaManual = $('#inputComparecimentoManual').val().trim();
+            if (pessoaManual) {
+                pessoaNome = pessoaManual;
+            } else {
+                pessoaNome = $('input[name="pessoaComparecimento"]:checked').val() || '';
+            }
+
+            const documentoID = $('#inputComparecimentoDoc').val().trim();
+            const dataComp = $('#inputComparecimentoData').val().trim();
+            const horaChegada = $('#inputComparecimentoHoraChegada').val().trim();
+            const horaSaida = $('#inputComparecimentoHoraSaida').val().trim();
+
+            if (!pessoaNome) {
+                this.mostrarErro('Por favor, selecione ou digite o nome da pessoa.');
+                return;
+            }
+            if (!dataComp || !horaChegada || !horaSaida) {
+                this.mostrarErro('Por favor, informe a data e os horários de chegada e saída.');
+                return;
+            }
+
+            dados.comparecimento_nome = pessoaNome;
+            dados.comparecimento_doc = documentoID;
+            dados.comparecimento_data = dataComp;
+            dados.comparecimento_hora_chegada = horaChegada;
+            dados.comparecimento_hora_saida = horaSaida;
+            
+            $('#modalCertidaoComparecimento').modal('hide');
+            this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+        });
+
+        $('#modalCertidaoComparecimento').modal('show');
+    },
+
+    _abrirModalCertidaoComunicaFamilia: function(dados, documentoSelecionado) {
+        // Reset defaults
+        $('#inputComunicaAutuadoManual').val('');
+        $('#inputComunicaFamiliarNome').val('');
+        $('#inputComunicaParentesco').val('');
+        $('#inputComunicaTelefone').val('');
+        $('#radioComunicaTelefone').prop('checked', true);
+        $('#containerComunicaTelefone').show();
+        
+        const containerRadios = $('#containerRadiosAutuadosComunica');
+        containerRadios.empty();
+
+        if (dados.autores && dados.autores.length > 0) {
+            dados.autores.forEach((autuado, index) => {
+                const radio = `
+                    <div class="col-md-6 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input autuado-comunica-radio" type="radio" name="autuadoComunica" value="${autuado.nome}" id="autuadoComunicaRadio${index}">
+                            <label class="form-check-label fs-6" for="autuadoComunicaRadio${index}">
+                                ${autuado.nome}
+                            </label>
+                        </div>
+                    </div>
+                `;
+                containerRadios.append(radio);
+            });
+            // Marcar o primeiro por padrão
+            containerRadios.find('input[type="radio"]').first().prop('checked', true);
+        } else {
+            containerRadios.html('<div class="col-12"><span class="text-muted small">Nenhum autor/autuado listado no BOE. Digite manualmente abaixo.</span></div>');
+        }
+
+        $('input[name="radioComunicaMeio"]').off('change').on('change', function() {
+            if ($('#radioComunicaTelefone').is(':checked')) {
+                $('#containerComunicaTelefone').slideDown();
+            } else {
+                $('#containerComunicaTelefone').slideUp();
+                $('#inputComunicaTelefone').val('');
+            }
+        });
+
+        $('#btnConfirmarCertidaoComunicaFamilia').off('click').on('click', () => {
+            // Determinar autuado selecionado
+            let autuadoNome = '';
+            const autuadoManual = $('#inputComunicaAutuadoManual').val().trim();
+            if (autuadoManual) {
+                autuadoNome = autuadoManual;
+            } else {
+                autuadoNome = $('input[name="autuadoComunica"]:checked').val() || '';
+            }
+
+            const familiarNome = $('#inputComunicaFamiliarNome').val().trim();
+            const parentesco = $('#inputComunicaParentesco').val().trim();
+            const isTelefone = $('#radioComunicaTelefone').is(':checked');
+            const telefone = $('#inputComunicaTelefone').val().trim();
+
+            if (!autuadoNome) {
+                this.mostrarErro('Por favor, selecione ou digite o nome do autuado/preso.');
+                return;
+            }
+            if (!familiarNome || !parentesco) {
+                this.mostrarErro('Por favor, informe o nome e grau de parentesco do familiar.');
+                return;
+            }
+            if (isTelefone && !telefone) {
+                this.mostrarErro('Por favor, informe o número de telefone.');
+                return;
+            }
+
+            dados.comunicacao_autuado = autuadoNome;
+            dados.comunicacao_familiar = familiarNome;
+            dados.comunicacao_parentesco = parentesco;
+            dados.comunicacao_meio = isTelefone ? 'através do telefone ' + telefone : 'pessoalmente nesta Delegacia';
+            
+            $('#modalCertidaoComunicaFamilia').modal('hide');
+            this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+        });
+
+        $('#modalCertidaoComunicaFamilia').modal('show');
+    },
+
+    _abrirModalReciboPreso: function(dados, documentoSelecionado) {
+        // Reset defaults
+        $('#inputReciboCondutorManual').val('');
+        $('#inputReciboAutuadoManual').val('');
+        
+        const containerCondutores = $('#containerRadiosCondutoresRecibo');
+        const containerAutuados = $('#containerRadiosAutuadosRecibo');
+        
+        containerCondutores.empty();
+        containerAutuados.empty();
+
+        // Radios Condutores
+        if (dados.condutores && dados.condutores.length > 0) {
+            dados.condutores.forEach((condutor, index) => {
+                const radio = `
+                    <div class="col-md-6 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input condutor-recibo-radio" type="radio" name="condutorRecibo" value="${condutor.nome}" id="condutorReciboRadio${index}">
+                            <label class="form-check-label fs-6" for="condutorReciboRadio${index}">
+                                ${condutor.nome}
+                            </label>
+                        </div>
+                    </div>
+                `;
+                containerCondutores.append(radio);
+            });
+            containerCondutores.find('input[type="radio"]').first().prop('checked', true);
+        } else {
+            containerCondutores.html('<div class="col-12"><span class="text-muted small">Nenhum condutor listado no BOE. Digite manualmente abaixo.</span></div>');
+        }
+
+        // Checkboxes Autuados
+        if (dados.autores && dados.autores.length > 0) {
+            dados.autores.forEach((autuado, index) => {
+                const checkbox = `
+                    <div class="col-md-6 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input autuado-recibo-checkbox" type="checkbox" name="autuadoRecibo" value="${autuado.nome}" id="autuadoReciboCheckbox${index}">
+                            <label class="form-check-label fs-6" for="autuadoReciboCheckbox${index}">
+                                ${autuado.nome}
+                            </label>
+                        </div>
+                    </div>
+                `;
+                containerAutuados.append(checkbox);
+            });
+            containerAutuados.find('input[type="checkbox"]').first().prop('checked', true);
+        } else {
+            containerAutuados.html('<div class="col-12"><span class="text-muted small">Nenhum autor/autuado listado no BOE. Digite manualmente abaixo.</span></div>');
+        }
+
+        $('#btnConfirmarReciboPreso').off('click').on('click', () => {
+            let condutorNome = '';
+            const condutorManual = $('#inputReciboCondutorManual').val().trim();
+            if (condutorManual) {
+                condutorNome = condutorManual;
+            } else {
+                condutorNome = $('input[name="condutorRecibo"]:checked').val() || '';
+            }
+
+            let autuadoNome = '';
+            const autuadoManual = $('#inputReciboAutuadoManual').val().trim();
+            if (autuadoManual) {
+                autuadoNome = autuadoManual;
+            } else {
+                const selecionados = [];
+                $('input[name="autuadoRecibo"]:checked').each(function() {
+                    selecionados.push($(this).val());
+                });
+                
+                if (selecionados.length === 1) {
+                    autuadoNome = selecionados[0];
+                } else if (selecionados.length > 1) {
+                    const ult = selecionados.pop();
+                    autuadoNome = selecionados.join(', ') + ' e ' + ult;
+                }
+            }
+
+            if (!condutorNome) {
+                this.mostrarErro('Por favor, selecione ou digite o nome do condutor.');
+                return;
+            }
+            if (!autuadoNome) {
+                this.mostrarErro('Por favor, selecione pelo menos um preso/autuado ou digite manualmente.');
+                return;
+            }
+
+            dados.recibo_condutor = condutorNome;
+            dados.recibo_autuado = autuadoNome;
+            
+            $('#modalReciboPreso').modal('hide');
+            this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+        });
+
+        $('#modalReciboPreso').modal('show');
+    },
+
+    _abrirModalReciboProcedimento: function(dados, documentoSelecionado) {
+        // Reset defaults
+        $('#selectDestinoProcedimento').val('AUDIÊNCIA DE CUSTÓDIA');
+        $('#inputObsProcedimento').val('');
+
+        $('#btnConfirmarReciboProcedimento').off('click').on('click', () => {
+            const destino = $('#selectDestinoProcedimento').val();
+            const obs = $('#inputObsProcedimento').val().trim();
+
+            dados.recibo_procedimento_destino = destino;
+            dados.recibo_procedimento_obs = obs;
+            
+            $('#modalReciboProcedimento').modal('hide');
+            this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+        });
+
+        $('#modalReciboProcedimento').modal('show');
+    },
+
+    _abrirModalAutoDepositoFiel: function(dados, documentoSelecionado) {
+        // Reset defaults
+        $('#inputDepositoNome').val('');
+        $('#inputDepositoRG').val('');
+        $('#inputDepositoCPF').val('');
+        $('#inputDepositoEndereco').val('');
+        $('#inputDepositoObjetos').val('');
+        
+        const selectPessoa = $('#selectPessoaDepositoFiel');
+        selectPessoa.empty();
+        selectPessoa.append('<option value="" selected disabled>Escolha uma pessoa envolvida...</option>');
+
+        // Juntar todas as pessoas envolvidas para o dropdown
+        const todasPessoas = [];
+        ['vitimas', 'autores', 'testemunhas', 'condutores', 'outros'].forEach(tipo => {
+            if (dados[tipo] && dados[tipo].length > 0) {
+                dados[tipo].forEach(p => {
+                    todasPessoas.push(p);
+                });
+            }
+        });
+
+        if (todasPessoas.length > 0) {
+            todasPessoas.forEach((pessoa, index) => {
+                selectPessoa.append(`<option value="${index}">${pessoa.nome} (${pessoa.tipo_envolvimento || 'Envolvido'})</option>`);
+            });
+        } else {
+            selectPessoa.append('<option value="" disabled>Nenhuma pessoa cadastrada no BOE</option>');
+        }
+
+        // Ao selecionar uma pessoa, preencher os campos manuais automaticamente
+        selectPessoa.off('change').on('change', function() {
+            const index = $(this).val();
+            if (index !== "" && todasPessoas[index]) {
+                const p = todasPessoas[index];
+                $('#inputDepositoNome').val(p.nome || '');
+                $('#inputDepositoRG').val(p.rg || '');
+                $('#inputDepositoCPF').val(p.cpf || '');
+                
+                let enderecoCompleto = '';
+                if (p.logradouro) enderecoCompleto += p.logradouro;
+                if (p.numero) enderecoCompleto += ', ' + p.numero;
+                if (p.bairro) enderecoCompleto += ' - ' + p.bairro;
+                if (p.cidade_nome) enderecoCompleto += ', ' + p.cidade_nome;
+                
+                $('#inputDepositoEndereco').val(enderecoCompleto);
+            }
+        });
+
+        $('#btnConfirmarAutoDepositoFiel').off('click').on('click', () => {
+            const nome = $('#inputDepositoNome').val().trim();
+            const rg = $('#inputDepositoRG').val().trim();
+            const cpf = $('#inputDepositoCPF').val().trim();
+            const endereco = $('#inputDepositoEndereco').val().trim();
+            const objetos = $('#inputDepositoObjetos').val().trim();
+
+            if (!nome) {
+                this.mostrarErro('Por favor, informe o nome do Fiel Depositário.');
+                return;
+            }
+
+            dados.deposito_fiel_nome = nome;
+            dados.deposito_fiel_rg = rg;
+            dados.deposito_fiel_cpf = cpf;
+            dados.deposito_fiel_endereco = endereco;
+            dados.deposito_fiel_objetos = objetos;
+            
+            $('#modalAutoDepositoFiel').modal('hide');
+            this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+        });
+
+        $('#modalAutoDepositoFiel').modal('show');
+    },
+
+    _abrirModalTermoGuardaVeiculo: function(dados, documentoSelecionado) {
+        // Reset defaults
+        $('#inputGuardaNome').val('');
+        $('#inputGuardaRG').val('');
+        $('#inputGuardaCPF').val('');
+        $('#inputGuardaEndereco').val('');
+        $('#inputGuardaVeiculoTipo').val('');
+        $('#inputGuardaVeiculoMarca').val('');
+        $('#inputGuardaVeiculoModelo').val('');
+        $('#inputGuardaVeiculoCor').val('');
+        $('#inputGuardaVeiculoPlaca').val('');
+        
+        const selectPessoa = $('#selectPessoaGuardaVeiculo');
+        selectPessoa.empty();
+        selectPessoa.append('<option value="" selected disabled>Escolha uma pessoa envolvida...</option>');
+
+        // Juntar todas as pessoas envolvidas para o dropdown
+        const todasPessoas = [];
+        ['vitimas', 'autores', 'testemunhas', 'condutores', 'outros'].forEach(tipo => {
+            if (dados[tipo] && dados[tipo].length > 0) {
+                dados[tipo].forEach(p => {
+                    todasPessoas.push(p);
+                });
+            }
+        });
+
+        if (todasPessoas.length > 0) {
+            todasPessoas.forEach((pessoa, index) => {
+                selectPessoa.append(`<option value="${index}">${pessoa.nome} (${pessoa.tipo_envolvimento || 'Envolvido'})</option>`);
+            });
+        } else {
+            selectPessoa.append('<option value="" disabled>Nenhuma pessoa cadastrada no BOE</option>');
+        }
+
+        // Ao selecionar uma pessoa, preencher os campos manuais automaticamente
+        selectPessoa.off('change').on('change', function() {
+            const index = $(this).val();
+            if (index !== "" && todasPessoas[index]) {
+                const p = todasPessoas[index];
+                $('#inputGuardaNome').val(p.nome || '');
+                $('#inputGuardaRG').val(p.rg || '');
+                $('#inputGuardaCPF').val(p.cpf || '');
+                
+                let enderecoCompleto = '';
+                if (p.logradouro) enderecoCompleto += p.logradouro;
+                if (p.numero) enderecoCompleto += ', ' + p.numero;
+                if (p.bairro) enderecoCompleto += ' - ' + p.bairro;
+                if (p.cidade_nome) enderecoCompleto += ', ' + p.cidade_nome;
+                
+                $('#inputGuardaEndereco').val(enderecoCompleto);
+            }
+        });
+
+        $('#btnConfirmarTermoGuardaVeiculo').off('click').on('click', () => {
+            const nome = $('#inputGuardaNome').val().trim();
+            const rg = $('#inputGuardaRG').val().trim();
+            const cpf = $('#inputGuardaCPF').val().trim();
+            const endereco = $('#inputGuardaEndereco').val().trim();
+            
+            const tipo = $('#inputGuardaVeiculoTipo').val().trim();
+            const marca = $('#inputGuardaVeiculoMarca').val().trim();
+            const modelo = $('#inputGuardaVeiculoModelo').val().trim();
+            const cor = $('#inputGuardaVeiculoCor').val().trim();
+            const placa = $('#inputGuardaVeiculoPlaca').val().trim();
+
+            if (!nome) {
+                this.mostrarErro('Por favor, informe o nome do Recebedor.');
+                return;
+            }
+
+            dados.veiculo_recebedor_nome = nome;
+            dados.veiculo_recebedor_rg = rg;
+            dados.veiculo_recebedor_cpf = cpf;
+            dados.veiculo_recebedor_endereco = endereco;
+            
+            dados.veiculo_tipo = tipo;
+            dados.veiculo_marca = marca;
+            dados.veiculo_modelo = modelo;
+            dados.veiculo_cor = cor;
+            dados.veiculo_placa = placa;
+            
+            $('#modalTermoGuardaVeiculo').modal('hide');
+            this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+        });
+
+        // Aplicar máscara de placa se não tiver sido inicializada globalmente
+        if ($.fn.inputmask) {
+            $('#inputGuardaVeiculoPlaca').inputmask({mask: ['AAA-9999', 'AAA9A99']});
+        }
+
+        $('#modalTermoGuardaVeiculo').modal('show');
+    },
+
+    _abrirModalTermoApreensao: function(dados, documentoSelecionado) {
+        // Reset defaults
+        $('#inputApreensaoApresentador').val('');
+        $('#inputApreensaoLocal').val('');
+        $('#inputApreensaoObjetos').val('');
+        
+        const selectPessoa = $('#selectPessoaApreensao');
+        selectPessoa.empty();
+        selectPessoa.append('<option value="" selected disabled>Escolha uma pessoa envolvida...</option>');
+
+        // Juntar todas as pessoas envolvidas para o dropdown
+        const todasPessoas = [];
+        ['vitimas', 'autores', 'testemunhas', 'condutores', 'outros'].forEach(tipo => {
+            if (dados[tipo] && dados[tipo].length > 0) {
+                dados[tipo].forEach(p => {
+                    todasPessoas.push(p);
+                });
+            }
+        });
+
+        if (todasPessoas.length > 0) {
+            todasPessoas.forEach((pessoa, index) => {
+                selectPessoa.append(`<option value="${index}">${pessoa.nome} (${pessoa.tipo_envolvimento || 'Envolvido'})</option>`);
+            });
+        } else {
+            selectPessoa.append('<option value="" disabled>Nenhuma pessoa cadastrada no BOE</option>');
+        }
+
+        // Ao selecionar uma pessoa, preencher os campos manuais automaticamente
+        selectPessoa.off('change').on('change', function() {
+            const index = $(this).val();
+            if (index !== "" && todasPessoas[index]) {
+                const p = todasPessoas[index];
+                $('#inputApreensaoApresentador').val(p.nome || '');
+            }
+        });
+
+        $('#btnConfirmarTermoApreensao').off('click').on('click', () => {
+            const nome = $('#inputApreensaoApresentador').val().trim();
+            const local = $('#inputApreensaoLocal').val().trim();
+            const objetos = $('#inputApreensaoObjetos').val().trim();
+
+            if (!nome) {
+                this.mostrarErro('Por favor, informe o nome de quem apresentou os objetos.');
+                return;
+            }
+
+            dados.apreensao_apresentador = nome;
+            dados.apreensao_local = local;
+            dados.apreensao_objetos = objetos;
+            
+            $('#modalTermoApreensao').modal('hide');
+            this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+        });
+
+        $('#modalTermoApreensao').modal('show');
+    },
+
+    _abrirModalCapaProcedimento: function(dados, documentoSelecionado) {
+        $('#inputDocumentoBaseCapa').val(documentoSelecionado);
+        
+        let label = 'Capa de Procedimento';
+        if (documentoSelecionado.includes('BOC')) label = 'Capa de BOC (Boletim de Ocorrência Circunstanciado)';
+        if (documentoSelecionado.includes('TCO')) label = 'Capa de TCO (Termo Circunstanciado de Ocorrência)';
+        
+        $('#modalCapaProcedimentoLabel').html(`<i class="fas fa-file-alt me-2"></i> ${label}`);
+
+        $('#btnConfirmarCapaProcedimento').off('click').on('click', () => {
+            const tipo = $('#selectTipoProcedimentoCapa').val();
+            dados.capa_tipo = tipo;
+            
+            $('#modalCapaProcedimento').modal('hide');
+            this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+        });
+
+        $('#modalCapaProcedimento').modal('show');
+    },
+
+    _abrirModalOrdemServicoIntimacao: function(dados, documentoSelecionado) {
+        // Reset defaults
+        $('#inputIntimacaoPessoaManual').val('');
+        const containerCheckboxes = $('#containerCheckboxesIntimacao');
+        containerCheckboxes.empty();
+
+        // Juntar todas as pessoas envolvidas para os checkboxes
+        const todasPessoas = [];
+        ['vitimas', 'autores', 'testemunhas', 'condutores', 'outros'].forEach(tipo => {
+            if (dados[tipo] && dados[tipo].length > 0) {
+                dados[tipo].forEach(p => {
+                    todasPessoas.push(p);
+                });
+            }
+        });
+
+        if (todasPessoas.length > 0) {
+            todasPessoas.forEach((pessoa, index) => {
+                let detalhes = '';
+                if (pessoa.rg) detalhes += `RG: ${pessoa.rg} | `;
+                if (pessoa.cpf) detalhes += `CPF: ${pessoa.cpf} | `;
+                if (pessoa.logradouro) detalhes += `${pessoa.logradouro}`;
+                if (pessoa.numero) detalhes += `, ${pessoa.numero}`;
+                
+                const checkbox = `
+                    <div class="col-md-6 mb-3">
+                        <div class="form-check custom-checkbox-lg">
+                            <input class="form-check-input checkbox-intimacao" type="checkbox" value="${index}" id="chkIntimacao_${index}">
+                            <label class="form-check-label" for="chkIntimacao_${index}">
+                                <strong>${pessoa.nome}</strong><br>
+                                <small class="text-muted">${pessoa.tipo_envolvimento || 'Envolvido'}</small><br>
+                                <small class="text-muted" style="font-size: 0.8em;">${detalhes}</small>
+                            </label>
+                        </div>
+                    </div>
+                `;
+                containerCheckboxes.append(checkbox);
+            });
+        } else {
+            containerCheckboxes.append('<div class="col-12"><p class="text-muted">Nenhuma pessoa cadastrada no BOE para selecionar.</p></div>');
+        }
+
+        $('#btnConfirmarOrdemServicoIntimacao').off('click').on('click', () => {
+            const intimados = [];
+            
+            // Pega os checkboxes marcados
+            $('.checkbox-intimacao:checked').each(function() {
+                const index = $(this).val();
+                if (todasPessoas[index]) {
+                    const p = todasPessoas[index];
+                    let info = p.nome;
+                    if (p.rg) info += `, RG: ${p.rg}`;
+                    if (p.cpf) info += `, CPF: ${p.cpf}`;
+                    let end = '';
+                    if (p.logradouro) end += p.logradouro;
+                    if (p.numero) end += ', ' + p.numero;
+                    if (p.bairro) end += ' - ' + p.bairro;
+                    if (p.cidade_nome) end += ', ' + p.cidade_nome;
+                    
+                    if (end) info += `<br>Endereço: ${end}`;
+                    if (p.telefone) info += `<br>Telefone: ${p.telefone}`;
+                    
+                    intimados.push(info);
+                }
+            });
+
+            // Pega o input manual
+            const manual = $('#inputIntimacaoPessoaManual').val().trim();
+            if (manual) {
+                intimados.push(manual);
+            }
+
+            if (intimados.length === 0) {
+                this.mostrarErro('Por favor, selecione pelo menos uma pessoa ou adicione alguém manualmente para a intimação.');
+                return;
+            }
+
+            // Formata como HTML em parágrafos ou lista
+            let listaHtml = '';
+            intimados.forEach((item, i) => {
+                listaHtml += `<p style="margin-bottom: 15px; margin-left: 40px; text-align: justify; line-height: 1.5;"><strong>${i + 1}.</strong> ${item}</p>`;
+            });
+
+            dados.intimados_lista = listaHtml;
+            
+            $('#modalOrdemServicoIntimacao').modal('hide');
+            this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+        });
+
+        $('#modalOrdemServicoIntimacao').modal('show');
+    },
+
+    _abrirModalOficioRemessa: function(dados, documentoSelecionado) {
+        // Reset defaults
+        $('#selectRemessaTratamento').val('Promotor(a)');
+        $('#inputRemessaDestinatario').val('PROMOTOR(A) DE JUSTIÇA DO ESTADO DE PERNAMBUCO');
+        $('#selectRemessaTipoProc').val('IP');
+        
+        // Auto-fill Tombo (IP number from the main form)
+        const tomboSugerido = dados.ip || $('#inputIP').val() || '';
+        $('#inputRemessaTombo').val(tomboSugerido);
+
+        // Change destinatário based on tratamento
+        $('#selectRemessaTratamento').off('change').on('change', function() {
+            if ($(this).val() === 'Juiz(a)') {
+                $('#inputRemessaDestinatario').val('JUIZ(A) DE DIREITO DA COMARCA');
+            } else {
+                $('#inputRemessaDestinatario').val('PROMOTOR(A) DE JUSTIÇA DO ESTADO DE PERNAMBUCO');
+            }
+        });
+
+        $('#btnConfirmarOficioRemessa').off('click').on('click', () => {
+            const tratamento = $('#selectRemessaTratamento').val();
+            const destinatario = $('#inputRemessaDestinatario').val().trim();
+            const tipoProc = $('#selectRemessaTipoProc').val();
+            const tombo = $('#inputRemessaTombo').val().trim();
+
+            if (!destinatario || !tombo) {
+                this.mostrarErro('Por favor, preencha o Cargo Extenso do destinatário e o Nº do Tombo do procedimento.');
+                return;
+            }
+
+            dados.remessa_tratamento = tratamento;
+            dados.remessa_destinatario = destinatario;
+            dados.remessa_tipo_proc = tipoProc;
+            dados.remessa_tombo = tombo;
+            
+            $('#modalOficioRemessa').modal('hide');
+            this._continuarImpressaoDocumentoInicio(dados, documentoSelecionado);
+        });
+
+        $('#modalOficioRemessa').modal('show');
+    },
+
+    _continuarImpressaoDocumentoInicio: function(dados, documentoSelecionado) {
         const rota = rotasImpressaoInicio[documentoSelecionado];
 
         // ✅ LÓGICA HÍBRIDA: SE NÃO TIVER '--DADOS--', USA POST (EVITA ERRO 403 URI TOO LONG)

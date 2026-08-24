@@ -1,4 +1,4 @@
-﻿// script_autor1.js - VERSÃO CORRIGIDA PARA VALORES ACIMA DE 999
+// script_autor1.js - VERSÃO CORRIGIDA PARA VALORES ACIMA DE 999
 $(document).ready(function () {
     // === Configuração global de CSRF ===
     $.ajaxSetup({
@@ -790,6 +790,7 @@ $(document).ready(function () {
             "LAUDO TRAUMATOLOGICO IML",
             "CERTIDAO DE ASSINATURA INDIVIDUAL",
             "AUTO CIRCUNSTACIADO - AUTOR",
+            "PERICIA PAPILOSCOPICA EM PESSOA",
             "COMUNICACAO DE APFD",
             "COMUNICACAO DE APFD - UNICO OFICIO",
             "MANDADO DE PRISAO - OFICIOS",

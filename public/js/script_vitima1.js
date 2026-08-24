@@ -1,4 +1,4 @@
-﻿// script_vitima1.js - VERSÃO COMPLETA E CORRIGIDA COM VÍNCULOS
+// script_vitima1.js - VERSÃO COMPLETA E CORRIGIDA COM VÍNCULOS
 $(document).ready(function () {
     // === Configuração global de CSRF ===
     $.ajaxSetup({
@@ -591,7 +591,11 @@ $(document).ready(function () {
             "LAUDO TRAUMATOLOGICO",
             "LAUDO TRAUMATOLOGICO IML",
             "CERTIDAO DE ASSINATURA INDIVIDUAL",
-            "PERICIA EM LOCAL DE CRIME"
+            "PERICIA EM LOCAL DE CRIME",
+            "PERICIA PAPILOSCOPICA EM LOCAL DE CRIME",
+            "PERICIA DE CONFRONTACAO PAPILOSCOPICA",
+            "PERICIA PAPILOSCOPICA EM PESSOA",
+            "PERICIA PAPILOSCOPICA EM OBJETO"
         ];
         let selectedIndex = -1;
         let sugestoesAtuais = [];

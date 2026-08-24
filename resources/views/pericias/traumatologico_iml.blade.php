@@ -10,6 +10,35 @@
     <link href="{{ asset('css/formularios.css') }}" rel="stylesheet">
 </head>
 <body class="body-declaracao">
+    <?php
+    if (!isset($dadosArray)) { $dadosArray = []; }
+
+    // Fallback inteligente para extração de nome aninhado caso venha de abas (autor/vítima/condutor)
+    if (empty($dadosArray['nome'])) {
+        if (!empty($dadosArray['autor1']['nome'])) {
+            $dadosArray['nome'] = $dadosArray['autor1']['nome'];
+        } elseif (!empty($dadosArray['vitima1']['nome'])) {
+            $dadosArray['nome'] = $dadosArray['vitima1']['nome'];
+        } elseif (!empty($dadosArray['condutor']['nome'])) {
+            $dadosArray['nome'] = $dadosArray['condutor']['nome'];
+        } elseif (!empty($dadosArray['testemunha1']['nome'])) {
+            $dadosArray['nome'] = $dadosArray['testemunha1']['nome'];
+        }
+    }
+
+    if (empty($dadosArray['nome'])) {
+        $dadosArray['nome'] = '[NOME]';
+    }
+    if (empty($dadosArray['delegado'])) {
+        $dadosArray['delegado'] = '[DELEGADO]';
+    }
+    if (empty($dadosArray['data'])) {
+        $dadosArray['data'] = '[DATA]';
+    }
+    if (empty($dadosArray['data_comp'])) {
+        $dadosArray['data_comp'] = $dadosArray['data'];
+    }
+    ?>
     <div class="editor-wrapper">
         <div class="editor-header">
             <h1 class="editor-title">
