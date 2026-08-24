@@ -89,20 +89,6 @@ window.OcorrenciasApp = {
         }).focus(function () {
             $(this).autocomplete("search", "");
         });
-        $("#inputPolicial1").autocomplete({
-            source: dadosAutocomplete.policiais,
-            minLength: 0,
-            delay: 300
-        }).focus(function () {
-            $(this).autocomplete("search", "");
-        });
-        $("#inputPolicial2").autocomplete({
-            source: dadosAutocomplete.policiais,
-            minLength: 0,
-            delay: 300
-        }).focus(function () {
-            $(this).autocomplete("search", "");
-        });
         $("#inputDelegacia").autocomplete({
             source: dadosAutocomplete.delegacias,
             minLength: 0,
