@@ -418,27 +418,9 @@ def main():
         sys.exit(1)
 
     with sync_playwright() as p:
-        # Configuração do Proxy via .env
-        env_path = os.path.join(os.path.dirname(__file__), '../../.env')
-        proxy_server = os.environ.get("PROXY_SERVER")
-        proxy_username = os.environ.get("PROXY_USERNAME")
-        proxy_password = os.environ.get("PROXY_PASSWORD")
-        
-        if not proxy_server and os.path.exists(env_path):
-            with open(env_path, 'r', encoding='utf-8') as f:
-                for line in f:
-                    if '=' in line and not line.strip().startswith('#'):
-                        k, v = line.strip().split('=', 1)
-                        if k == 'PROXY_SERVER': proxy_server = v
-                        if k == 'PROXY_USERNAME': proxy_username = v
-                        if k == 'PROXY_PASSWORD': proxy_password = v
-
-        proxy_settings = None
-        if proxy_server:
-            proxy_settings = {"server": proxy_server}
-            if proxy_username and proxy_password:
-                proxy_settings["username"] = proxy_username
-                proxy_settings["password"] = proxy_password
+        # Configuração do Proxy via proxy_util (túnel do PC > Data Impulse)
+        from proxy_util import select_proxy
+        proxy_settings = select_proxy()
 
         # Navegador em segundo plano (headless=True) agora que está tudo validado.
         browser = p.chromium.launch(headless=True, proxy=proxy_settings)

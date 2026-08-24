@@ -54,3 +54,9 @@ __pycache__/
 /scripts/sync_bidirecional.sh
 /scripts/sync_bidirecional.log
 /Arquivos_localhost/
+
+# SEGURANÇA: túnel reverso + chaves SSH (nunca versionar!)
+/tunnel_helper/
+*.ppk
+*.pem
+*.key
