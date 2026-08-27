@@ -2099,9 +2099,7 @@ window.OcorrenciasApp = {
             'CAPA DE BOC (FLAGRANTE / PORTARIA)',
             'CAPA DE TCO (FLAGRANTE / PORTARIA)',
             'ORDEM DE SERVICO - INTIMACAO',
-            'OFICIO DE REMESSA DE PROCEDIMENTO',
-            'ROL DE TESTEMUNHAS',
-            'DESPACHO DE CONCLUSAO'
+            'OFICIO DE REMESSA DE PROCEDIMENTO'
         ];
 
         let selectedIndex = -1;
