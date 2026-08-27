@@ -20,6 +20,9 @@
     <!-- jQuery UI CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
 
+    <!-- Dark Mode (tema escuro customizado) -->
+    <link rel="stylesheet" href="{{ asset('css/dark_mode.css') }}?v={{ time() }}">
+
     @stack('styles')
 
     <style>

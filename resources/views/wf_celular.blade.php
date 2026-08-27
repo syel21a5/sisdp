@@ -18,6 +18,7 @@
 
     <!-- Seu CSS personalizado -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}?v={{ time() }}">
+    <link rel="stylesheet" href="{{ asset('css/dark_mode.css') }}?v={{ time() }}">
 
     <style>
         /* Correção agressiva para o fundo claro no módulo de celular */

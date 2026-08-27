@@ -1,21 +1,21 @@
-
 /* ============================================= */
-/* MODO FOCO DE LEITURA (DARK MODE) - PREMIUM SLATE */
-/* Inspirado no design Infopol / Dashboard Moderno  */
+/* MODO FOCO DE LEITURA (DARK MODE) - SOFT SLATE */
+/* Confortável para uso prolongado com sensibilidade à luz */
+/* Fundo suave, sem preto/branco puros, sem blur, sem ofuscamento */
 /* ============================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
-/* === DEFINIÇÃO DE VARIÁVEIS DARK === */
+/* === DEFINIÇÃO DE VARIÁVEIS DARK (tons suaves) === */
 html[data-bs-theme="dark"] {
-    --sdp-bg: #0f172a;           /* Slate 900 */
-    --sdp-card-bg: rgba(30, 41, 59, 0.7); /* Slate 800 semi-transparente */
+    --sdp-bg: #1e293b;             /* Slate 800 - fundo suave, não preto */
+    --sdp-card-bg: rgba(51, 65, 85, 0.9); /* Slate 700 - cards levemente mais claros */
     --sdp-border: rgba(255, 255, 255, 0.08);
-    --sdp-text-main: #f1f5f9;    /* Slate 100 */
-    --sdp-text-muted: #94a3b8;   /* Slate 400 */
-    --sdp-accent: #3b82f6;       /* Blue 500 */
-    --sdp-sidebar: #0f172a;
-    --sdp-input-bg: rgba(15, 23, 42, 0.6);
+    --sdp-text-main: #e2e8f0;      /* Slate 200 - branco suave, não ofusca */
+    --sdp-text-muted: #94a3b8;     /* Slate 400 */
+    --sdp-accent: #60a5fa;         /* Blue 400 - vibrante mas suave */
+    --sdp-sidebar: #172033;        /* leve variação p/ profundidade */
+    --sdp-input-bg: rgba(30, 41, 59, 0.85);
 }
 
 /* === FUNDOS E TIPOGRAFIA === */
@@ -26,27 +26,25 @@ html[data-bs-theme="dark"] .main-content {
     font-family: 'Outfit', 'Inter', system-ui, sans-serif !important;
 }
 
-/* === CONTAINER PRINCIPAL (A GRANDE MUDANÇA) === */
+/* === CONTAINER PRINCIPAL === */
 html[data-bs-theme="dark"] .container,
 html[data-bs-theme="dark"] .main-content > .container,
 html[data-bs-theme="dark"] main.container {
     background-color: var(--sdp-card-bg) !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
     border: 1px solid var(--sdp-border) !important;
     color: var(--sdp-text-main) !important;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5) !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25) !important;
     border-radius: 12px !important;
     padding: 30px !important;
     margin-top: 30px !important;
     margin-bottom: 30px !important;
 }
 
-/* === SIDEBAR (MODERNA) === */
+/* === SIDEBAR === */
 html[data-bs-theme="dark"] .sidebar {
     background: var(--sdp-sidebar) !important;
     border-right: 1px solid var(--sdp-border) !important;
-    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.2) !important;
+    box-shadow: 8px 0 24px rgba(0, 0, 0, 0.15) !important;
 }
 
 html[data-bs-theme="dark"] .sidebar-header {
@@ -65,7 +63,7 @@ html[data-bs-theme="dark"] .sidebar-menu a {
 
 html[data-bs-theme="dark"] .sidebar-menu li.active a,
 html[data-bs-theme="dark"] .sidebar-menu a:hover {
-    background: rgba(59, 132, 246, 0.1) !important;
+    background: rgba(96, 165, 250, 0.1) !important;
     color: var(--sdp-accent) !important;
 }
 
@@ -89,7 +87,7 @@ html[data-bs-theme="dark"] .system-user {
 
 /* === CARDS E PAINÉIS INTERNOS === */
 html[data-bs-theme="dark"] .card {
-    background-color: rgba(15, 23, 42, 0.4) !important;
+    background-color: rgba(51, 65, 85, 0.6) !important;
     border: 1px solid var(--sdp-border) !important;
     border-radius: 16px !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
@@ -103,12 +101,12 @@ html[data-bs-theme="dark"] .card-header {
     padding: 1.2rem 1.5rem !important;
 }
 
-/* === INPUTS E FORMULÁRIOS (ESTILO DASHBOARD) === */
+/* === INPUTS E FORMULÁRIOS === */
 html[data-bs-theme="dark"] .form-control,
 html[data-bs-theme="dark"] .form-select {
     background-color: var(--sdp-input-bg) !important;
     border: 1px solid var(--sdp-border) !important;
-    color: #fff !important;
+    color: #cbd5e1 !important;  /* Slate 300 - suave */
     border-radius: 10px !important;
     padding: 0.6rem 1rem !important;
     font-size: 0.9rem !important;
@@ -117,14 +115,14 @@ html[data-bs-theme="dark"] .form-select {
 
 html[data-bs-theme="dark"] .form-control:focus,
 html[data-bs-theme="dark"] .form-select:focus {
-    background-color: rgba(15, 23, 42, 0.8) !important;
+    background-color: rgba(30, 41, 59, 0.9) !important;
     border-color: var(--sdp-accent) !important;
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15) !important;
+    box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.15) !important;
     outline: none !important;
 }
 
 html[data-bs-theme="dark"] .form-control::placeholder {
-    color: #475569 !important;
+    color: #7c8ba1 !important;   /* Slate 500 - visível sem ofuscar */
 }
 
 html[data-bs-theme="dark"] input[readonly],
@@ -135,7 +133,7 @@ html[data-bs-theme="dark"] textarea[readonly] {
 
 html[data-bs-theme="dark"] label,
 html[data-bs-theme="dark"] .form-label {
-    color: var(--sdp-text-muted) !important;
+    color: #cbd5e1 !important;   /* Slate 300 - legível sem ofuscar */
     font-weight: 600 !important;
     font-size: 0.75rem !important;
     text-transform: uppercase !important;
@@ -144,7 +142,7 @@ html[data-bs-theme="dark"] .form-label {
 }
 
 html[data-bs-theme="dark"] .input-group-text {
-    background-color: rgba(30, 41, 59, 0.9) !important;
+    background-color: rgba(51, 65, 85, 0.9) !important;
     border: 1px solid var(--sdp-border) !important;
     color: var(--sdp-text-muted) !important;
 }
@@ -158,16 +156,20 @@ html[data-bs-theme="dark"] .nav-tabs {
 html[data-bs-theme="dark"] .nav-tabs .nav-link {
     background: transparent !important;
     border: none !important;
-    color: var(--sdp-text-muted) !important;
+    color: #cbd5e1 !important;   /* Slate 300 - abas inativas legíveis */
     font-weight: 600 !important;
     padding: 10px 20px !important;
     border-radius: 8px !important;
     transition: all 0.3s ease !important;
 }
 
+html[data-bs-theme="dark"] .nav-tabs .nav-link:hover {
+    color: #e2e8f0 !important;
+}
+
 html[data-bs-theme="dark"] .nav-tabs .nav-link.active {
-    background: rgba(59, 132, 246, 0.1) !important;
-    color: var(--sdp-accent) !important;
+    background: rgba(96, 165, 250, 0.15) !important;
+    color: #93c5fd !important;   /* Blue 300 - aba ativa mais visível */
 }
 
 /* === TABELAS === */
@@ -178,7 +180,7 @@ html[data-bs-theme="dark"] .table {
 
 html[data-bs-theme="dark"] .table thead th {
     background-color: rgba(0, 0, 0, 0.2) !important;
-    color: #ffffff !important;
+    color: #cbd5e1 !important;   /* Slate 300 - suave, não branco puro */
     border-bottom: 1px solid var(--sdp-border) !important;
 }
 
@@ -189,8 +191,7 @@ html[data-bs-theme="dark"] .table tbody td {
 
 /* === MODAIS === */
 html[data-bs-theme="dark"] .modal-content {
-    background-color: #1e293b !important;
-    backdrop-filter: blur(20px) !important;
+    background-color: #1e293b !important;  /* slate 800 sólido, sem blur */
     border: 1px solid var(--sdp-border) !important;
     border-radius: 20px !important;
 }
@@ -205,9 +206,85 @@ html[data-bs-theme="dark"] .text-dark {
     color: var(--sdp-text-main) !important;
 }
 
+/* === BOTÕES (tons suaves no dark, sem arco-íris ofuscante) === */
+html[data-bs-theme="dark"] .btn-primary {
+    background-color: #2563eb !important;
+    border-color: #2563eb !important;
+    color: #fff !important;
+}
+
+html[data-bs-theme="dark"] .btn-primary:hover {
+    background-color: #3b82f6 !important;
+    border-color: #3b82f6 !important;
+}
+
+html[data-bs-theme="dark"] .btn-success {
+    background-color: #15803d !important;
+    border-color: #15803d !important;
+}
+
+html[data-bs-theme="dark"] .btn-success:hover {
+    background-color: #16a34a !important;
+    border-color: #16a34a !important;
+}
+
+html[data-bs-theme="dark"] .btn-warning {
+    background-color: #b45309 !important;
+    border-color: #b45309 !important;
+    color: #fef3c7 !important;
+}
+
+html[data-bs-theme="dark"] .btn-warning:hover {
+    background-color: #d97706 !important;
+    border-color: #d97706 !important;
+    color: #fff !important;
+}
+
+html[data-bs-theme="dark"] .btn-danger {
+    background-color: #b91c1c !important;
+    border-color: #b91c1c !important;
+}
+
+html[data-bs-theme="dark"] .btn-danger:hover {
+    background-color: #dc2626 !important;
+    border-color: #dc2626 !important;
+}
+
+html[data-bs-theme="dark"] .btn-info {
+    background-color: #0e7490 !important;
+    border-color: #0e7490 !important;
+    color: #cffafe !important;
+}
+
+html[data-bs-theme="dark"] .btn-info:hover {
+    background-color: #0891b2 !important;
+    border-color: #0891b2 !important;
+    color: #fff !important;
+}
+
+html[data-bs-theme="dark"] .btn-secondary {
+    background-color: #475569 !important;
+    border-color: #475569 !important;
+}
+
+html[data-bs-theme="dark"] .btn-secondary:hover {
+    background-color: #64748b !important;
+    border-color: #64748b !important;
+}
+
+html[data-bs-theme="dark"] .btn-outline-primary {
+    color: #93c5fd !important;
+    border-color: #60a5fa !important;
+}
+
+html[data-bs-theme="dark"] .btn-outline-primary:hover {
+    background-color: rgba(96, 165, 250, 0.15) !important;
+    color: #fff !important;
+}
+
 /* === BOTÃO DE TOGGLE CUSTOMIZADO === */
 #btnDarkModeToggle {
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+    background: linear-gradient(135deg, #334155 0%, #1e293b 100%) !important;
     border: 1px solid var(--sdp-border) !important;
     color: #fbbf24 !important;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4) !important;

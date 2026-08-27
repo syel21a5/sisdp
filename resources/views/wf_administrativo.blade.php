@@ -21,6 +21,7 @@
 
     <!-- Seu CSS personalizado -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/dark_mode.css') }}?v={{ time() }}">
 
 <style>
     .dashboard-card {

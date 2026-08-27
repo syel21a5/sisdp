@@ -18,6 +18,7 @@
 
     <!-- Seu CSS personalizado -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/dark_mode.css') }}?v={{ time() }}">
 
     <!-- Previne o flash branco lendo o tema antes do render -->
     <script>

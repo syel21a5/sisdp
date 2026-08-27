@@ -24,6 +24,7 @@
 
     <!-- Seu CSS personalizado -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/dark_mode.css') }}?v={{ time() }}">
 
     <!-- jQuery + jQuery UI + jQuery Mask -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
