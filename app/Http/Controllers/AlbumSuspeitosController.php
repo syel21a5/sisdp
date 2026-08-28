@@ -175,7 +175,7 @@ class AlbumSuspeitosController extends Controller
         $resultados = $query->orderBy('created_at', 'desc')->take(50)->get();
 
         foreach ($resultados as $resultado) {
-            $resultado->foto_url = asset('storage/' . $resultado->caminho_foto);
+            $resultado->foto_url = $resultado->url();
         }
 
         return response()->json(['success' => true, 'data' => $resultados]);

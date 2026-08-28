@@ -21,7 +21,7 @@ class EnvolvidoFotoController extends Controller
             ->get();
 
         foreach($fotos as $f) {
-            $f->url = asset('storage/' . $f->caminho_foto);
+            $f->url = $f->url();
         }
 
         return response()->json(['success' => true, 'data' => $fotos]);
@@ -48,7 +48,7 @@ class EnvolvidoFotoController extends Controller
             'is_principal' => $isFirst
         ]);
 
-        $foto->url = asset('storage/' . $foto->caminho_foto);
+        $foto->url = $foto->url();
 
         return response()->json(['success' => true, 'data' => $foto, 'message' => 'Foto salva com sucesso!']);
     }

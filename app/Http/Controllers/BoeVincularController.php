@@ -706,7 +706,7 @@ class BoeVincularController extends Controller
                 $foto = EnvolvidoFoto::where('envolvido_id', $vinculo->pessoa_id)
                             ->where('is_principal', true)
                             ->first();
-                $pessoa->foto_url = $foto ? asset('storage/' . $foto->caminho_foto) : null;
+                $pessoa->foto_url = $foto ? $foto->url() : null;
 
                 return response()->json(['success' => true, 'data' => $pessoa, 'vinculo_id' => $vinculo->id]);
             }

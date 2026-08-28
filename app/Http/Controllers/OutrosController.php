@@ -75,7 +75,7 @@ class OutrosController extends Controller
         $foto = EnvolvidoFoto::where('envolvido_id', $id)
                     ->where('is_principal', true)
                     ->first();
-        $registro->foto_url = $foto ? asset('storage/' . $foto->caminho_foto) : null;
+        $registro->foto_url = $foto ? $foto->url() : null;
 
         return response()->json([
             'success' => true,
