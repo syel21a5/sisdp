@@ -124,6 +124,11 @@
                             <i class="bi bi-person-bounding-box"></i> Antecedentes
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('album-suspeitos.index') }}">
+                            <i class="bi bi-camera"></i> Álbum Suspeitos
+                        </a>
+                    </li>
 
 
 
@@ -220,6 +225,8 @@
 
 
         @yield('content')
+
+    @include('partials.modal_reconhecimento')
 
     </main>
 

@@ -71,6 +71,11 @@ Route::middleware(['auth', 'permission:pecas'])->group(function () {
         return $processarPeca($dados, 'pecas.auto_de_apreensao', true);
     })->name('auto.apreensao');
 
+    Route::get('/auto-reconhecimento-fotografico/{dados?}', function($dados = null) use ($processarPeca) {
+        return $processarPeca($dados, 'pecas.AutoReconhecimentoFotografico');
+    })->name('auto.reconhecimento.fotografico');
+    Route::post('/auto-reconhecimento-fotografico-pdf', [\App\Http\Controllers\Documentos\PecasController\GerarPdf_AutoReconhecimentoFotografico_Controller::class, 'gerarPdf'])->name('auto.reconhecimento.fotografico.pdf');
+
     Route::get('/numero-oficio/gerar', [NumOficioController::class, 'gerarNumero'])->name('numoficio.apenas.numero');
 
     Route::prefix('documentos')->group(function () use ($processarPeca) {

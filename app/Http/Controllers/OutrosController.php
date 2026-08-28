@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\EnvolvidoFoto;
 use Carbon\Carbon;
 
 class OutrosController extends Controller
@@ -69,6 +70,12 @@ class OutrosController extends Controller
                 'message' => 'Registro não encontrado'
             ], 404);
         }
+
+        // Incluir URL da foto principal (busca por PESSOA)
+        $foto = EnvolvidoFoto::where('envolvido_id', $id)
+                    ->where('is_principal', true)
+                    ->first();
+        $registro->foto_url = $foto ? asset('storage/' . $foto->caminho_foto) : null;
 
         return response()->json([
             'success' => true,

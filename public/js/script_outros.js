@@ -206,8 +206,7 @@ $(document).ready(function () {
     $(document).on('click', '.btn-selecionar-outro', function () {
         const id = $(this).data('id');
         window.buscarOutroPorId(id);
-        // Ao selecionar da grid, assume-se que queremos vincular
-        setTimeout(salvarVinculoBoeOutro, 500);
+        // ℹ️ NÃO salva vínculo aqui — apenas preenche. O chip é criado pelo botão Add.
     });
 
     // ✅ FUNÇÃO PARA PREENCHER OUTRO VINCULADO (EXTERNA)
@@ -260,6 +259,9 @@ $(document).ready(function () {
         if (currentOutroId) {
             $('#btnEditarOutro, #btnExcluirOutro').prop('disabled', false);
         }
+
+        // ✅ FOTO INSTANTÂNEA
+        $('#previewFotoOutro').attr('src', dados.foto_url || '/images/b_PCPE.png');
 
         console.log('✅ OUTRO VINCULADO PREENCHIDO - ID:', currentOutroId);
     };
@@ -658,7 +660,12 @@ $(document).ready(function () {
                 if (typeof rotasImpressaoTestemunha1 !== 'undefined' && rotasImpressaoTestemunha1[documentoSelecionado]) {
                     const rota = rotasImpressaoTestemunha1[documentoSelecionado];
                     console.log('🚀 Enviando para DocumentoService (via Outros):', { documentoSelecionado, dados });
-                    DocumentoService.gerar(rota, dados);
+                    
+                    if (documentoSelecionado === 'AUTO DE RECONHECIMENTO FOTOGRAFICO') {
+                        abrirModalReconhecimentoFotografico(rota, dados);
+                    } else {
+                        DocumentoService.gerar(rota, dados);
+                    }
                 } else {
                     mostrarErro(`Documento "${documentoSelecionado}" não configurado.`);
                 }

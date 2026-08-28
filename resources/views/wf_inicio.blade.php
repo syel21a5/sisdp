@@ -27,6 +27,9 @@
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
 
+    <!-- Cropper.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+
     <style>
         /* Estilo para abas da PM */
         .nav-link-pm {
@@ -3006,6 +3009,32 @@
             }
         });
     </script>
+    <!-- Modal do Cropper.js -->
+    <div class="modal fade" id="modalCropEnvolvido" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Recortar Foto do Envolvido</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center bg-dark">
+                    <div style="max-height: 500px; max-width: 100%; overflow: hidden;">
+                        <img id="imageToCrop" src="" style="max-width: 100%; display: block;">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btnConfirmCrop">
+                        <i class="bi bi-crop"></i> Cortar e Salvar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @include('partials.modal_reconhecimento')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script src="{{ asset('js/core.js') }}?v={{ time() }}"></script>
     <script src="{{ asset('js/DocumentoService.js') }}?v={{ time() }}"></script>
     <script src="{{ asset('js/chips_envolvidos.js') }}?v={{ time() }}"></script>
     <script src="{{ asset('js/script_condutor_apfd.js') }}?v={{ time() }}"></script>
@@ -3013,6 +3042,7 @@
     <script src="{{ asset('js/script_testemunha1.js') }}?v={{ time() }}"></script>
     <script src="{{ asset('js/script_autor1.js') }}?v={{ time() }}"></script>
     <script src="{{ asset('js/script_outros.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/fotos_envolvidos.js') }}?v={{ time() }}"></script>
 
     <!-- Script para atualizar data/hora -->
     <script>

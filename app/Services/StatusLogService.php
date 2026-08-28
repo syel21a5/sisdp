@@ -130,6 +130,23 @@ class StatusLogService
     }
 
     /**
+     * Busca a data do último status registrado para um ID específico.
+     * Retorna a data no formato Y-m-d ou null se não encontrar.
+     */
+    public static function buscarDataStatus(int $id, string $status): ?string
+    {
+        $logs = self::carregarLogs();
+        $statusNorm = self::normalizarStatus($status);
+
+        foreach ($logs as $entry) {
+            if ($entry['id'] === $id && self::normalizarStatus($entry['status']) === $statusNorm) {
+                return $entry['data'];
+            }
+        }
+        return null;
+    }
+
+    /**
      * Carrega os logs do arquivo JSON.
      */
     private static function carregarLogs(): array

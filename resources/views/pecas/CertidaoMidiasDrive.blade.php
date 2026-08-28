@@ -65,11 +65,11 @@
         <div class="editor-area">
             <div id="editor" class="preservar-espacamento">
                 
-                <h4 style="text-align: center; margin-top: 30px; margin-bottom: 30px;">
+                <h4 style="text-align: center; margin-top: 15px; margin-bottom: 15px;">
                     <strong>CERTIDÃO</strong>
                 </h4>
 
-                <p style="text-align: justify; line-height: 1.5; text-indent: 40px; margin-bottom: 20px;">
+                <p style="text-align: justify; line-height: 1.5; text-indent: 40px; margin-bottom: 15px;">
                     Certifico que, em razão do volume dos arquivos e da inviabilidade de sua inserção integral no sistema, <strong>{{ $dadosArray['descricao_midias'] ?? 'as mídias/vídeos captados pelo sistema de videomonitoramento, os quais registram os fatos relacionados à presente investigação' }}</strong>, referente ao 
                     @if(!empty($dadosArray['boe']) && !empty($dadosArray['ip']))
                         Boletim de Ocorrência nº {{ $dadosArray['boe'] }} / Inquérito Policial nº {{ $dadosArray['ip'] }}
@@ -83,48 +83,43 @@
                     , encontram-se armazenados em ambiente de nuvem (<i>cloud storage</i>).
                 </p>
 
-                <p style="text-align: justify; line-height: 1.5; text-indent: 40px; margin-bottom: 20px;">
+                <p style="text-align: justify; line-height: 1.5; text-indent: 40px; margin-bottom: 15px;">
                     Os referidos arquivos podem ser acessados na íntegra por meio do seguinte endereço eletrônico (link) ou apontando a câmera do celular para o QR Code abaixo:
                 </p>
 
-                <div style="text-align: center;">
-                    <div class="qr-container">
-                        @if(!empty($dadosArray['link_drive']))
-                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ urlencode($dadosArray['link_drive']) }}" alt="QR Code">
-                            <div class="link-text">{{ $dadosArray['link_drive'] }}</div>
-                        @else
-                            <div style="width: 150px; height: 150px; border: 1px solid #ccc; display: inline-block; line-height: 150px; color: #999;">[QR CODE AQUI]</div>
-                            <div class="link-text">Cole o link da nuvem aqui</div>
-                        @endif
-                    </div>
-                </div>
+                <p style="text-align: center; margin-top: 10px; margin-bottom: 15px;">
+                    @if(!empty($dadosArray['link_drive']))
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=130x130&data={{ urlencode($dadosArray['link_drive']) }}" alt="QR Code" style="max-width: 130px; height: auto; border: 1px dashed #ccc; padding: 5px; border-radius: 8px;"><br>
+                        <span style="font-family: monospace; font-size: 13px; font-weight: bold; color: #000;">{{ $dadosArray['link_drive'] }}</span>
+                    @else
+                        <span style="display: inline-block; width: 130px; height: 130px; border: 1px dashed #ccc; line-height: 130px; color: #999; font-size: 12px; border-radius: 8px;">[QR CODE AQUI]</span><br>
+                        <span style="font-family: monospace; font-size: 13px; font-weight: bold; color: #000;">Cole o link da nuvem aqui</span>
+                    @endif
+                </p>
 
-                <p style="text-align: justify; line-height: 1.5; text-indent: 40px; margin-bottom: 20px;">
+                <p style="text-align: justify; line-height: 1.5; text-indent: 40px; margin-bottom: 15px;">
                     Registre-se que o referido conteúdo digital passa a integrar os autos para todos os fins de direito, permanecendo disponível para consulta pela Autoridade Policial, Ministério Público e Poder Judiciário, mediante o acesso ao repositório informado.
                 </p>
 
-                <p style="text-align: justify; line-height: 1.5; text-indent: 40px; margin-bottom: 40px;">
+                <p style="text-align: justify; line-height: 1.5; text-indent: 40px; margin-bottom: 25px;">
                     Certifico, ainda, que o link e o QR Code disponibilizados possuem permissão de acesso para visualização dos arquivos, de modo a possibilitar sua consulta pelas autoridades competentes, preservando-se a integridade do conteúdo original depositado nesta Delegacia.
                 </p>
 
-                <p style="text-align: justify; line-height: 1.5; text-indent: 40px; margin-bottom: 40px;">
+                <p style="text-align: justify; line-height: 1.5; text-indent: 40px; margin-bottom: 25px;">
                     E, para constar, lavrei a presente certidão.
                 </p>
                 
-                <p style="text-align: right; line-height: 1.5; margin-bottom: 40px;">
+                <p style="text-align: right; line-height: 1.5; margin-bottom: 0;">
                     {{ !empty($dadosArray['cidade']) ? $dadosArray['cidade'] : 'NÃO INFORMADO' }}, {{ $dadosArray['data_comp'] ?? ($dadosArray['data_ext'] ?? 'NÃO INFORMADO') }}.
                 </p>
 
-                <div class="assinatura-area" style="line-height: 1.3;">
-                    <table style="width: 100%; border: none;">
-                        <tr>
-                            <td style="width: 100%; text-align: center; border: none;">
-                                ________________________________________<br>
-                                <strong>ESCRIVÃO(Ã) DE POLÍCIA</strong>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+
+                <p style="text-align: center; line-height: 1.3; margin-top: 0;">
+                    ________________________________________<br>
+                    <strong>ESCRIVÃO(Ã) DE POLÍCIA</strong>
+                </p>
 
             </div>
 

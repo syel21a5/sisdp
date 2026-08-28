@@ -16,89 +16,110 @@
             @csrf
             <input type="hidden" name="id" id="autor1_id">
 
-            <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                    <input type="text" class="form-control" placeholder="Nome" name="Nome" id="inputNomeAutor1"
-                        required maxlength="100">
+            <div class="row">
+                <!-- Coluna da Foto de Perfil (Esquerda) -->
+                <div class="col-md-2 text-center border-end pe-3">
+                    <div class="foto-perfil-wrapper position-relative mx-auto mt-2" style="width: 100%; max-width: 200px;">
+                        <img id="previewFotoAutor1" src="{{ asset('images/b_PCPE.png') }}" class="img-thumbnail rounded shadow-sm" style="width: 100%; height: auto; min-height: 200px; max-height: 250px; object-fit: cover;">
+                        
+                        <button type="button" class="btn btn-sm btn-primary position-absolute bottom-0 end-0 rounded-circle m-2" id="btnUploadFotoAutor1" title="Alterar Foto" style="width: 36px; height: 36px; padding: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                            <i class="bi bi-camera-fill" style="line-height: 36px; font-size: 1.1rem;"></i>
+                        </button>
+                        <input type="file" id="inputFotoAutor1" class="d-none" accept="image/*">
+                    </div>
+                    
+                    <button type="button" class="btn btn-sm btn-outline-secondary mt-3 w-100" id="btnGaleriaAutor1" style="font-size: 0.75rem;">
+                        <i class="bi bi-images"></i> Galeria
+                    </button>
                 </div>
-                <div class="col-md-6">
-                    <input type="text" class="form-control" placeholder="Alcunha" name="Alcunha"
-                        id="inputAlcunhaAutor1" maxlength="100">
-                </div>
-            </div>
 
-            <div class="row g-3 mb-3">
-                <div class="col-md-3">
-                    <input type="text" class="form-control date-mask" placeholder="Data de Nascimento (dd/mm/aaaa)"
-                        name="Nascimento" id="inputDataNascimentoAutor1">
-                </div>
-                <div class="col-md-3">
-                    <input type="text" class="form-control" placeholder="Idade" id="inputIdadeAutor1" name="Idade" readonly>
-                </div>
-                <div class="col-md-3">
-                    <select class="form-control" name="EstCivil" id="inputEstadoCivilAutor1">
-                        <option value="">ESTADO CIVIL</option>
-                        <option value="Solteiro(a)">SOLTEIRO(A)</option>
-                        <option value="Casado(a)">CASADO(A)</option>
-                        <option value="Divorciado(a)">DIVORCIADO(A)</option>
-                        <option value="Viúvo(a)">VIÚVO(A)</option>
-                        <option value="Separado(a)">SEPARADO(A)</option>
-                        <option value="União Estável">UNIÃO ESTÁVEL</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <input type="text" class="form-control" placeholder="Naturalidade" name="Naturalidade"
-                        id="inputNaturalidadeAutor1" maxlength="50">
-                </div>
-            </div>
+                <!-- Coluna dos Dados Pessoais (Direita) -->
+                <div class="col-md-10 ps-3">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <input type="text" class="form-control" placeholder="Nome" name="Nome" id="inputNomeAutor1"
+                                required maxlength="100">
+                        </div>
+                        <div class="col-md-6">
+                            <input type="text" class="form-control" placeholder="Alcunha" name="Alcunha"
+                                id="inputAlcunhaAutor1" maxlength="100">
+                        </div>
+                    </div>
 
-            <div class="row g-3 mb-3">
-                <div class="col-md-3">
-                    <select class="form-control" name="Instrucao" id="inputInstrucaoAutor1">
-                        <option value="">GRAU DE INSTRUÇÃO</option>
-                        <option value="Fundamental Completo">FUNDAMENTAL COMPLETO</option>
-                        <option value="Fundamental Incompleto">FUNDAMENTAL INCOMPLETO</option>
-                        <option value="Médio Completo">MÉDIO COMPLETO</option>
-                        <option value="Médio Incompleto">MÉDIO INCOMPLETO</option>
-                        <option value="Superior Completo">SUPERIOR COMPLETO</option>
-                        <option value="Superior Incompleto">SUPERIOR INCOMPLETO</option>
-                        <option value="Pós-graduação">PÓS-GRADUAÇÃO</option>
-                        <option value="Analfabeto">ANALFABETO</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <input type="text" class="form-control rg-mask" placeholder="RG" name="RG" id="inputRGAutor1"
-                        maxlength="50">
-                </div>
-                <div class="col-md-3">
-                    <input type="text" class="form-control cpf-mask" placeholder="CPF" name="CPF" id="inputCPFAutor1"
-                        required maxlength="15">
-                </div>
-                <div class="col-md-3">
-                    <input type="text" class="form-control phone-mask" placeholder="Telefone" name="Telefone"
-                        id="inputTelefoneAutor1" maxlength="20">
-                </div>
-            </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-3">
+                            <input type="text" class="form-control date-mask" placeholder="Data de Nascimento (dd/mm/aaaa)"
+                                name="Nascimento" id="inputDataNascimentoAutor1">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" placeholder="Idade" id="inputIdadeAutor1" name="Idade" readonly>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-control" name="EstCivil" id="inputEstadoCivilAutor1">
+                                <option value="">ESTADO CIVIL</option>
+                                <option value="Solteiro(a)">SOLTEIRO(A)</option>
+                                <option value="Casado(a)">CASADO(A)</option>
+                                <option value="Divorciado(a)">DIVORCIADO(A)</option>
+                                <option value="Viúvo(a)">VIÚVO(A)</option>
+                                <option value="Separado(a)">SEPARADO(A)</option>
+                                <option value="União Estável">UNIÃO ESTÁVEL</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" placeholder="Naturalidade" name="Naturalidade"
+                                id="inputNaturalidadeAutor1" maxlength="50">
+                        </div>
+                    </div>
 
-            <div class="row g-3 mb-3">
-                <div class="col-md-3">
-                    <input type="text" class="form-control" placeholder="Profissão" name="Profissao"
-                        id="inputProfissaoAutor1" maxlength="50">
-                </div>
-                <div class="col-md-4">
-                    <input type="text" class="form-control" placeholder="Nome da Mãe" name="Mae" id="inputMaeAutor1" maxlength="100">
-                </div>
-                <div class="col-md-5">
-                    <input type="text" class="form-control" placeholder="Nome do Pai" name="Pai" id="inputPaiAutor1" maxlength="100">
-                </div>
-            </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-3">
+                            <select class="form-control" name="Instrucao" id="inputInstrucaoAutor1">
+                                <option value="">GRAU DE INSTRUÇÃO</option>
+                                <option value="Fundamental Completo">FUNDAMENTAL COMPLETO</option>
+                                <option value="Fundamental Incompleto">FUNDAMENTAL INCOMPLETO</option>
+                                <option value="Médio Completo">MÉDIO COMPLETO</option>
+                                <option value="Médio Incompleto">MÉDIO INCOMPLETO</option>
+                                <option value="Superior Completo">SUPERIOR COMPLETO</option>
+                                <option value="Superior Incompleto">SUPERIOR INCOMPLETO</option>
+                                <option value="Pós-graduação">PÓS-GRADUAÇÃO</option>
+                                <option value="Analfabeto">ANALFABETO</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" class="form-control rg-mask" placeholder="RG" name="RG" id="inputRGAutor1"
+                                maxlength="50">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" class="form-control cpf-mask" placeholder="CPF" name="CPF" id="inputCPFAutor1"
+                                required maxlength="15">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" class="form-control phone-mask" placeholder="Telefone" name="Telefone"
+                                id="inputTelefoneAutor1" maxlength="20">
+                        </div>
+                    </div>
 
-            <div class="row g-3 mb-3">
-                <div class="col-12">
-                    <input type="text" class="form-control" placeholder="Endereço" name="Endereco"
-                        id="inputEnderecoAutor1" maxlength="200">
-                </div>
-            </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" placeholder="Profissão" name="Profissao"
+                                id="inputProfissaoAutor1" maxlength="50">
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" placeholder="Nome da Mãe" name="Mae" id="inputMaeAutor1" maxlength="100">
+                        </div>
+                        <div class="col-md-5">
+                            <input type="text" class="form-control" placeholder="Nome do Pai" name="Pai" id="inputPaiAutor1" maxlength="100">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-12">
+                            <input type="text" class="form-control" placeholder="Endereço" name="Endereco"
+                                id="inputEnderecoAutor1" maxlength="200">
+                        </div>
+                    </div>
+                </div> <!-- Fim col-md-10 -->
+            </div> <!-- Fim row principal -->
 
             <!-- Botões e Pesquisa Rápida de Documentos -->
             <div class="button-group d-flex flex-wrap gap-2 mt-4 mb-3">

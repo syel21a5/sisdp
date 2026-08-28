@@ -218,8 +218,10 @@ $(document).ready(function () {
 
                     $('#btnEditarVitima1, #btnExcluirVitima1').prop('disabled', false);
 
-                    // ✅ SALVAR VÍNCULO AO SELECIONAR VITIMA1 DA GRID
-                    setTimeout(salvarVinculoBoeVitima1, 300);
+                    // ✅ FOTO INSTANTÂNEA
+                    $('#previewFotoVitima1').attr('src', c.foto_url || '/images/b_PCPE.png');
+
+                    // ℹ️ NÃO salva vínculo aqui — apenas preenche. O chip é criado pelo botão Add.
                 } else {
                     mostrarErro(response.message || 'Erro ao buscar vítima');
                 }
@@ -260,6 +262,9 @@ $(document).ready(function () {
         $('#inputEnderecoVitima1').val(dados.Endereco || dados.endereco || '');
 
         $('#btnEditarVitima1, #btnExcluirVitima1').prop('disabled', false);
+
+        // ✅ FOTO INSTANTÂNEA
+        $('#previewFotoVitima1').attr('src', dados.foto_url || '/images/b_PCPE.png');
 
         console.log('✅ VITIMA1 VINCULADA PREENCHIDA - ID:', currentVitima1Id);
     };
@@ -564,8 +569,12 @@ $(document).ready(function () {
             const rota = rotasImpressaoVitima1[documentoSelecionado];
             console.log('🚀 Enviando para DocumentoService:', { documentoSelecionado, dados });
 
-            // Usa o DocumentoService para gerar (trata POST e Cache automaticamente)
-            DocumentoService.gerar(rota, dados);
+            if (documentoSelecionado === 'AUTO DE RECONHECIMENTO FOTOGRAFICO') {
+                abrirModalReconhecimentoFotografico(rota, dados);
+            } else {
+                // Usa o DocumentoService para gerar (trata POST e Cache automaticamente)
+                DocumentoService.gerar(rota, dados);
+            }
 
         } catch (error) {
             console.error('❌ Erro ao preparar documento:', error);
@@ -595,7 +604,8 @@ $(document).ready(function () {
             "PERICIA PAPILOSCOPICA EM LOCAL DE CRIME",
             "PERICIA DE CONFRONTACAO PAPILOSCOPICA",
             "PERICIA PAPILOSCOPICA EM PESSOA",
-            "PERICIA PAPILOSCOPICA EM OBJETO"
+            "PERICIA PAPILOSCOPICA EM OBJETO",
+            "AUTO DE RECONHECIMENTO FOTOGRAFICO"
         ];
         let selectedIndex = -1;
         let sugestoesAtuais = [];

@@ -1,4 +1,4 @@
-﻿// script_testemunha1.js - VERSÃO COMPLETA E CORRIGIDA COM VÍNCULOS
+// script_testemunha1.js - VERSÃO COMPLETA E CORRIGIDA COM VÍNCULOS
 $(document).ready(function () {
     // === Configuração global de CSRF ===
     $.ajaxSetup({
@@ -218,8 +218,10 @@ $(document).ready(function () {
 
                     $('#btnEditarTestemunha1, #btnExcluirTestemunha1').prop('disabled', false);
 
-                    // ✅ SALVAR VÍNCULO AO SELECIONAR TESTEMUNHA1 DA GRID
-                    setTimeout(salvarVinculoBoeTestemunha1, 300);
+                    // ✅ FOTO INSTANTÂNEA
+                    $('#previewFotoTestemunha1').attr('src', c.foto_url || '/images/b_PCPE.png');
+
+                    // ℹ️ NÃO salva vínculo aqui — apenas preenche. O chip é criado pelo botão Add.
                 } else {
                     mostrarErro(response.message || 'Erro ao buscar testemunha');
                 }
@@ -260,6 +262,9 @@ $(document).ready(function () {
         $('#inputEnderecoTestemunha1').val(dados.Endereco || dados.endereco || '');
 
         $('#btnEditarTestemunha1, #btnExcluirTestemunha1').prop('disabled', false);
+
+        // ✅ FOTO INSTANTÂNEA
+        $('#previewFotoTestemunha1').attr('src', dados.foto_url || '/images/b_PCPE.png');
 
         console.log('✅ TESTEMUNHA1 VINCULADA PREENCHIDA - ID:', currentTestemunha1Id);
     };
@@ -561,8 +566,12 @@ $(document).ready(function () {
             const rota = rotasImpressaoTestemunha1[documentoSelecionado];
             console.log('🚀 Enviando para DocumentoService:', { documentoSelecionado, dados });
 
-            // Usa o DocumentoService para gerar (trata POST e Cache automaticamente)
-            DocumentoService.gerar(rota, dados);
+            if (documentoSelecionado === 'AUTO DE RECONHECIMENTO FOTOGRAFICO') {
+                abrirModalReconhecimentoFotografico(rota, dados);
+            } else {
+                // Usa o DocumentoService para gerar (trata POST e Cache automaticamente)
+                DocumentoService.gerar(rota, dados);
+            }
 
         } catch (error) {
             console.error('❌ Erro ao preparar documento:', error);
@@ -587,7 +596,8 @@ $(document).ready(function () {
             "TERMO DE LIBERACAO DE MENOR - INFRATOR",
             "LAUDO TRAUMATOLOGICO",
             "LAUDO TRAUMATOLOGICO IML",
-            "CERTIDAO DE ASSINATURA INDIVIDUAL"
+            "CERTIDAO DE ASSINATURA INDIVIDUAL",
+            "AUTO DE RECONHECIMENTO FOTOGRAFICO"
         ];
 
         let selectedIndex = -1;

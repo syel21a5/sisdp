@@ -1100,32 +1100,28 @@
         
         var dataInformada = inputData.val();
         if (!dataInformada || dataInformada.length < 10) {
-            // Remove o alerta se estiver vazio ou incompleto
-            inputData.removeClass('is-invalid bg-danger text-white fw-bold border-danger').css('background-color', '');
-            $('#inputDataComp, #inputDataExt').removeClass('bg-danger text-white border-danger').css('background-color', '');
+            inputData.removeClass('is-invalid border-warning bg-warning-subtle').css('background-color', '');
+            $('#inputDataComp, #inputDataExt').removeClass('border-warning bg-warning-subtle').css('background-color', '');
             $('#alertaDataRetroativa').remove();
             return;
         }
 
-        // Pega a data de hoje (sem hora)
         var hoje = new Date();
         var dataHojeFormatada = ('0' + hoje.getDate()).slice(-2) + '/' + 
                                 ('0' + (hoje.getMonth() + 1)).slice(-2) + '/' + 
                                 hoje.getFullYear();
 
         if (dataInformada !== dataHojeFormatada) {
-            // É diferente de hoje! Fundo vermelho igual botão Excluir e texto branco
-            inputData.addClass('is-invalid bg-danger text-white fw-bold border-danger').css('background-color', '');
-            $('#inputDataComp, #inputDataExt').addClass('bg-danger text-white border-danger').css('background-color', '');
+            // Borda amarela sutil + fundo amarelo claro (alerta, não emergência)
+            inputData.addClass('border-warning bg-warning-subtle').css('background-color', '');
+            $('#inputDataComp, #inputDataExt').addClass('border-warning bg-warning-subtle').css('background-color', '');
             
-            // Cria um pequeno texto de aviso se não existir
             if ($('#alertaDataRetroativa').length === 0) {
-                inputData.closest('.row').append('<div id="alertaDataRetroativa" class="col-12 mt-1"><div class="text-danger small"><i class="bi bi-exclamation-triangle-fill me-1"></i> <strong>Atenção: Data Retroativa!</strong> Corrija para a data atual e evite gerar os documentos do procedimento com a data errada.</div></div>');
+                inputData.closest('.row').append('<div id="alertaDataRetroativa" class="col-12 mt-1"><div class="alert alert-warning py-2 mb-0 d-flex align-items-center gap-2" style="border-left: 4px solid #f59e0b;"><i class="bi bi-clock-history fs-5"></i> <span><strong>Data Retroativa</strong> — altere para a data atual antes de gerar os documentos.</span></div></div>');
             }
         } else {
-            // É a data de hoje, remove alertas
-            inputData.removeClass('is-invalid bg-danger text-white fw-bold border-danger').css('background-color', '');
-            $('#inputDataComp, #inputDataExt').removeClass('bg-danger text-white border-danger').css('background-color', '');
+            inputData.removeClass('border-warning bg-warning-subtle').css('background-color', '');
+            $('#inputDataComp, #inputDataExt').removeClass('border-warning bg-warning-subtle').css('background-color', '');
             $('#alertaDataRetroativa').remove();
         }
     }

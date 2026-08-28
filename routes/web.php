@@ -39,6 +39,20 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/wf-veiculo', [VeiculoController::class, 'index'])->name('veiculo');
     Route::get('/wf-celular', [App\Http\Controllers\CelularController::class, 'index'])->name('celular');
     Route::get('/wf-apreensao-outros', [App\Http\Controllers\OutrosController::class, 'index'])->name('apreensao.outros');
+    
+    // ✅ ROTAS DO ÁLBUM DE SUSPEITOS
+    Route::resource('album-suspeitos', \App\Http\Controllers\AlbumSuspeitosController::class);
+    Route::get('/api/album-suspeitos/pesquisar', [\App\Http\Controllers\AlbumSuspeitosController::class, 'pesquisarParaEditor'])->name('album.suspeitos.pesquisar');
+    Route::delete('/album-suspeitos/{id}', [\App\Http\Controllers\AlbumSuspeitosController::class, 'destroy'])->name('album-suspeitos.destroy');
+    Route::get('/api/pesquisar-album-editor', [\App\Http\Controllers\AlbumSuspeitosController::class, 'pesquisarParaEditor'])->name('album-suspeitos.editor');
+
+    // =====================================
+    // ENVOLVIDOS FOTOS (Histórico e Perfil)
+    // =====================================
+    Route::get('/envolvidos-fotos', [App\Http\Controllers\EnvolvidoFotoController::class, 'index']);
+    Route::post('/envolvidos-fotos', [App\Http\Controllers\EnvolvidoFotoController::class, 'store']);
+    Route::delete('/envolvidos-fotos/{id}', [App\Http\Controllers\EnvolvidoFotoController::class, 'destroy']);
+    Route::post('/envolvidos-fotos/{id}/principal', [App\Http\Controllers\EnvolvidoFotoController::class, 'setPrincipal']);
 
     // Rotas do Módulo de Relatórios
     Route::prefix('relatorios')->group(function () {

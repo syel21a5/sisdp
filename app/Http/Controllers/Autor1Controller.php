@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use App\Models\EnvolvidoFoto;
 use Carbon\Carbon;
 
 class Autor1Controller extends Controller
@@ -60,6 +62,12 @@ class Autor1Controller extends Controller
             ], 404);
         }
 
+        // Incluir URL da foto principal (busca por PESSOA, não por papel)
+        $foto = EnvolvidoFoto::where('envolvido_id', $id)
+                    ->where('is_principal', true)
+                    ->first();
+        $registro->foto_url = $foto ? asset('storage/' . $foto->caminho_foto) : null;
+
         return response()->json([
             'success' => true,
             'data' => $registro
@@ -81,31 +89,13 @@ class Autor1Controller extends Controller
             'Telefone' => 'nullable|string|max:20',
             'Mae' => 'nullable|string|max:100',
             'Pai' => 'nullable|string|max:100',
-            'Endereco' => 'nullable|string|max:200',
-            // Dados complementares
-            'TipoPenal' => 'nullable|string|max:100',
-            'Fianca' => 'nullable|numeric',
-            'FiancaExt' => 'nullable|string|max:100',
-            'FiancaPago' => 'nullable|in:0,1',
-            'Parente' => 'nullable|string|max:50',
-            'Familia' => 'nullable|string|max:50',
-            'Advogado' => 'nullable|string|max:100',
-            'JuizMandado' => 'nullable|string|max:100',
-            'ComarcaMandado' => 'nullable|string|max:100',
-            'Nmandado' => 'nullable|string|max:50',
-            'DataMandado' => 'nullable|string|max:50',
-            'Recolher' => 'nullable|string|max:100',
-            'OfJuiz' => 'nullable|string|max:100',
-            'OfPromotor' => 'nullable|string|max:100',
-            'OfDefensor' => 'nullable|string|max:100',
-            'OfCustodia' => 'nullable|string|max:100'
+            'Endereco' => 'nullable|string|max:200'
         ], [
             'Nome.required' => 'O campo Nome é obrigatório',
             'CPF.required' => 'O campo CPF é obrigatório',
             'Nome.max' => 'O Nome não pode ter mais que 100 caracteres',
             'CPF.max' => 'O CPF não pode ter mais que 15 caracteres',
-            'Nascimento.date_format' => 'O campo Nascimento deve estar no formato DD/MM/AAAA',
-            'Fianca.numeric' => 'O campo Fiança deve ser um valor numérico'
+            'Nascimento.date_format' => 'O campo Nascimento deve estar no formato DD/MM/AAAA'
         ]);
 
         if ($request->CPF !== '000.000.000-00') {
@@ -160,23 +150,6 @@ class Autor1Controller extends Controller
                 'Mae' => $request->Mae,
                 'Pai' => $request->Pai,
                 'Endereco' => $request->Endereco,
-                // Dados complementares
-                'TipoPenal' => $request->TipoPenal,
-                'Fianca' => $request->Fianca,
-                'FiancaExt' => $request->FiancaExt,
-                'FiancaPago' => $request->FiancaPago ? 1 : 0,
-                'Parente' => $request->Parente,
-                'Familia' => $request->Familia,
-                'Advogado' => $request->Advogado,
-                'JuizMandado' => $request->JuizMandado,
-                'ComarcaMandado' => $request->ComarcaMandado,
-                'Nmandado' => $request->Nmandado,
-                'DataMandado' => $request->DataMandado,
-                'Recolher' => $request->Recolher,
-                'OfJuiz' => $request->OfJuiz,
-                'OfPromotor' => $request->OfPromotor,
-                'OfDefensor' => $request->OfDefensor,
-                'OfCustodia' => $request->OfCustodia,
                 'created_at' => now(),
                 'updated_at' => now()
             ];
@@ -211,29 +184,11 @@ class Autor1Controller extends Controller
             'Telefone' => 'nullable|string|max:20',
             'Mae' => 'nullable|string|max:100',
             'Pai' => 'nullable|string|max:100',
-            'Endereco' => 'nullable|string|max:200',
-            // Dados complementares
-            'TipoPenal' => 'nullable|string|max:100',
-            'Fianca' => 'nullable|numeric',
-            'FiancaExt' => 'nullable|string|max:100',
-            'FiancaPago' => 'nullable|in:0,1',
-            'Parente' => 'nullable|string|max:50',
-            'Familia' => 'nullable|string|max:50',
-            'Advogado' => 'nullable|string|max:100',
-            'JuizMandado' => 'nullable|string|max:100',
-            'ComarcaMandado' => 'nullable|string|max:100',
-            'Nmandado' => 'nullable|string|max:50',
-            'DataMandado' => 'nullable|string|max:50',
-            'Recolher' => 'nullable|string|max:100',
-            'OfJuiz' => 'nullable|string|max:100',
-            'OfPromotor' => 'nullable|string|max:100',
-            'OfDefensor' => 'nullable|string|max:100',
-            'OfCustodia' => 'nullable|string|max:100'
+            'Endereco' => 'nullable|string|max:200'
         ], [
             'Nome.required' => 'O campo Nome é obrigatório',
             'CPF.required' => 'O campo CPF é obrigatório',
-            'Nascimento.date_format' => 'O campo Nascimento deve estar no formato DD/MM/AAAA',
-            'Fianca.numeric' => 'O campo Fiança deve ser um valor numérico'
+            'Nascimento.date_format' => 'O campo Nascimento deve estar no formato DD/MM/AAAA'
         ]);
 
         if ($request->CPF !== '000.000.000-00') {
@@ -289,23 +244,6 @@ class Autor1Controller extends Controller
                 'Mae' => $request->Mae,
                 'Pai' => $request->Pai,
                 'Endereco' => $request->Endereco,
-                // Dados complementares
-                'TipoPenal' => $request->TipoPenal,
-                'Fianca' => $request->Fianca,
-                'FiancaExt' => $request->FiancaExt,
-                'FiancaPago' => $request->FiancaPago ? 1 : 0,
-                'Parente' => $request->Parente,
-                'Familia' => $request->Familia,
-                'Advogado' => $request->Advogado,
-                'JuizMandado' => $request->JuizMandado,
-                'ComarcaMandado' => $request->ComarcaMandado,
-                'Nmandado' => $request->Nmandado,
-                'DataMandado' => $request->DataMandado,
-                'Recolher' => $request->Recolher,
-                'OfJuiz' => $request->OfJuiz,
-                'OfPromotor' => $request->OfPromotor,
-                'OfDefensor' => $request->OfDefensor,
-                'OfCustodia' => $request->OfCustodia,
                 'updated_at' => now()
             ];
 
@@ -335,6 +273,18 @@ class Autor1Controller extends Controller
     public function excluir($id)
     {
         try {
+            // Primeiro deletar as fotos físicas associadas a este Autor
+            $fotos = EnvolvidoFoto::where('tipo_envolvido', 'Autor')
+                                    ->where('envolvido_id', $id)
+                                    ->get();
+            
+            foreach ($fotos as $foto) {
+                if (Storage::disk('public')->exists($foto->caminho_foto)) {
+                    Storage::disk('public')->delete($foto->caminho_foto);
+                }
+                $foto->delete();
+            }
+
             $deleted = DB::table('cadpessoa')
                 ->where('IdCad', $id)
                 ->delete();

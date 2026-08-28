@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use App\Models\BoePessoaVinculo;
+use App\Models\EnvolvidoFoto;
 
 class BoeVincularController extends Controller
 {
@@ -701,6 +702,12 @@ class BoeVincularController extends Controller
         if ($vinculo) {
             $pessoa = DB::table('cadpessoa')->where('IdCad', $vinculo->pessoa_id)->first();
             if ($pessoa) {
+                // Incluir URL da foto principal (busca por PESSOA, não por papel)
+                $foto = EnvolvidoFoto::where('envolvido_id', $vinculo->pessoa_id)
+                            ->where('is_principal', true)
+                            ->first();
+                $pessoa->foto_url = $foto ? asset('storage/' . $foto->caminho_foto) : null;
+
                 return response()->json(['success' => true, 'data' => $pessoa, 'vinculo_id' => $vinculo->id]);
             }
         }

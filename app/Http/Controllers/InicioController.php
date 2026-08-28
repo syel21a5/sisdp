@@ -146,6 +146,12 @@ class InicioController extends Controller
         $registro->current_user_id = $user ? $user->id : null;
         $registro->current_user_name = $user ? $user->nome : null;
 
+        if (!empty($registro->status) && \App\Services\StatusLogService::isStatusRastreado($registro->status)) {
+            $registro->data_status = \App\Services\StatusLogService::buscarDataStatus($id, $registro->status);
+        } else {
+            $registro->data_status = null;
+        }
+
         return response()->json([
             'success' => true,
             'data' => $registro

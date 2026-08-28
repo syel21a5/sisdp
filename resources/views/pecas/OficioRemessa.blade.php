@@ -65,7 +65,7 @@
                 </p>
 
                 <p style="text-align: justify; line-height: 1.6; text-indent: 40px; margin-bottom: 20px;">
-                    O referido procedimento tem como escopo a apuração de fato delituoso ocorrido em {{ $dadosArray['data_fato'] ?? 'NÃO INFORMADA' }}, na cidade de {{ !empty($dadosArray['cidade']) ? mb_strtoupper($dadosArray['cidade']) : 'NÃO INFORMADA' }}/PE, figurando como {{ $dadosArray['texto_indiciado'] ?? 'indiciado(s)' }}: {!! $dadosArray['autores_qualificados'] ?? 'NENHUM AUTOR CADASTRADO' !!}, e figurando como {{ $dadosArray['texto_vitima'] ?? 'vítima(s)' }}: {!! $dadosArray['vitimas_qualificadas'] ?? 'NENHUMA VÍTIMA CADASTRADA' !!}.
+                    O referido procedimento tem como escopo a apuração de fato delituoso ocorrido em {{ $dadosArray['data_fato'] ?? 'NÃO INFORMADA' }}, na cidade de {{ !empty($dadosArray['cidade']) ? mb_strtoupper($dadosArray['cidade']) : 'NÃO INFORMADA' }}/PE{!! $dadosArray['tipificacao_trecho'] ?? '' !!}, figurando como {{ $dadosArray['texto_indiciado'] ?? 'indiciado(s)' }}: {!! $dadosArray['autores_qualificados'] ?? 'NENHUM AUTOR CADASTRADO' !!}, e figurando como {{ $dadosArray['texto_vitima'] ?? 'vítima(s)' }}: {!! $dadosArray['vitimas_qualificadas'] ?? 'NENHUMA VÍTIMA CADASTRADA' !!}.
                 </p>
 
                 <p style="text-align: justify; line-height: 1.6; text-indent: 40px; margin-bottom: 20px;">

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * VÍNCULOS COMPLETOS BOE - TODOS OS ENVOLVIDOS
  * VERSÃO CORRIGIDA - COM MENSAGENS DE SUCESSO PARA TODOS OS ENVOLVIDOS
  *
@@ -65,6 +65,8 @@ window.carregarVitima1Vinculada = function (boe) {
                 if (window.preencherVitima1Vinculada) {
                     window.preencherVitima1Vinculada(response.data);
                 }
+                // ✅ FOTO INSTANTÂNEA
+                $('#previewFotoVitima1').attr('src', response.data.foto_url || '/images/b_PCPE.png');
                 mostrarMensagemVitima1('Vítima1 carregada automaticamente: ' + response.data.Nome, 'success');
             } else {
                 console.log('ℹ️ Nenhuma vítima1 vinculada encontrada');
@@ -126,6 +128,8 @@ window.carregarTestemunha1Vinculada = function (boe) {
                 if (window.preencherTestemunha1Vinculada) {
                     window.preencherTestemunha1Vinculada(response.data);
                 }
+                // ✅ FOTO INSTANTÂNEA
+                $('#previewFotoTestemunha1').attr('src', response.data.foto_url || '/images/b_PCPE.png');
                 // ✅ AGORA COM MENSAGEM DE SUCESSO
                 mostrarMensagemTestemunha1('Testemunha1 carregada automaticamente: ' + response.data.Nome, 'success');
             } else {
@@ -188,6 +192,8 @@ window.carregarAutor1Vinculado = function (boe) {
                 if (window.preencherAutor1Vinculada) {
                     window.preencherAutor1Vinculada(response.data);
                 }
+                // ✅ FOTO INSTANTÂNEA (vem junto nos dados do servidor)
+                $('#previewFotoAutor1').attr('src', response.data.foto_url || '/images/b_PCPE.png');
                 // ✅ AGORA COM MENSAGEM DE SUCESSO
                 mostrarMensagemAutor1('Autor1 carregado automaticamente: ' + response.data.Nome, 'success');
             } else {

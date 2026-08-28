@@ -1,4 +1,4 @@
-﻿/**
+/**
  * SISTEMA DE CHIPS PARA MÚLTIPLOS ENVOLVIDOS
  * Permite adicionar várias vítimas, autores, testemunhas e condutores
  * usando chips azuis estilo Bootstrap
@@ -90,6 +90,18 @@ window.limparCamposEnvolvido = function(tipo) {
         });
     }
     
+    // ✅ RESET DA FOTO ao limpar campos
+    const fotoMap = {
+        vitimas: '#previewFotoVitima1',
+        autores: '#previewFotoAutor1',
+        testemunhas: '#previewFotoTestemunha1',
+        condutores: '#previewFotoCondutor',
+        outros: '#previewFotoOutro'
+    };
+    if (fotoMap[tipo]) {
+        $(fotoMap[tipo]).attr('src', '/images/b_PCPE.png');
+    }
+
     // Remove classes de validação se existirem
     $(`.is-valid, .is-invalid`).removeClass('is-valid is-invalid');
 };
@@ -482,6 +494,15 @@ window.editarChip = function (tipo, id) {
         });
         if (window.ocTabs && typeof window.ocTabs.ensureTab === 'function') {
             window.ocTabs.ensureTab('tab-autor', 'Autor', 'tabLinkAutor');
+        }
+        
+        // Carrega a foto caso seja um ID válido de banco de dados
+        if (window.carregarFotoPerfilAutor) {
+            if (item.id && parseInt(item.id) < 1000000000000) {
+                window.carregarFotoPerfilAutor(item.id);
+            } else {
+                $('#previewFotoAutor1').attr('src', '/images/b_PCPE.png');
+            }
         }
     } else if (tipo === 'testemunha') {
         item.dados.forEach(field => {

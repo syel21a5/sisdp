@@ -13,6 +13,26 @@
             @csrf
             <input type="hidden" name="id" id="vitima1_id">
 
+            <div class="row">
+                <!-- Coluna da Foto de Perfil (Esquerda) -->
+                <div class="col-md-2 text-center border-end pe-3">
+                    <div class="foto-perfil-wrapper position-relative mx-auto mt-2" style="width: 100%; max-width: 200px;">
+                        <img id="previewFotoVitima1" src="{{ asset('images/b_PCPE.png') }}" class="img-thumbnail rounded shadow-sm" style="width: 100%; height: auto; min-height: 200px; max-height: 250px; object-fit: cover;">
+                        
+                        <button type="button" class="btn btn-sm btn-primary position-absolute bottom-0 end-0 rounded-circle m-2" id="btnUploadFotoVitima1" title="Alterar Foto" style="width: 36px; height: 36px; padding: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                            <i class="bi bi-camera-fill" style="line-height: 36px; font-size: 1.1rem;"></i>
+                        </button>
+                        <input type="file" id="inputFotoVitima1" class="d-none" accept="image/*">
+                    </div>
+                    
+                    <button type="button" class="btn btn-sm btn-outline-secondary mt-3 w-100" id="btnGaleriaVitima1" style="font-size: 0.75rem;">
+                        <i class="bi bi-images"></i> Galeria
+                    </button>
+                </div>
+
+                <!-- Coluna dos Dados Pessoais (Direita) -->
+                <div class="col-md-10 ps-3">
+
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
                     <input type="text" class="form-control" placeholder="Nome" name="Nome" id="inputNomeVitima1"
@@ -96,6 +116,8 @@
                         id="inputEnderecoVitima1" maxlength="200">
                 </div>
             </div>
+            </div>
+            </div> <!-- fecha row foto+dados -->
 
             <!-- Botões e Pesquisa Rápida de Documentos -->
             <div class="button-group d-flex flex-wrap gap-2 mt-4 mb-3">

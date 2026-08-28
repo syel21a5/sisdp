@@ -93,7 +93,8 @@ var rotasImpressaoVitima1 = {
     'PERICIA PAPILOSCOPICA EM LOCAL DE CRIME': '/pericia-papiloscopica-local-crime',
     'PERICIA DE CONFRONTACAO PAPILOSCOPICA': '/pericia-papiloscopica-confrontacao',
     'PERICIA PAPILOSCOPICA EM PESSOA': '/pericia-papiloscopica-pessoa',
-    'PERICIA PAPILOSCOPICA EM OBJETO': '/pericia-papiloscopica-objeto'
+    'PERICIA PAPILOSCOPICA EM OBJETO': '/pericia-papiloscopica-objeto',
+    'AUTO DE RECONHECIMENTO FOTOGRAFICO': '/auto-reconhecimento-fotografico/--DADOS--'
 };
 
 
@@ -112,7 +113,8 @@ var rotasImpressaoTestemunha1 = {
     'TERMO DE LIBERACAO DE MENOR - INFRATOR': "/liberacao-infrator/--DADOS--",
     "LAUDO TRAUMATOLOGICO": "/pericia-traumatologico/--DADOS--",
     "LAUDO TRAUMATOLOGICO IML": "/termo-traumatologico-iml/--DADOS--",
-    "CERTIDAO DE ASSINATURA INDIVIDUAL": "/certidao-assinaturas-individual/--DADOS--"
+    "CERTIDAO DE ASSINATURA INDIVIDUAL": "/certidao-assinaturas-individual/--DADOS--",
+    'AUTO DE RECONHECIMENTO FOTOGRAFICO': '/auto-reconhecimento-fotografico/--DADOS--'
 };
 
 // ROTAS PARA A ABA OUTRO (APFD) - Mesmas rotas da Testemunha1

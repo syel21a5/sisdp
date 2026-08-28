@@ -291,8 +291,10 @@ $(document).ready(function () {
 
                     $('#btnEditarCondutor, #btnExcluirCondutor').prop('disabled', false);
 
-                    // ✅ SALVAR VÍNCULO AO SELECIONAR CONDUTOR DA GRID
-                    setTimeout(salvarVinculoBoeCondutor, 300);
+                    // ✅ FOTO INSTANTÂNEA
+                    $('#previewFotoCondutor').attr('src', c.foto_url || '/images/b_PCPE.png');
+
+                    // ℹ️ NÃO salva vínculo aqui — apenas preenche. O chip é criado pelo botão Add.
                 } else {
                     mostrarErro(response.message || 'Erro ao buscar condutor');
                 }
@@ -333,6 +335,9 @@ $(document).ready(function () {
         $('#inputEndereco').val(dados.Endereco || dados.endereco || '');
 
         $('#btnEditarCondutor, #btnExcluirCondutor').prop('disabled', false);
+
+        // ✅ FOTO INSTANTÂNEA
+        $('#previewFotoCondutor').attr('src', dados.foto_url || '/images/b_PCPE.png');
 
         console.log('✅ CONDUTOR VINCULADO PREENCHIDO - ID:', currentCondutorId);
     };

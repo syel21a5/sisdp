@@ -361,7 +361,10 @@ $(document).ready(function () {
                     $('#btnEditarAutor1, #btnExcluirAutor1').prop('disabled', false);
 
                     // ✅ SALVAR VÍNCULO AO SELECIONAR AUTOR1 DA GRID
-                    setTimeout(salvarVinculoBoeAutor1, 300);
+                    // ℹ️ NÃO salva vínculo aqui — apenas preenche. O chip é criado pelo botão Add.
+
+                    // ✅ FOTO INSTANTÂNEA (sem AJAX extra)
+                    $imgPreview.attr('src', c.foto_url || '/images/b_PCPE.png');
                 } else {
                     mostrarErro(response.message || 'Erro ao buscar autor');
                 }
@@ -435,6 +438,9 @@ $(document).ready(function () {
         $('#btnEditarAutor1, #btnExcluirAutor1').prop('disabled', false);
 
         console.log('✅ AUTOR1 VINCULADA PREENCHIDA - ID:', currentAutor1Id);
+
+        // ✅ FOTO INSTANTÂNEA (sem AJAX extra)
+        $imgPreview.attr('src', dados.foto_url || '/images/b_PCPE.png');
     };
 
     // === LIMPAR / NOVO AUTOR1 ===
@@ -743,7 +749,7 @@ $(document).ready(function () {
                 instrucao: ($('#inputInstrucaoAutor1').val() || '').toUpperCase(),
                 telefone: $('#inputTelefoneAutor1').val(),
                 // Dados específicos de autor
-                tipopenal: ($('#inputTipoPenalAutor1').val() || '').toUpperCase(),
+                tipopenal: ($('#inputTipoPenalAutor1').val() || ''),
                 fianca: $('#inputFiancaAutor1').val(),
                 fianca_ext: ($('#inputFiancaExtAutor1').val() || '').toUpperCase(),
                 fianca_pago: $('#inputFiancaPagoAutor1').is(':checked'),
@@ -884,4 +890,177 @@ $(document).ready(function () {
             setTimeout(() => $sugestoesContainer.hide(), 150);
         });
     })();
+
+    // ==========================================
+    // LÓGICA DE FOTOS E GALERIA DO AUTOR1
+    // ==========================================
+    const $btnUpload = $('#btnUploadFotoAutor1');
+    const $inputFoto = $('#inputFotoAutor1');
+    const $imgPreview = $('#previewFotoAutor1');
+    const $btnGaleria = $('#btnGaleriaAutor1');
+
+    let cropperInstance = null;
+
+    $btnUpload.click(function() {
+        const idAutor = currentAutor1Id || $('#autor1_id').val();
+        if (!idAutor) {
+            alert('Por favor, salve ou selecione o Autor primeiro!');
+            return;
+        }
+        $inputFoto.click();
+    });
+
+    // Função que abre o modal de recorte
+    function abrirModalRecorte(imageURL) {
+        const idAutor = currentAutor1Id || $('#autor1_id').val();
+        if (!idAutor) {
+            alert('Por favor, salve ou selecione o Autor primeiro antes de colar uma foto!');
+            return;
+        }
+        
+        $('#imageToCrop').attr('src', imageURL);
+        $('#modalCropEnvolvido').modal('show');
+    }
+
+    // Quando o arquivo é selecionado
+    $inputFoto.change(function(e) {
+        const file = this.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            abrirModalRecorte(event.target.result);
+        };
+        reader.readAsDataURL(file);
+        
+        // Limpar o input para permitir selecionar a mesma imagem se cancelar
+        $inputFoto.val('');
+    });
+
+    // Captura o CTRL + V em qualquer lugar da tela
+    $(window).on('paste', function(e) {
+        // Verifica se a aba de dados pessoais do Autor está visível
+        if (!$('#dados-autor1').hasClass('active')) return;
+
+        const items = (e.originalEvent.clipboardData || e.clipboardData).items;
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf('image') === 0) {
+                const blob = items[i].getAsFile();
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    abrirModalRecorte(event.target.result);
+                };
+                reader.readAsDataURL(blob);
+                e.preventDefault(); // Evita colar o texto ou imagem em inputs
+                break;
+            }
+        }
+    });
+
+    // Inicializa ou destrói o Cropper quando o modal abre/fecha
+    $('#modalCropEnvolvido').on('shown.bs.modal', function() {
+        const image = document.getElementById('imageToCrop');
+        if (cropperInstance) {
+            cropperInstance.destroy();
+        }
+        cropperInstance = new Cropper(image, {
+            aspectRatio: 3 / 4, // Formato Retrato (Mugshot)
+            viewMode: 1,
+            autoCropArea: 0.9,
+            minContainerHeight: 400
+        });
+    }).on('hidden.bs.modal', function() {
+        if (cropperInstance) {
+            cropperInstance.destroy();
+            cropperInstance = null;
+        }
+        $('#imageToCrop').attr('src', '');
+    });
+
+    // Ao confirmar o corte, envia para o backend
+    $('#btnConfirmCrop').click(function() {
+        if (!cropperInstance) return;
+
+        const idAutor = currentAutor1Id || $('#autor1_id').val();
+        const $btnConfirm = $(this);
+        $btnConfirm.prop('disabled', true).html('<i class="spinner-border spinner-border-sm"></i> Salvando...');
+
+        cropperInstance.getCroppedCanvas({
+            maxWidth: 800,
+            maxHeight: 1066
+        }).toBlob(function(blob) {
+            const formData = new FormData();
+            formData.append('foto', blob, 'pasted_image.jpg'); // O nome não importa tanto
+            formData.append('tipo_envolvido', 'Autor');
+            formData.append('envolvido_id', idAutor);
+
+            $.ajax({
+                url: '/envolvidos-fotos',
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if(response.success) {
+                        $imgPreview.attr('src', response.data.url);
+                        window.mostrarSucesso('Foto recortada e salva com sucesso!');
+                        $('#modalCropEnvolvido').modal('hide');
+                    }
+                },
+                error: function(xhr) {
+                    window.mostrarErro('Erro ao fazer upload da foto.');
+                },
+                complete: function() {
+                    $btnConfirm.prop('disabled', false).html('<i class="bi bi-crop"></i> Cortar e Salvar');
+                }
+            });
+        }, 'image/jpeg', 0.85); // Salva como JPG com 85% de qualidade
+    });
+
+    // Função para carregar a foto ao selecionar autor da grid
+    window.carregarFotoPerfilAutor = function(autorId) {
+        console.log('📸 carregarFotoPerfilAutor CHAMADA com ID:', autorId);
+        $.ajax({
+            url: '/envolvidos-fotos',
+            method: 'GET',
+            data: { tipo_envolvido: 'Autor', envolvido_id: autorId },
+            success: function(response) {
+                console.log('📸 Resposta da API de fotos:', JSON.stringify(response));
+                if(response.success && response.data && response.data.length > 0) {
+                    const principal = response.data.find(f => f.is_principal == 1) || response.data[0];
+                    console.log('📸 Foto principal encontrada, URL:', principal.url);
+                    // Pré-carrega a imagem para transição suave
+                    const img = new Image();
+                    img.onload = function() {
+                        $imgPreview.attr('src', principal.url);
+                    };
+                    img.src = principal.url;
+                } else {
+                    console.log('📸 Nenhuma foto encontrada para este autor');
+                    $imgPreview.attr('src', '/images/b_PCPE.png');
+                }
+            },
+            error: function(xhr) {
+                console.error('📸 ERRO ao buscar fotos:', xhr.status, xhr.responseText);
+                $imgPreview.attr('src', '/images/b_PCPE.png');
+            }
+        });
+    }
+
+    // Carregar foto automaticamente se a página iniciar com um autor preenchido
+    // Usa um timeout maior para garantir que os vínculos tiveram tempo de preencher o formulário
+    setTimeout(() => {
+        const idInicial = currentAutor1Id || $('#autor1_id').val();
+        if (idInicial) {
+            console.log('📸 Auto-carregando foto do autor inicial:', idInicial);
+            window.carregarFotoPerfilAutor(idInicial);
+        }
+    }, 2000);
+
+    $('#btnNovoAutor1, #btnLimparAutor1').click(function () {
+        $imgPreview.attr('src', '/images/b_PCPE.png');
+    });
+
+    // A Galeria agora é gerenciada de forma unificada pelo script fotos_envolvidos.js
+
 });

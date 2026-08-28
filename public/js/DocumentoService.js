@@ -1,4 +1,4 @@
-﻿/**
+/**
  * DocumentoService.js
  * Centraliza a lógica de geração de documentos (PDF/Editor) do SisDP.
  * Resolve o problema de URLs Longas (Erro 414) usando POST + Cache Session.
@@ -275,8 +275,8 @@ const DocumentoService = {
             policial_2: ($('#inputPolicial2').val() || '').toUpperCase(),
             local_fato: ($('#inputEndFato').val() || '').toUpperCase(),
             hora_fato: $('#inputHoraFato').val() || '',
-            natureza: ($('#inputIncidenciaPenal').val() || '').toUpperCase(),
-            incidencia_penal: ($('#inputIncidenciaPenal').val() || '').toUpperCase(),
+            natureza: ($('#inputIncidenciaPenal').val() || ''),
+            incidencia_penal: ($('#inputIncidenciaPenal').val() || ''),
             data_fato: (() => {
                 const d = $('#inputDataFato').val();
                 if (d && d.includes('-')) {

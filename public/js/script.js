@@ -1102,6 +1102,8 @@ window.OcorrenciasApp = {
                         .done((resp) => {
                             const dados = resp.data || resp;
                             popularFormulario(prefixo, dados);
+                            // ✅ FOTO INSTANTÂNEA (vem junto nos dados do servidor)
+                            $('#previewFotoAutor1').attr('src', dados.foto_url || '/images/b_PCPE.png');
                             open();
                         })
                         .fail(() => {
@@ -1154,6 +1156,8 @@ window.OcorrenciasApp = {
                         .done((resp) => {
                             const dados = resp.data || resp;
                             popularFormulario(prefixo, dados);
+                            // ✅ FOTO INSTANTÂNEA
+                            $('#previewFotoVitima1').attr('src', dados.foto_url || '/images/b_PCPE.png');
                             open();
                         })
                         .fail(() => {
@@ -1201,6 +1205,8 @@ window.OcorrenciasApp = {
                     $.get(rota).done((resp) => {
                         const dados = resp.data || resp;
                         popularFormulario(prefixo, dados);
+                        // ✅ FOTO INSTANTÂNEA
+                        $('#previewFotoTestemunha1').attr('src', dados.foto_url || '/images/b_PCPE.png');
                         open();
                     }).fail(() => {
                         const det = (meta && meta.detalhes) || {};
@@ -1297,6 +1303,8 @@ window.OcorrenciasApp = {
                         $('#inputMae').val(dados.Mae || '');
                         $('#inputPai').val(dados.Pai || '');
                         $('#inputEndereco').val(dados.Endereco || '');
+                        // ✅ FOTO INSTANTÂNEA
+                        $('#previewFotoCondutor').attr('src', dados.foto_url || '/images/b_PCPE.png');
                         open();
                     }).fail(() => {
                         // Fallback minimal
@@ -2102,6 +2110,9 @@ window.OcorrenciasApp = {
             'OFICIO DE REMESSA DE PROCEDIMENTO'
         ];
 
+        // ✅ PROTEÇÃO: garante que o array nunca tenha duplicatas (evita itens repetidos no dropdown)
+        const documentosUnicos = [...new Set(documentos)];
+
         let selectedIndex = -1;
         let sugestoesAtuais = [];
 
@@ -2119,7 +2130,7 @@ window.OcorrenciasApp = {
         function filtrarSugestoes(termo) {
             if (!termo) return [];
             termo = termo.toUpperCase();
-            return documentos.filter(doc => doc.toUpperCase().includes(termo));
+            return documentosUnicos.filter(doc => doc.toUpperCase().includes(termo));
         }
 
         function mostrarSugestoes(sugestoes) {
@@ -2430,6 +2441,13 @@ window.OcorrenciasApp = {
         // ✅ NOVA LÓGICA: Interceptar OFÍCIO DE REMESSA DE PROCEDIMENTO
         if (documentoSelecionado === 'OFICIO DE REMESSA DE PROCEDIMENTO') {
             this._abrirModalOficioRemessa(dados, documentoSelecionado);
+            return;
+        }
+
+        // ✅ NOVA LÓGICA: Interceptar AUTO DE RECONHECIMENTO FOTOGRAFICO
+        if (documentoSelecionado === 'AUTO DE RECONHECIMENTO FOTOGRAFICO') {
+            const rota = rotasImpressaoInicio[documentoSelecionado];
+            abrirModalReconhecimentoFotografico(rota, dados);
             return;
         }
 
@@ -4706,6 +4724,7 @@ window.OcorrenciasApp = {
                     $('#inputIncidenciaPenal').val(response.data.incidencia_penal || '');
                     $('#inputComarca').val(response.data.comarca || '');
                     $('#inputStatus').val(response.data.status || '').trigger('change');
+                    $('#inputDataStatus').val(response.data.data_status || '');
                     $('#inputPrioridade').val(response.data.prioridade || ''); // ✅ NOVO: Prioridade
                     // Apreensão
                     $('#inputApreensao').val(response.data.Apreensao || '');

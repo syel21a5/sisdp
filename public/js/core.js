@@ -1,4 +1,4 @@
-﻿/**
+/**
  * core.js - Centralização de Utilitários Globais do SisDP
  * Este arquivo deve ser carregado em TODAS as páginas após o jQuery, Bootstrap e SweetAlert2.
  */
@@ -452,4 +452,157 @@ window.formatarObjetosApreendidos = function(texto) {
     });
 
     return linhasFormatadas.join('\n\n');
+};
+
+// ==========================================
+// MÓDULO: MODAL GLOBAL DE RECONHECIMENTO FOTOGRÁFICO
+// ==========================================
+
+let modalGlobalReconhecimento = null;
+let imagensGlobaisSelecionadas = [];
+let dadosPendentesReconhecimento = null;
+let rotaPendenteReconhecimento = null;
+let fotoUploadDataUrl = null;
+
+$(document).ready(function() {
+    if ($('#modalGlobalReconhecimento').length) {
+        modalGlobalReconhecimento = new bootstrap.Modal(document.getElementById('modalGlobalReconhecimento'));
+    }
+
+    $('#globalUploadFotoReal').on('change', function(e) {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                fotoUploadDataUrl = event.target.result;
+                $('#globalPreviewFotoReal').attr('src', fotoUploadDataUrl).show();
+            }
+            reader.readAsDataURL(file);
+        } else {
+            fotoUploadDataUrl = null;
+            $('#globalPreviewFotoReal').hide();
+        }
+    });
+});
+
+window.abrirModalReconhecimentoFotografico = function(rota, dados) {
+    if (!modalGlobalReconhecimento) {
+        console.error("Modal global não encontrado na DOM.");
+        DocumentoService.gerar(rota, dados);
+        return;
+    }
+
+    rotaPendenteReconhecimento = rota;
+    dadosPendentesReconhecimento = dados;
+
+    imagensGlobaisSelecionadas = [];
+    fotoUploadDataUrl = null;
+    $('#globalUploadFotoReal').val('');
+    $('#globalPreviewFotoReal').hide();
+    $('#globalResultadoBuscaImagens').html('<div class="col-12 text-center text-muted py-4">Selecione os filtros acima e clique em "Filtrar" para buscar suspeitos.</div>');
+    atualizarBotaoGerarAuto();
+
+    modalGlobalReconhecimento.show();
+};
+
+window.globalBuscarImagensAlbum = function() {
+    const dadosFiltro = {
+        termo: $('#global_filtro_termo').val(),
+        sexo: $('#global_filtro_sexo').val(),
+        cor_pele: $('#global_filtro_cor_pele').val(),
+        cabelo: $('#global_filtro_cabelo').val(),
+    };
+
+    $('#globalResultadoBuscaImagens').html('<div class="col-12 text-center py-4"><div class="spinner-border text-primary" role="status"></div></div>');
+
+    $.ajax({
+        url: '/api/album-suspeitos/pesquisar',
+        method: 'GET',
+        data: dadosFiltro,
+        success: function(response) {
+            if (response.success) {
+                globalRenderizarImagens(response.data);
+            }
+        },
+        error: function(xhr) {
+            $('#globalResultadoBuscaImagens').html('<div class="col-12 text-center text-danger">Erro ao buscar imagens.</div>');
+        }
+    });
+};
+
+window.globalRenderizarImagens = function(imagens) {
+    const container = $('#globalResultadoBuscaImagens');
+    container.empty();
+
+    if (imagens.length === 0) {
+        container.html('<div class="col-12 text-center text-muted py-4">Nenhuma imagem encontrada.</div>');
+        return;
+    }
+
+    imagens.forEach(function(img) {
+        const isSelected = imagensGlobaisSelecionadas.find(i => i.id === img.id) ? 'border-primary border-4' : '';
+        const card = `
+            <div class="col-md-3 mb-3">
+                <div class="card h-100 cursor-pointer ${isSelected}" 
+                     data-id="${img.id}" 
+                     data-url="${img.foto_url}"
+                     onclick="globalToggleSelecaoImagem(this)">
+                    <img src="${img.foto_url}" class="card-img-top" style="height: 120px; object-fit: cover;">
+                    <div class="card-body p-1 text-center" style="font-size: 11px;">
+                        <strong>${img.nome || 'N/I'}</strong>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.append(card);
+    });
+    
+    if($('style:contains(".cursor-pointer")').length === 0){
+        $('<style>.cursor-pointer { cursor: pointer; }</style>').appendTo('head');
+    }
+};
+
+window.globalToggleSelecaoImagem = function(elemento) {
+    const card = $(elemento);
+    const id = card.data('id');
+    const url = card.data('url');
+
+    const index = imagensGlobaisSelecionadas.findIndex(i => i.id === id);
+
+    if (index > -1) {
+        imagensGlobaisSelecionadas.splice(index, 1);
+        card.removeClass('border-primary border-4');
+    } else {
+        if (imagensGlobaisSelecionadas.length >= 4) {
+            alert('Você pode selecionar no máximo 4 imagens do álbum.');
+            return;
+        }
+        imagensGlobaisSelecionadas.push({ id: id, url: url });
+        card.addClass('border-primary border-4');
+    }
+
+    atualizarBotaoGerarAuto();
+};
+
+function atualizarBotaoGerarAuto() {
+    $('#globalCountSelecionadas').text(imagensGlobaisSelecionadas.length);
+}
+
+window.globalGerarAutoReconhecimento = function() {
+    let urlsFinais = [];
+
+    if (fotoUploadDataUrl) {
+        urlsFinais.push(fotoUploadDataUrl);
+    }
+
+    imagensGlobaisSelecionadas.forEach(img => {
+        if (urlsFinais.length < 4) {
+            urlsFinais.push(img.url);
+        }
+    });
+
+    dadosPendentesReconhecimento.imagens_selecionadas = urlsFinais;
+
+    DocumentoService.gerar(rotaPendenteReconhecimento, dadosPendentesReconhecimento);
+    modalGlobalReconhecimento.hide();
 };
