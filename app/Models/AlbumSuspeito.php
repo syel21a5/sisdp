@@ -25,4 +25,14 @@ class AlbumSuspeito extends Model
         'observacoes',
         'usuario_id'
     ];
+
+    /**
+     * URL da foto com cache-busting (?v=timestamp do arquivo)
+     */
+    public function url()
+    {
+        $path = storage_path('app/public/' . $this->caminho_foto);
+        $v = file_exists($path) ? filemtime($path) : time();
+        return asset('storage/' . $this->caminho_foto) . '?v=' . $v;
+    }
 }
